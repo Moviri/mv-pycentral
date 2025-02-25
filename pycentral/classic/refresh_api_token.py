@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from pycentral.url_utils import RefreshUrl
-from pycentral.base_utils import console_logger
+from .url_utils import RefreshUrl
+from .base_utils import console_logger
 
 urls = RefreshUrl()
 

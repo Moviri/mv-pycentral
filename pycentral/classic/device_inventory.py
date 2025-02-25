@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from pycentral.url_utils import InventoryUrl
-from pycentral.base_utils import console_logger
+from .url_utils import InventoryUrl
+from .base_utils import console_logger
 
 logger = console_logger("DEVICE INVENTORY")
 urls = InventoryUrl()
@@ -217,6 +217,7 @@ class Inventory(object):
         apiData = device_details
         resp = conn.command(apiMethod="POST", apiPath=path, apiData=apiData)
         extra_resp = None
+        error_devices = []
         if 'extra' in resp['msg']:
             extra_resp = resp['msg']['extra']
         if (resp["code"] == 200):

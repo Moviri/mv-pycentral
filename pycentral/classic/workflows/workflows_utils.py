@@ -26,7 +26,7 @@ import json
 import yaml
 import csv
 
-from pycentral.base import ArubaCentralBase
+from pycentral.classic.base import ArubaCentralBase
 
 
 def get_file_contents(filename, logger=None):

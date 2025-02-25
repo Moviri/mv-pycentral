@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from pycentral.url_utils import ConfigurationUrl, urlJoin
-from pycentral.base_utils import console_logger
+from .url_utils import ConfigurationUrl, urlJoin
+from .base_utils import console_logger
 
 urls = ConfigurationUrl()
 DEVICE_TYPES = ["IAP", "ArubaSwitch", "CX", "MobilityController"]

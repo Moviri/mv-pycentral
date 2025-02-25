@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from pycentral.base_utils import console_logger
-from pycentral.url_utils import urlJoin, MspURL
+from .base_utils import console_logger
+from .url_utils import urlJoin, MspURL
 
 urls = MspURL()
 logger = console_logger("MSP")
@@ -121,7 +121,8 @@ class MSP(object):
         """
         apiPath = urls.MSP["V2_CUSTOMER"]
         if self.__validate_customer_attributes__(customer_details):
-            customer_apiData = self.__create_customer_body__(conn, customer_details)
+            customer_apiData = self.__create_customer_body__(
+                conn, customer_details)
             resp = conn.command(apiMethod="POST",
                                 apiPath=apiPath,
                                 apiData=customer_apiData)
@@ -255,7 +256,8 @@ class MSP(object):
                 return
 
         if self.__validate_customer_attributes__(customer_details):
-            customer_apiData = self.__create_customer_body__(conn, customer_details)
+            customer_apiData = self.__create_customer_body__(
+                conn, customer_details)
             apiPath = f'{urls.MSP["V2_CUSTOMER"]}/{customer_id}'
             resp = conn.command(
                 apiMethod="PUT",

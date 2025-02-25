@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 import sys
-from pycentral.url_utils import urlJoin, MonitoringUrl
-from pycentral.base_utils import console_logger
+from .url_utils import urlJoin, MonitoringUrl
+from .base_utils import console_logger
 
 urls = MonitoringUrl()
 logger = console_logger("MONITORING")
