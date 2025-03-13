@@ -13,7 +13,7 @@ SUB_GET_LIMIT = 50
 
 SUB_LIMIT = 5
 
-class Subscription(object):
+class Subscriptions(object):
     def get_all_subscriptions(self, conn, select=None):
         conn.logger.info("Getting all subscriptions in GLP workspace")
         """
