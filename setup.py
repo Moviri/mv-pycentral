@@ -5,7 +5,7 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as fh:
     long_description = fh.read()
 
-VERSION = "2.0.0a2"
+VERSION = "2.0.0a3"
 
 setuptools.setup(
     name="pycentral",
@@ -16,9 +16,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/aruba/pycentral",
-    packages=setuptools.find_packages(
-        exclude=["docs", "tests", "sample_scripts"]
-    ),
+    packages=setuptools.find_packages(exclude=["docs", "tests", "sample_scripts"]),
     classifiers=[
         "Programming Language :: Python :: 3 :: Only",
         "License :: OSI Approved :: MIT License",

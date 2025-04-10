@@ -1,17 +1,15 @@
 # MIT License
 #
-# Copyright (c) 2020 Aruba, a Hewlett Packard Enterprise company
-#
+# Copyright (c) 2025 HPE Aruba Networking
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
+# n the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,13 +17,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
 import oauthlib
 from requests_oauthlib import OAuth2Session
 from requests.auth import HTTPBasicAuth
 from oauthlib.oauth2 import BackendApplicationClient
 import json
 import requests
-from .utils.base_utils import get_url, new_parse_input_args, console_logger
+from .utils.base_utils import (
+    build_url,
+    new_parse_input_args,
+    console_logger,
+    save_access_token,
+)
 from .utils.url_utils import NewCentralURLs
 from .exceptions import LoginError, ResponseError
 
@@ -39,13 +43,17 @@ class NewCentralBase:
         Initialize the NewCentralBase class.
 
         :param token_info: Dictionary containing token information for supported applications - new_central, glp.
-        :type token_info: dict
+                  Can also be a string path to a YAML or JSON file with token information.
+        :type token_info: dict or str
         :param logger: Logger instance, defaults to None.
         :type logger: logging.Logger, optional
         :param log_level: Logging level, defaults to "DEBUG".
         :type log_level: str, optional
         """
         self.token_info = new_parse_input_args(token_info)
+        self.token_file_path = None
+        if isinstance(token_info, str):
+            self.token_file_path = token_info
         self.logger = self.set_logger(log_level, logger)
         for app in self.token_info:
             app_token_info = self.token_info[app]
@@ -53,11 +61,11 @@ class NewCentralBase:
                 "access_token" not in app_token_info
                 or app_token_info["access_token"] is None
             ):
-                self.token_info[app]["access_token"] = self.create_token(app)
+                self.create_token(app)
 
     def set_logger(self, log_level, logger=None):
         """
-        Set the logger for the class.
+        Set up the logger.
 
         :param log_level: Logging level.
         :type log_level: str
@@ -75,11 +83,17 @@ class NewCentralBase:
         """
         Create a new access token for the specified application.
 
-        :param app_name: Name of the application.
+        This function generates a new access token using the client credentials
+        for the specified application, updates the `self.token_info` dictionary
+        with the new token, and optionally saves it to a file. The token is also
+        returned.
+
+        :param app_name: Name of the application. Supported applications: "new_central", "glp".
         :type app_name: str
         :return: Access token.
         :rtype: str
         :raises LoginError: If there is an error during token creation.
+        :raises SystemExit: If invalid client credentials are provided.
         """
         client_id, client_secret = self._return_client_credentials(app_name)
         client = BackendApplicationClient(client_id)
@@ -89,20 +103,26 @@ class NewCentralBase:
 
         try:
             self.logger.info(f"Attempting to create new token from {app_name}")
-            token = oauth.fetch_token(
-                token_url=urls.Authentication["OAUTH"], auth=auth
-            )
+            token = oauth.fetch_token(token_url=urls.Authentication["OAUTH"], auth=auth)
 
             if "access_token" in token:
                 self.logger.info(
                     f"{app_name} Login Successful.. Obtained Access Token!"
                 )
+                self.token_info[app_name]["access_token"] = token["access_token"]
+                if self.token_file_path:
+                    save_access_token(
+                        app_name,
+                        token["access_token"],
+                        self.token_file_path,
+                        self.logger,
+                    )
                 return token["access_token"]
         except oauthlib.oauth2.rfc6749.errors.InvalidClientError:
             exitString = (
                 "Invalid client_id or client_secret provided for "
                 + app_name
-                + ". Please provide valid credentials to create an access token"
+                + ". Please provide valid credentials to create an access token."
             )
             exit(exitString)
         except Exception as e:
@@ -110,7 +130,7 @@ class NewCentralBase:
 
     def handle_expired_token(self, app_name):
         """
-        Handle expired access token for the specified application.
+        Handle expired access token by creating a new one.
 
         :param app_name: Name of the application.
         :type app_name: str
@@ -118,16 +138,12 @@ class NewCentralBase:
         self.logger.info(f"{app_name} access Token has expired.")
         self.logger.info("Handling Token Expiry...")
         client_id, client_secret = self._return_client_credentials(app_name)
-        if any(
-            credential is None for credential in [client_id, client_secret]
-        ):
+        if any(credential is None for credential in [client_id, client_secret]):
             exit(
                 f"Please provide client_id and client_secret in {app_name} required to generate an access token"
             )
         else:
-            self.token_info[app_name]["access_token"] = self.create_token(
-                app_name
-            )
+            self.create_token(app_name)
 
     def command(
         self,
@@ -142,31 +158,33 @@ class NewCentralBase:
         """
         Execute an API command.
 
-        :param api_method: HTTP method for the API request.
+        :param api_method: HTTP method for the API call.
         :type api_method: str
         :param api_path: API endpoint path.
         :type api_path: str
-        :param app_name: Name of the application, defaults to "new_central".
+        :param app_name: Name of the application, defaults to "new_central". If you need to make API call to GLP, set this attribute to glp
         :type app_name: str, optional
         :param api_data: Data to be sent in the API request, defaults to {}.
         :type api_data: dict, optional
-        :param api_params: URL query parameters for the API request, defaults to {}.
+        :param api_params: URL parameters for the API request, defaults to {}.
         :type api_params: dict, optional
         :param headers: HTTP headers for the API request, defaults to {}.
         :type headers: dict, optional
         :param files: Files to be sent in the API request, defaults to {}.
         :type files: dict, optional
-        :return: API response.
+        :return: Result of the API call.
         :rtype: dict
-        :raises ResponseError: If there is an error during the API request.
+        :raises ResponseError: If there is an error during the API call.
         """
+        self._validate_request(app_name, api_method)
+
         retry = 0
         result = ""
-        self._validate_method(api_method)
+
         limit_reached = False
         try:
             while not limit_reached:
-                url = get_url(self.token_info[app_name]["base_url"], api_path)
+                url = build_url(self.token_info[app_name]["base_url"], api_path)
 
                 if not headers and not files:
                     headers = {
@@ -227,7 +245,7 @@ class NewCentralBase:
         files={},
     ):
         """
-        Make an API call to New Central or GLP.
+        Make an API call to application(New Central or GLP) via the requests library.
 
         :param url: HTTP Request URL string.
         :type url: str
@@ -235,17 +253,17 @@ class NewCentralBase:
         :type access_token: str
         :param data: HTTP Request payload, defaults to {}.
         :type data: dict, optional
-        :param method: HTTP Request Method supported by New Central & GLP, defaults to "GET".
+        :param method: HTTP Request Method supported by GLP/New Central, defaults to "GET".
         :type method: str, optional
         :param headers: HTTP Request headers, defaults to {}.
         :type headers: dict, optional
-        :param params: HTTP url query parameters, defaults to {}.
+        :param params: HTTP URL query parameters, defaults to {}.
         :type params: dict, optional
-        :param files: Files dictionary with file pointer depending on API endpoint as accepted by New Central or GLP, defaults to {}.
+        :param files: Files dictionary with file pointer depending on API endpoint as accepted by GLP/New Central, defaults to {}.
         :type files: dict, optional
         :return: HTTP response of API call using requests library.
         :rtype: requests.models.Response
-        :raises ResponseError: If there is an error during the API request.
+        :raises ResponseError: If there is an error during the API call.
         """
         resp = None
 
@@ -261,9 +279,7 @@ class NewCentralBase:
             data=data,
         )
         prepped = s.prepare_request(req)
-        settings = s.merge_environment_settings(
-            prepped.url, {}, None, True, None
-        )
+        settings = s.merge_environment_settings(prepped.url, {}, None, True, None)
         try:
             resp = s.send(prepped, **settings)
             return resp
@@ -274,20 +290,32 @@ class NewCentralBase:
             self.logger.error(str1 + str2)
             raise ResponseError(err_str, err)
 
-    def _validate_method(self, method):
+    def _validate_request(self, app_name, method):
         """
-        Validate the HTTP method.
+        Validate that provided app has access_token and a valid HTTP method.
 
-        :param method: HTTP method.
+        :param app_name: Name of the application.
+        :type app_name: str
+        :param method: HTTP method to be validated.
         :type method: str
-        :raises SystemExit: If the method is not supported.
+        :raises ValueError: If app_name is not in token_info or access_token is missing for provided app_name.
+        :raises ValueError: If the method is not supported.
         """
-        if method not in SUPPORTED_API_METHODS:
-            str1 = "HTTP method '%s' not supported.. " % method
-            self.logger.error(str1)
-            exit(
-                f'Please provide an API with one of the supported methods - {", ".join(SUPPORTED_API_METHODS)}'
+        if app_name not in self.token_info:
+            error_string = (
+                f"Missing access_token for {app_name}. Please provide access token "
+                f"or client credentials to generate an access token for app - {app_name}"
             )
+            self.logger.error(error_string)
+            raise ValueError(error_string)
+
+        if method not in SUPPORTED_API_METHODS:
+            error_string = (
+                f"HTTP method '{method}' not supported. Please provide an API with one of the "
+                f"supported methods - {', '.join(SUPPORTED_API_METHODS)}"
+            )
+            self.logger.error(error_string)
+            raise ValueError(error_string)
 
     def _return_client_credentials(self, app_name):
         """
@@ -310,17 +338,29 @@ class NewCentralBase:
 
 class BearerAuth(requests.auth.AuthBase):
     """This class uses Bearer Auth method to generate the authorization header
-    from New Central & GLP Access Token.
+    from New Central or GLP Access Token.
 
     :param token: New Central or GLP Access Token
     :type token: str
     """
 
     def __init__(self, token):
-        """Constructor Method"""
+        """
+        Constructor Method.
+
+        :param token: New Central or GLP Access Token
+        :type token: str
+        """
         self.token = token
 
     def __call__(self, r):
-        """Internal method returning auth"""
+        """
+        Internal method returning auth.
+
+        :param r: Request object.
+        :type r: requests.models.PreparedRequest
+        :return: Modified request object with authorization header.
+        :rtype: requests.models.PreparedRequest
+        """
         r.headers["authorization"] = "Bearer " + self.token
         return r

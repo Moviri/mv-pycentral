@@ -1,4 +1,27 @@
+# MIT License
+#
+# Copyright (c) 2025 HPE Aruba Networking
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# n the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 from copy import deepcopy
+import os
+import yaml
+import json
 
 
 def __setattrs__(self, config_attrs):
@@ -41,3 +64,29 @@ def create_attrs(obj, data_dictionary):
         k = k.replace("-", "_")
 
         obj.__dict__[k] = v
+
+
+def parse_input_file(file_path):
+    """
+    Parse data from a file (YAML or JSON).
+
+    :param file_path: Path to the file.
+    :type file_path: str
+    :return: Parsed data.
+    :rtype: dict
+    :raises ValueError: If the file format is unsupported or file cannot be loaded.
+    :raises FileNotFoundError: If the specified file does not exist.
+    """
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    try:
+        with open(file_path, "r") as file:
+            if file_path.endswith(".yaml") or file_path.endswith(".yml"):
+                return yaml.safe_load(file)
+            elif file_path.endswith(".json"):
+                return json.load(file)
+            else:
+                raise ValueError("Unsupported file format. Use YAML or JSON.")
+    except Exception as e:
+        raise ValueError(f"Failed to parse data from file: {e}")
