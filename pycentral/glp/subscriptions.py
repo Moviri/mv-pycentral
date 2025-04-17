@@ -1,3 +1,6 @@
+# (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
+# MIT License
+
 from ..utils.url_utils import NewCentralURLs, urlJoin
 from ..utils.glp_utils import rate_limit_check, check_progress
 import time
@@ -12,6 +15,7 @@ POST_RPM = 4
 SUB_GET_LIMIT = 50
 
 SUB_LIMIT = 5
+
 
 class Subscriptions(object):
     def get_all_subscriptions(self, conn, select=None):
@@ -181,15 +185,11 @@ class Subscriptions(object):
             )
 
         if resp["code"] == 202:
-            conn.logger.info(
-                "Add subscription(s) to workspace request accepted..."
-            )
+            conn.logger.info("Add subscription(s) to workspace request accepted...")
             id = resp["msg"]["transactionId"]
             status = check_progress(conn, id, self, limit=SUB_LIMIT)
             if status[0]:
-                conn.logger.info(
-                    "Sucessfully added subscription(s) to workspace!"
-                )
+                conn.logger.info("Sucessfully added subscription(s) to workspace!")
                 return status[1]
             else:
                 conn.logger.error("Add subscription(s) to workspace failed!")

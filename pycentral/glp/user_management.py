@@ -1,3 +1,6 @@
+# (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
+# MIT License
+
 from ..utils.url_utils import NewCentralURLs, urlJoin
 
 urls = NewCentralURLs()
