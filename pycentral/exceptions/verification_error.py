@@ -1,5 +1,5 @@
-# (C) Copyright 2019-2022 Hewlett Packard Enterprise Development LP.
-# Apache License 2.0
+# (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
+# MIT License
 
 from .pycentral_error import PycentralError
 

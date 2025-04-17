@@ -1,3 +1,6 @@
+# (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
+# MIT License
+
 from .base_utils import console_logger
 
 import time
@@ -49,9 +52,10 @@ def check_progress(conn, id, module_instance, limit=None):
         elif module_instance.__class__.__name__ == "Subscriptions":
             limit = SUB_LIMIT
         else:
-            raise ValueError("module_instance must be an instance of Devices or Subscription")
+            raise ValueError(
+                "module_instance must be an instance of Devices or Subscription"
+            )
 
-        
     updated = False
     while not updated:
         status = module_instance.get_status(conn, id)
@@ -65,9 +69,7 @@ def check_progress(conn, id, module_instance, limit=None):
             return (True, status)
         elif status["msg"]["status"] == "TIMEOUT":
             updated = True
-            conn.logger.error(
-                f"Async operation timed out for transaction {id}!"
-            )
+            conn.logger.error(f"Async operation timed out for transaction {id}!")
             return (False, status)
         elif status["msg"]["status"] == "FAILED":
             updated = True

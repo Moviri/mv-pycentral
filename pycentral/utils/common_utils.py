@@ -1,4 +1,10 @@
+# (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
+# MIT License
+
 from copy import deepcopy
+import os
+import yaml
+import json
 
 
 def __setattrs__(self, config_attrs):
@@ -41,3 +47,29 @@ def create_attrs(obj, data_dictionary):
         k = k.replace("-", "_")
 
         obj.__dict__[k] = v
+
+
+def parse_input_file(file_path):
+    """
+    Parse data from a file (YAML or JSON).
+
+    :param file_path: Path to the file.
+    :type file_path: str
+    :return: Parsed data.
+    :rtype: dict
+    :raises ValueError: If the file format is unsupported or file cannot be loaded.
+    :raises FileNotFoundError: If the specified file does not exist.
+    """
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    try:
+        with open(file_path, "r") as file:
+            if file_path.endswith(".yaml") or file_path.endswith(".yml"):
+                return yaml.safe_load(file)
+            elif file_path.endswith(".json"):
+                return json.load(file)
+            else:
+                raise ValueError("Unsupported file format. Use YAML or JSON.")
+    except Exception as e:
+        raise ValueError(f"Failed to parse data from file: {e}")
