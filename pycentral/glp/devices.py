@@ -8,6 +8,7 @@ import time
 
 urls = NewCentralURLs()
 
+DEVICE_GET_LIMIT = 2000
 # Input size per request for DEVICE module APIs.
 INPUT_SIZE = 5
 # Rate limit for PATCH Device functions.
@@ -20,33 +21,34 @@ class Devices(object):
     def get_all_devices(self, conn, select=None):
         """
         Get a list of devices managed in a workspace.
-        Rate limits are enforced on this API. 80 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
 
         :param select: A comma separated list of select properties to display in the response. The default is that all properties are returned.
-        :type select: Array of strings unique (Example: sort=serialNumber,macAddress desc)
-        :return: API response
-        :rtype: dict
+        :type select: Array of strings unique (Example: select=serialNumber,macAddress)
+        :return: A list of all devices in the workspace, or an empty list if an error occurs.
+        :rtype: list of dict
         """
         conn.logger.info("Getting all devices in GLP workspace")
-        limit = 2000
+        limit = DEVICE_GET_LIMIT
         offset = 0
-
-        result = []
+        device_list = []
 
         while True:
             resp = self.get_device(conn, limit=limit, offset=offset, select=select)
-            if resp["code"] == 200:
-                resp_message = resp["msg"]
-                if resp_message["count"] < 2000:
-                    result = resp
-                    break
-                else:
-                    result.append(resp)
-                    offset += limit
-            else:
-                print("Error fetching list of devices", resp["code"])
-
-        return result
+            if resp["code"] != 200:
+                conn.logger.error(
+                    f"Error fetching list of devices: {resp['code']} - {resp['msg']}"
+                )
+                device_list = []
+                break
+            device_resp_message = resp["msg"]
+            device_list.extend(device_resp_message["items"])
+            if len(device_list) == device_resp_message["total"]:
+                conn.logger.info(
+                    f"Total devices fetched from account: {len(device_list)}"
+                )
+                break
+            offset += DEVICE_GET_LIMIT
+        return device_list
 
     def get_device(
         self, conn, limit=2000, offset=0, filter=None, select=None, sort=None
