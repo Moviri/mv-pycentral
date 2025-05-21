@@ -22,17 +22,17 @@ class Subscriptions(object):
         conn.logger.info("Getting all subscriptions in GLP workspace")
         """
         Get all subscriptions managed in a workspace.
-        Rate limits are enforced on this API. 40 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
+        Rate limits are enforced on this API. 60 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
         
         :param select: A comma separated list of select properties to return in the response. By default, all properties are returned.
         :type select: Array of strings unique (Example: select=id,key)
-        :return: API response
-        :rtype: dict
+        :return: A list of all subscriptions in the workspace, or an empty list if an error occurs.
+        :rtype: list of dict
         """
 
         limit = SUB_GET_LIMIT
         offset = 0
-
+        count = 0
         result = []
 
         while True:
@@ -41,14 +41,19 @@ class Subscriptions(object):
             )
             if resp["code"] == 200:
                 resp_message = resp["msg"]
-                if resp_message["count"] < SUB_GET_LIMIT:
-                    result = resp
+                count += resp_message["count"]
+                for subscription in resp_message["items"]:
+                    result.append(subscription)
+                if count == resp_message["total"]:
                     break
                 else:
-                    result.append(resp)
                     offset += limit
             else:
-                print("Error fetching list of devices", resp["code"])
+                conn.logger.error(
+                    f"Error fetching list of subscriptions: {resp['code']} - {resp['msg']}"
+                )
+                result = []
+                break
 
         return result
 
