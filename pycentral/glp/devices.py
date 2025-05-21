@@ -414,7 +414,7 @@ class Devices(object):
             for i in range(len(queue)):
                 params = {"id": queue[i]}
 
-                data = {"application": application, "region": region}
+                data = {"application": {"id": application}, "region": region}
 
                 time.sleep(wait_time)
 
@@ -431,7 +431,7 @@ class Devices(object):
         else:
             params = {"id": devices}
 
-            data = {"application": application, "region": region}
+            data = {"application": {"id": application}, "region": region}
 
             resp = conn.command(
                 api_method="PATCH",
