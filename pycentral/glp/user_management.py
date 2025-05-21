@@ -63,7 +63,7 @@ class UserMgmt(object):
         :param id: target user id
         :type id: string
         :return: response object as provided by 'command' function in
-            class: `pycentral.ArubaCentralBase`
+            class: `pycentral.NewCentralBase`
         :rtype: dict
         """
         if email:
@@ -83,7 +83,7 @@ class UserMgmt(object):
         Get user ID in a GLP workspace by email
 
         :param conn: new pycentral base object
-        :type conn: class: `pycentral.ArubaCentralBase`
+        :type conn: class: `pycentral.NewCentralBase`
         :param email: account username (email address)
         :type email: string
         :return: Tuple of two elements. First element of the tuple returns True
@@ -130,7 +130,7 @@ class UserMgmt(object):
         :param send_link: set to send welcome email 
         :type send_link: boolean (Example: true)
         :return: response as provided by 'command' function in
-            class: `pycentral.ArubaCentralBase`
+            class: `pycentral.NewCentralBase`
         :rtype: dict
         """
 

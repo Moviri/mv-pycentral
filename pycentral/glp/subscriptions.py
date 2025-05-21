@@ -22,17 +22,17 @@ class Subscriptions(object):
         conn.logger.info("Getting all subscriptions in GLP workspace")
         """
         Get all subscriptions managed in a workspace.
-        Rate limits are enforced on this API. 40 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
+        Rate limits are enforced on this API. 60 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
         
         :param select: A comma separated list of select properties to return in the response. By default, all properties are returned.
         :type select: Array of strings unique (Example: select=id,key)
-        :return: API response
-        :rtype: dict
+        :return: A list of all subscriptions in the workspace, or an empty list if an error occurs.
+        :rtype: list of dict
         """
 
         limit = SUB_GET_LIMIT
         offset = 0
-
+        count = 0
         result = []
 
         while True:
@@ -41,24 +41,35 @@ class Subscriptions(object):
             )
             if resp["code"] == 200:
                 resp_message = resp["msg"]
-                if resp_message["count"] < SUB_GET_LIMIT:
-                    result = resp
+                count += resp_message["count"]
+                for subscription in resp_message["items"]:
+                    result.append(subscription)
+                if count == resp_message["total"]:
                     break
                 else:
-                    result.append(resp)
                     offset += limit
             else:
-                print("Error fetching list of devices", resp["code"])
+                conn.logger.error(
+                    f"Error fetching list of subscriptions: {resp['code']} - {resp['msg']}"
+                )
+                result = []
+                break
 
         return result
 
     def get_subscription(
-        self, conn, filter=None, select=None, sort=None, limit=SUB_GET_LIMIT, offset=0
+        self,
+        conn,
+        filter=None,
+        select=None,
+        sort=None,
+        limit=SUB_GET_LIMIT,
+        offset=0,
     ):
-        conn.logger.info("Getting all subscriptions in GLP workspace")
+        conn.logger.info("Getting subscriptions in GLP workspace")
         """
         Get a subscription managed in a workspace.
-        Rate limits are enforced on this API. 40 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
+        Rate limits are enforced on this API. 60 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
 
         :param filter: Filter expressions consisting of simple comparison operations joined by logical operators.
         :type filter: string (Example: filter=key eq 'MHNBAP0001' and key in 'PAYHAH3YJE6THY, E91A7FDFE04D44C339')
@@ -93,7 +104,7 @@ class Subscriptions(object):
         Get subscription ID in a GLP workspace by key.
 
         :param conn: new pycentral base object
-        :type conn: class: `pycentral.ArubaCentralBase`
+        :type conn: class: `pycentral.NewCentralBase`
         :param serial: str, subscription key
 
         :return: Tuple of two elements. First element of the tuple returns True
@@ -119,7 +130,7 @@ class Subscriptions(object):
         :param id: str, transaction ID from async API request
 
         :return: response as provided by 'command' function in
-            class: `pycentral.ArubaCentralBase`
+            class: `pycentral.NewCentralBase`
         :rtype: dict
         """
 

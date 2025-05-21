@@ -5,14 +5,14 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as fh:
     long_description = fh.read()
 
-VERSION = "2.0a3"
+VERSION = "2.0a4"
 
 setuptools.setup(
     name="pycentral",
     version=VERSION,
     author="aruba-automation",
     author_email="aruba-automation@hpe.com",
-    description="Aruba Central Python Package",
+    description="HPE Aruba Networking Central Python Package",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/aruba/pycentral",
@@ -35,6 +35,7 @@ setuptools.setup(
         "requests_oauthlib==2.0.0",
         "pytz==2024.1",
         "termcolor==2.4.0",
+        "tqdm==4.67.1",
     ],
     extras_require={"colorLog": ["colorlog"]},
 )

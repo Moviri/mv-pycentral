@@ -8,6 +8,7 @@ import time
 
 urls = NewCentralURLs()
 
+DEVICE_GET_LIMIT = 2000
 # Input size per request for DEVICE module APIs.
 INPUT_SIZE = 5
 # Rate limit for PATCH Device functions.
@@ -20,43 +21,51 @@ class Devices(object):
     def get_all_devices(self, conn, select=None):
         """
         Get a list of devices managed in a workspace.
-        Rate limits are enforced on this API. 80 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
 
         :param select: A comma separated list of select properties to display in the response. The default is that all properties are returned.
-        :type select: Array of strings unique (Example: sort=serialNumber,macAddress desc)
-        :return: API response
-        :rtype: dict
+        :type select: Array of strings unique (Example: select=serialNumber,macAddress)
+        :return: A list of all devices in the workspace, or an empty list if an error occurs.
+        :rtype: list of dict
         """
         conn.logger.info("Getting all devices in GLP workspace")
-        limit = 2000
+        limit = DEVICE_GET_LIMIT
         offset = 0
-
-        result = []
+        device_list = []
 
         while True:
             resp = self.get_device(conn, limit=limit, offset=offset, select=select)
-            if resp["code"] == 200:
-                resp_message = resp["msg"]
-                if resp_message["count"] < 2000:
-                    result = resp
-                    break
-                else:
-                    result.append(resp)
-                    offset += limit
-            else:
-                print("Error fetching list of devices", resp["code"])
-
-        return result
+            if resp["code"] != 200:
+                conn.logger.error(
+                    f"Error fetching list of devices: {resp['code']} - {resp['msg']}"
+                )
+                device_list = []
+                break
+            device_resp_message = resp["msg"]
+            device_list.extend(device_resp_message["items"])
+            if len(device_list) == device_resp_message["total"]:
+                conn.logger.info(
+                    f"Total devices fetched from account: {len(device_list)}"
+                )
+                break
+            offset += DEVICE_GET_LIMIT
+        return device_list
 
     def get_device(
-        self, conn, limit=2000, offset=0, filter=None, select=None, sort=None
+        self,
+        conn,
+        limit=DEVICE_GET_LIMIT,
+        offset=0,
+        filter=None,
+        select=None,
+        sort=None,
     ):
         """
         Get a list of devices managed in a GLP workspace from filter/select
         and sort inputs.
+        Rate limits are enforced on this API. 160 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
 
         :param conn: new pycentral base object
-        :type conn: class: `pycentral.ArubaCentralBase`
+        :type conn: class: `pycentral.NewCentralBase`
         :param limit: specifies the number of results to be returned.
             The default value is 2000.
         :type limit: int
@@ -71,7 +80,7 @@ class Devices(object):
         :type sort: str
 
         :return: response as provided by 'command' function in
-            class: `pycentral.ArubaCentralBase`
+            class: `pycentral.NewCentralBase`
         :rtype: dict
         """
 
@@ -98,7 +107,7 @@ class Devices(object):
         Get device ID in a GLP workspace by serial.
 
         :param conn: new pycentral base object
-        :type conn: class: `pycentral.ArubaCentralBase`
+        :type conn: class: `pycentral.NewCentralBase`
         :param serial: device serial
         :type serial: str
 
@@ -122,12 +131,12 @@ class Devices(object):
         Get status of an async GLP devices request.
 
         :param conn: new pycentral base object
-        :type conn: class: `pycentral.ArubaCentralBase`
+        :type conn: class: `pycentral.NewCentralBase`
         :param id: transaction ID from async API request
         :type id: str
 
         :return: response as provided by 'command' function in
-            class: `pycentral.ArubaCentralBase`
+            class: `pycentral.NewCentralBase`
         :rtype: dict
         """
 
@@ -144,7 +153,7 @@ class Devices(object):
         support Async get status handling to confirm operation success.
 
         :param conn: new pycentral base object
-        :type conn: class: `pycentral.ArubaCentralBase`
+        :type conn: class: `pycentral.NewCentralBase`
         :param network: network devices as dict objects
         :type network: list
         :param compute: compute devices as dict objects
@@ -153,7 +162,7 @@ class Devices(object):
         :type storage: list
 
         :return: list of resp objects as provided by 'command' function in
-            class: `pycentral.ArubaCentralBase`
+            class: `pycentral.NewCentralBase`
         :rtype: list
         """
 
@@ -185,14 +194,14 @@ class Devices(object):
         limit.
 
         :param conn: new pycentral base object
-        :type conn: class: `pycentral.ArubaCentralBase`
+        :type conn: class: `pycentral.NewCentralBase`
         :param type: one of network, compute, or storage
         :type param: str
         :param inputs: list of 'type' objects in dict format
         :type inputs: list
 
         :return: response object as provided by 'command' function in
-            class: `pycentral.ArubaCentralBase`
+            class: `pycentral.NewCentralBase`
         :rtype: list
         """
 
@@ -238,7 +247,7 @@ class Devices(object):
         handle the number of input devices passed to the function.
 
         :param conn: new pycentral base object
-        :type conn: class: `pycentral.ArubaCentralBase`
+        :type conn: class: `pycentral.NewCentralBase`
         :param device: list of device id(s) or serial
         :type device: list
         :param sub: subscription id or key
@@ -249,7 +258,7 @@ class Devices(object):
         :type key: bool
 
         :return: list of API response objects as provided by 'command' function
-            in class: `pycentral.ArubaCentralBase`
+            in class: `pycentral.NewCentralBase`
         :rtype: list
         """
 
@@ -316,14 +325,14 @@ class Devices(object):
         handle the number of input devices passed to the function.
 
         :param conn: new pycentral base object
-        :type conn: class: `pycentral.ArubaCentralBase`
+        :type conn: class: `pycentral.NewCentralBase`
         :param devices: list of device(s) to remove sub
         :type devices: list
         :param serial: flag to use device serial
         :type serial: bool
 
         :return: list of API response objects as provided by 'command' function
-            in class: `pycentral.ArubaCentralBase`
+            in class: `pycentral.NewCentralBase`
         :rtype: list
         """
 
@@ -412,7 +421,7 @@ class Devices(object):
             for i in range(len(queue)):
                 params = {"id": queue[i]}
 
-                data = {"application": application, "region": region}
+                data = {"application": {"id": application}, "region": region}
 
                 time.sleep(wait_time)
 
@@ -429,7 +438,7 @@ class Devices(object):
         else:
             params = {"id": devices}
 
-            data = {"application": application, "region": region}
+            data = {"application": {"id": application}, "region": region}
 
             resp = conn.command(
                 api_method="PATCH",
