@@ -34,3 +34,9 @@ class NewCentralURLs:
         # full url requires {id} to be passed as param: /identity/v1/users/{id}
         "DELETE": "/identity/v1/users/",
     }
+
+    GLP_SERVICES = {
+        "SERVICE_MANAGER": "/service-catalog/v1/service-managers",
+        "SERVICE_MANAGER_PROVISIONS": "/service-catalog/v1/service-manager-provisions",
+        "SERVICE_MANAGER_BY_REGION": "/service-catalog/v1/per-region-service-managers",
+    }
