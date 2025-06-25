@@ -12,7 +12,7 @@ Welcome to PyCentral, a Python SDK for interacting with HPE Aruba Networking Cen
 
 This **pre-release** version allows users to make REST API calls to New Central, the next generation of HPE Aruba Networking Central. It also supports making REST API calls to the HPE GreenLake Platform.
 
-> **Note:** Upgrading to this pre-release version will not break PyCentral-v1 code. All the PyCentral-v1 code has been moved to the `classic` folder within the PyCentral directory, ensuring backward compatibility. You can find Classic Central PyCentral Documentation [here](#classic-central).
+Upgrading to this pre-release version will not break PyCentral-v1 code. All the PyCentral-v1 code has been moved to the `classic` folder within the PyCentral directory, ensuring backward compatibility. You can find Classic Central PyCentral Documentation [here](#classic-central).
 
 ---
 
