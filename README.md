@@ -42,8 +42,8 @@ Once you have installed the pre-release version of PyCentral, you need to obtain
 
 #### 1. **New Central Authentication**
    For New Central, you must obtain the following details before making API requests:
-   - **Base URL**: This is the API Gateway URL for your New Central account based on the geographical cluster of your account on the HPE GreenLake Platform. You can find the base URL of your New Central account's API Gateway from the table [here](https://developer.arubanetworks.com/new-hpe-anw-central/docs/getting-started-with-rest-apis#base-urls).
-   - **Client ID and Client Secret**: These credentials are required to generate an access token to authenticate API requests. You can obtain them by creating a Personal API Client for your New Central Account. Follow the detailed steps in the [Create Client Credentials documentation](https://developer.arubanetworks.com/new-hpe-anw-central/docs/generating-and-managing-access-tokens#create-client-credentials).
+   - **Base URL or Cluster Name**: Base URL is the API Gateway URL for your New Central account based on the geographical cluster of your account on the HPE GreenLake Platform. You can find the base URL or cluster name of your New Central account's API Gateway from the table [here](https://developer.arubanetworks.com/new-central/docs/getting-started-with-rest-apis#base-urls).
+   - **Client ID and Client Secret**: These credentials are required to generate an access token to authenticate API requests. You can obtain them by creating a Personal API Client for your New Central Account. Follow the detailed steps in the [Create Client Credentials documentation](https://developer.arubanetworks.com/new-central/docs/generating-and-managing-access-tokens#create-client-credentials).
 
 #### 2. **HPE GreenLake (GLP) Authentication**
    If you are working with HPE GreenLake APIs, authentication is slightly different:
@@ -118,5 +118,5 @@ The Classic Central functionality is still fully supported by the SDK and has be
 - <a href="https://pycentral.readthedocs.io/en/latest/" target="_blank">Python package documentation</a>
 
 ### **Use-Cases and Workflows**
-- <a href="https://developer.arubanetworks.com/aruba-central/docs/python-getting-started" target="_blank">HPE Aruba Networking Developer Hub</a>
-- <a href="https://github.com/aruba/central-python-workflows" target="_blank">central-python-workflows</a>
+- <a href="https://developer.arubanetworks.com/central/docs/python-getting-started" target="_blank">HPE Aruba Networking Developer Hub</a>
+- <a href="https://github.com/aruba/central-python-workflows/tree/main" target="_blank">central-python-workflows</a>

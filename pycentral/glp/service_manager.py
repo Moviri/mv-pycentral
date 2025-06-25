@@ -31,8 +31,8 @@ class ServiceManager(object):
             )
             return None
 
-        region_service_manager_mapping = self._generate_application_region_mapping(
-            resp["msg"]["items"]
+        region_service_manager_mapping = (
+            self._generate_application_region_mapping(resp["msg"]["items"])
         )
         if region not in region_service_manager_mapping.keys():
             conn.logger.error(
@@ -49,9 +49,9 @@ class ServiceManager(object):
                 f"Unable to find service manager with name {application_name}. \nValid service managers(applications) in region {region} are {', '.join(region_service_managers)}"
             )
             return None
-        service_manager_id = region_service_manager_mapping[region]["serviceManagers"][
-            application_name
-        ]
+        service_manager_id = region_service_manager_mapping[region][
+            "serviceManagers"
+        ][application_name]
 
         resp = self.get_service_manager_provisions(conn)
         if resp["code"] != 200:
@@ -61,7 +61,8 @@ class ServiceManager(object):
             return None
         for provisioned_service in resp["msg"]["items"]:
             if (
-                service_manager_id == provisioned_service["serviceManager"]["id"]
+                service_manager_id
+                == provisioned_service["serviceManager"]["id"]
                 and provisioned_service["region"] == api_region_name
             ):
                 conn.logger.info(

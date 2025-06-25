@@ -13,6 +13,7 @@ from .utils.base_utils import (
     console_logger,
     save_access_token,
 )
+from .scopes import Scopes
 from .utils.url_utils import NewCentralURLs
 from .exceptions import LoginError, ResponseError
 
@@ -21,9 +22,13 @@ SUPPORTED_API_METHODS = ("POST", "PATCH", "DELETE", "GET", "PUT")
 
 
 class NewCentralBase:
-    def __init__(self, token_info, logger=None, log_level="DEBUG"):
+    def __init__(
+        self, token_info, logger=None, log_level="DEBUG", enable_scope=False
+    ):
         """
-        Initialize the NewCentralBase class.
+        This constructor initializes the NewCentralBase class with token information, logging configuration,
+        and optional scope management. It validates and processes the provided token information, sets up
+        logging, and optionally initializes scope-related functionality.
 
         :param token_info: Dictionary containing token information for supported applications - new_central, glp.
                   Can also be a string path to a YAML or JSON file with token information.
@@ -32,12 +37,18 @@ class NewCentralBase:
         :type logger: logging.Logger, optional
         :param log_level: Logging level, defaults to "DEBUG".
         :type log_level: str, optional
+        :param enable_scope: Flag to enable scope management. If True, the SDK will automatically fetch data
+                             about existing scopes and associated profiles, simplifying scope and configuration
+                             management. If False, scope-related API calls are disabled, resulting in faster
+                             initialization. Defaults to False.
+        :type enable_scope: bool, optional
         """
         self.token_info = new_parse_input_args(token_info)
         self.token_file_path = None
         if isinstance(token_info, str):
             self.token_file_path = token_info
         self.logger = self.set_logger(log_level, logger)
+        self.scopes = None
         for app in self.token_info:
             app_token_info = self.token_info[app]
             if (
@@ -45,6 +56,8 @@ class NewCentralBase:
                 or app_token_info["access_token"] is None
             ):
                 self.create_token(app)
+        if enable_scope:
+            self.scopes = Scopes(central_conn=self)
 
     def set_logger(self, log_level, logger=None):
         """
@@ -86,13 +99,17 @@ class NewCentralBase:
 
         try:
             self.logger.info(f"Attempting to create new token from {app_name}")
-            token = oauth.fetch_token(token_url=urls.Authentication["OAUTH"], auth=auth)
+            token = oauth.fetch_token(
+                token_url=urls.Authentication["OAUTH"], auth=auth
+            )
 
             if "access_token" in token:
                 self.logger.info(
                     f"{app_name} Login Successful.. Obtained Access Token!"
                 )
-                self.token_info[app_name]["access_token"] = token["access_token"]
+                self.token_info[app_name]["access_token"] = token[
+                    "access_token"
+                ]
                 if self.token_file_path:
                     save_access_token(
                         app_name,
@@ -118,10 +135,13 @@ class NewCentralBase:
         :param app_name: Name of the application.
         :type app_name: str
         """
-        self.logger.info(f"{app_name} access Token has expired.")
-        self.logger.info("Handling Token Expiry...")
+        self.logger.info(
+            f"{app_name} access Token has expired. Handling Token Expiry..."
+        )
         client_id, client_secret = self._return_client_credentials(app_name)
-        if any(credential is None for credential in [client_id, client_secret]):
+        if any(
+            credential is None for credential in [client_id, client_secret]
+        ):
             exit(
                 f"Please provide client_id and client_secret in {app_name} required to generate an access token"
             )
@@ -167,7 +187,9 @@ class NewCentralBase:
         limit_reached = False
         try:
             while not limit_reached:
-                url = build_url(self.token_info[app_name]["base_url"], api_path)
+                url = build_url(
+                    self.token_info[app_name]["base_url"], api_path
+                )
 
                 if not headers and not files:
                     headers = {
@@ -262,7 +284,9 @@ class NewCentralBase:
             data=data,
         )
         prepped = s.prepare_request(req)
-        settings = s.merge_environment_settings(prepped.url, {}, None, True, None)
+        settings = s.merge_environment_settings(
+            prepped.url, {}, None, True, None
+        )
         try:
             resp = s.send(prepped, **settings)
             return resp
@@ -317,6 +341,21 @@ class NewCentralBase:
             client_id = app_token_info["client_id"]
             client_secret = app_token_info["client_secret"]
             return client_id, client_secret
+
+    def get_scopes(self):
+        """
+        Sets up the scopes for the current instance by creating a Scopes object.
+
+        This method initializes the `scopes` attribute using the `Scopes` class,
+        passing the current instance (`self`) as the `central_conn` parameter.
+        If the `scopes` attribute is already initialized, it simply returns the existing object.
+
+        Returns:
+            Scopes: The initialized or existing Scopes object.
+        """
+        if self.scopes is None:
+            self.scopes = Scopes(central_conn=self)
+        return self.scopes
 
 
 class BearerAuth(requests.auth.AuthBase):

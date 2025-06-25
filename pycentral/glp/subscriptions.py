@@ -196,11 +196,15 @@ class Subscriptions(object):
             )
 
         if resp["code"] == 202:
-            conn.logger.info("Add subscription(s) to workspace request accepted...")
+            conn.logger.info(
+                "Add subscription(s) to workspace request accepted..."
+            )
             id = resp["msg"]["transactionId"]
             status = check_progress(conn, id, self, limit=SUB_LIMIT)
             if status[0]:
-                conn.logger.info("Sucessfully added subscription(s) to workspace!")
+                conn.logger.info(
+                    "Sucessfully added subscription(s) to workspace!"
+                )
                 return status[1]
             else:
                 conn.logger.error("Add subscription(s) to workspace failed!")

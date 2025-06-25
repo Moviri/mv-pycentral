@@ -69,7 +69,9 @@ def check_progress(conn, id, module_instance, limit=None):
             return (True, status)
         elif status["msg"]["status"] == "TIMEOUT":
             updated = True
-            conn.logger.error(f"Async operation timed out for transaction {id}!")
+            conn.logger.error(
+                f"Async operation timed out for transaction {id}!"
+            )
             return (False, status)
         elif status["msg"]["status"] == "FAILED":
             updated = True
