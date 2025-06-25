@@ -35,7 +35,7 @@ setuptools.setup(
         "requests_oauthlib==2.0.0",
         "pytz==2024.1",
         "termcolor==2.4.0",
-        "tqdm==4.67.1",
     ],
+    
     extras_require={"colorLog": ["colorlog"]},
 )
