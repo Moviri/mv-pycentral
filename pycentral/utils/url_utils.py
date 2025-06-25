@@ -1,14 +1,20 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
+NETWORKING_PREFIX = "network-config/v1alpha1/"
+
 
 def urlJoin(*args):
     trailing_slash = "/" if args[-1].endswith("/") else ""
-    return "/" + "/".join(map(lambda x: str(x).strip("/"), args)) + trailing_slash
+    return (
+        "/" + "/".join(map(lambda x: str(x).strip("/"), args)) + trailing_slash
+    )
 
 
 class NewCentralURLs:
-    Authentication = {"OAUTH": "https://sso.common.cloud.hpe.com/as/token.oauth2"}
+    Authentication = {
+        "OAUTH": "https://sso.common.cloud.hpe.com/as/token.oauth2"
+    }
 
     GLP = {"BaseURL": "https://global.api.greenlake.hpe.com"}
 
@@ -40,3 +46,30 @@ class NewCentralURLs:
         "SERVICE_MANAGER_PROVISIONS": "/service-catalog/v1/service-manager-provisions",
         "SERVICE_MANAGER_BY_REGION": "/service-catalog/v1/per-region-service-managers",
     }
+    SCOPES = {
+        "SITE": "sites",
+        "SITE_COLLECTION": "site-collections",
+        "DEVICE": "devices",
+        "DEVICE_GROUP": "device-collections",
+        "ADD_SITE_TO_COLLECTION": "site-collection-add-sites",
+        "REMOVE_SITE_FROM_COLLECTION": "site-collection-remove-sites",
+        "HIERARCHY": "hierarchy",
+        "SCOPE-MAPS": "scope-maps",
+    }
+
+    def fetch_url(self, api_category, api_name):
+        api_url = NETWORKING_PREFIX
+        if hasattr(self, api_category):
+            api_category = getattr(self, api_category)
+            if api_name in api_category:
+                api_url += api_category[api_name]
+
+        return api_url
+
+    @staticmethod
+    def generate_url(api_endpoint):
+        if api_endpoint is not None and not isinstance(api_endpoint, str):
+            print("API endpoint should be a string")
+            exit()
+        api_url = NETWORKING_PREFIX + api_endpoint
+        return api_url

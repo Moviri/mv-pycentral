@@ -33,9 +33,7 @@ NEW_CENTRAL_C_DEFAULT_ARGS = {
     "client_secret": None,
     "access_token": None,
 }
-URL_BASE_ERR_MESSAGE = (
-    "Please provide the base_url of API Gateway where Central account is provisioned!"
-)
+URL_BASE_ERR_MESSAGE = "Please provide the base_url of API Gateway where Central account is provisioned!"
 
 
 def new_parse_input_args(token_info):
@@ -237,7 +235,9 @@ def valid_url(url):
         )
         return parsed_url.geturl()
     else:
-        errorMessage = "Invalid Base URL - " + f"{url}\n" + URL_BASE_ERR_MESSAGE
+        errorMessage = (
+            "Invalid Base URL - " + f"{url}\n" + URL_BASE_ERR_MESSAGE
+        )
         raise ValueError(errorMessage)
 
 
@@ -258,7 +258,9 @@ def save_access_token(app_name, access_token, token_file_path, logger):
     :raises IOError: If there is an error writing to the credentials file.
     """
     if not os.path.isfile(token_file_path):
-        raise FileNotFoundError(f"Credentials file not found: {token_file_path}")
+        raise FileNotFoundError(
+            f"Credentials file not found: {token_file_path}"
+        )
 
     # Load credentials file using existing helper function
     file_data = parse_input_file(token_file_path)

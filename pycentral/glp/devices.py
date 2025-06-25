@@ -33,7 +33,9 @@ class Devices(object):
         device_list = []
 
         while True:
-            resp = self.get_device(conn, limit=limit, offset=offset, select=select)
+            resp = self.get_device(
+                conn, limit=limit, offset=offset, select=select
+            )
             if resp["code"] != 200:
                 conn.logger.error(
                     f"Error fetching list of devices: {resp['code']} - {resp['msg']}"
@@ -171,7 +173,9 @@ class Devices(object):
 
         # Check for rate limit handler
         if count > INPUT_SIZE:
-            conn.logger.info("WARNING MORE THAN 5 DEVICES IS AN ALPHA FEATURE!")
+            conn.logger.info(
+                "WARNING MORE THAN 5 DEVICES IS AN ALPHA FEATURE!"
+            )
             resp_list.append(self.__add_dev("network", network))
             resp_list.append(self.__add_dev("compute", compute))
             resp_list.append(self.__add_dev("storage", storage))
@@ -209,7 +213,9 @@ class Devices(object):
         data = {"network": [], "compute": [], "storage": []}
 
         if len(inputs) > INPUT_SIZE:
-            split_input, wait_time = rate_limit_check(inputs, INPUT_SIZE, POST_RPM)
+            split_input, wait_time = rate_limit_check(
+                inputs, INPUT_SIZE, POST_RPM
+            )
 
             resp_list = []
 
@@ -219,7 +225,9 @@ class Devices(object):
                 data["storage"] = devices if type == "storage" else []
                 resp = conn.command("POST", path, "glp", api_data=data)
                 if resp["code"] != 202:
-                    conn.logger.error(f"Add device request failed for {inputs}!")
+                    conn.logger.error(
+                        f"Add device request failed for {inputs}!"
+                    )
                 else:
                     conn.logger.info("Add device request accepted...")
                 resp_list.append(resp)
@@ -284,7 +292,9 @@ class Devices(object):
 
         # Split devices list per input size.
         if len(devices) > INPUT_SIZE:
-            split_input, wait_time = rate_limit_check(devices, INPUT_SIZE, PATCH_RPM)
+            split_input, wait_time = rate_limit_check(
+                devices, INPUT_SIZE, PATCH_RPM
+            )
             conn.logger.info("WARNING MORE THAN 5 DEVICES IS A BETA FEATURE!")
 
         # Setup variables for iterating commands.
@@ -296,13 +306,17 @@ class Devices(object):
         for inputs in queue:
             params = {"id": inputs}
 
-            resp = conn.command("PATCH", path, "glp", api_params=params, api_data=body)
+            resp = conn.command(
+                "PATCH", path, "glp", api_params=params, api_data=body
+            )
             if resp["code"] == 202:
                 conn.logger.info("Add sub request accepted...")
                 id = resp["msg"]["transactionId"]
                 status = check_progress(conn, id, self, limit=PATCH_RPM)
                 if status[0]:
-                    conn.logger.info("Sucessfully added subscriptions to devices!")
+                    conn.logger.info(
+                        "Sucessfully added subscriptions to devices!"
+                    )
                     resp_list.append(status[1])
                 else:
                     conn.logger.error("Add subscription failed!")
@@ -350,7 +364,9 @@ class Devices(object):
 
         # Split devices list per input size.
         if len(devices) > INPUT_SIZE:
-            split_input, wait_time = rate_limit_check(devices, INPUT_SIZE, PATCH_RPM)
+            split_input, wait_time = rate_limit_check(
+                devices, INPUT_SIZE, PATCH_RPM
+            )
             conn.logger.info("WARNING MORE THAN 5 DEVICES IS A BETA FEATURE!")
 
         # Setup variables for iterating commands.
@@ -362,13 +378,17 @@ class Devices(object):
         for inputs in queue:
             params = {"id": inputs}
 
-            resp = conn.command("PATCH", path, "glp", api_params=params, api_data=body)
+            resp = conn.command(
+                "PATCH", path, "glp", api_params=params, api_data=body
+            )
             if resp["code"] == 202:
                 conn.logger.info("Remove sub request accepted...")
                 id = resp["msg"]["transactionId"]
                 status = check_progress(conn, id, self, limit=PATCH_RPM)
                 if status[0]:
-                    conn.logger.info("Sucessfully Removed subscriptions from devices!")
+                    conn.logger.info(
+                        "Sucessfully Removed subscriptions from devices!"
+                    )
                     resp_list.append(status[1])
                 else:
                     conn.logger.error("Remove subscription failed!")
@@ -449,11 +469,15 @@ class Devices(object):
             )
 
         if resp["code"] == 202:
-            conn.logger.info("Assign device(s) to application request accepted...")
+            conn.logger.info(
+                "Assign device(s) to application request accepted..."
+            )
             id = resp["msg"]["transactionId"]
             status = check_progress(conn, id, self, limit=PATCH_RPM)
             if status[0]:
-                conn.logger.info("Sucessfully assigned device(s) to application!")
+                conn.logger.info(
+                    "Sucessfully assigned device(s) to application!"
+                )
                 return status[1]
             else:
                 conn.logger.error("Assign device(s) to application failed!")
@@ -526,10 +550,16 @@ class Devices(object):
             id = resp["msg"]["transactionId"]
             status = check_progress(conn, id, self, limit=PATCH_RPM)
             if status[0]:
-                conn.logger.info("Sucessfully unassigned device(s) from application!")
+                conn.logger.info(
+                    "Sucessfully unassigned device(s) from application!"
+                )
                 return status[1]
             else:
-                conn.logger.error("Unassign device(s) from application failed!")
+                conn.logger.error(
+                    "Unassign device(s) from application failed!"
+                )
                 return status[1]
-        conn.logger.error("Bad request for unassign device(s) from application!")
+        conn.logger.error(
+            "Bad request for unassign device(s) from application!"
+        )
         return resp
