@@ -1,14 +1,10 @@
 # PyCentral (Central Python Package SDK)
 
+Welcome to PyCentral, a Python SDK for interacting with HPE Aruba Networking Central via REST APIs. This library provides tools for automating repetitive tasks, configuring multiple devices, monitoring, and more.
+
 > [!WARNING]  
 > This is a **pre-release version** of PyCentral-v2, and the features are constantly being updated as the APIs evolve. This version of the SDK allows you to make API calls to New Central, GLP, and Classic Central.  
 > If you are looking for the stable version of PyCentral (v1), it is still available and fully supported. PyCentral-v1, which only supports Classic Central, can be found [here](https://pypi.org/project/pycentral/).
-
----
-
-## Introduction
-
-Welcome to PyCentral, a Python SDK for interacting with HPE Aruba Networking Central via REST APIs. This library provides tools for automating repetitive tasks, configuring multiple devices, monitoring, and more.
 
 ---
 
@@ -110,8 +106,6 @@ python3 demo.py
 ## Classic Central
 
 The Classic Central functionality is still fully supported by the SDK and has been moved to a dedicated documentation page. For information on using the SDK with Classic Central, including authentication methods, API calls, and workflow examples, please see the [Classic Central Documentation](https://github.com/aruba/pycentral/blob/master/README.md).
-
----
 
 ### Documentation
 
