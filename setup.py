@@ -5,7 +5,7 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as fh:
     long_description = fh.read()
 
-VERSION = "2.0a5"
+VERSION = "2.0a6"
 
 setuptools.setup(
     name="pycentral",
