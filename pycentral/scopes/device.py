@@ -135,14 +135,14 @@ class Device(ScopeBase):
         return device_data
 
     @staticmethod
-    def get_all_devices(central_conn, new_central_configuration=True):
+    def get_all_devices(central_conn, new_central_provisioned=False):
         """
         Fetches all devices from Central, optionally filtering for new Central configured devices.
 
         :param central_conn: Instance of class:`pycentral.NewCentralBase` to establish connection to Central.
         :type central_conn: class:`NewCentralBase`
-        :param new_central_configuration: If True, only devices that are configured via New Central are returned.
-        :type new_central_configuration: bool, optional
+        :param new_central_provisioned: If True, only devices that are provisioned via New Central are returned.
+        :type new_central_provisioned: bool, optional
         :return: List of device dictionaries fetched from Central.
         :rtype: list
         """
@@ -166,11 +166,11 @@ class Device(ScopeBase):
                 break
             next_cursor += 1
 
-        if new_central_configuration:
+        if new_central_provisioned:
             new_central_device_list = [
                 device
                 for device in device_list
-                if device.get("persona") != "-"
+                if device.get("isProvisioned") == "Yes"
             ]
             return new_central_device_list
         return device_list
