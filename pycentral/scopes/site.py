@@ -81,6 +81,7 @@ class Site(ScopeBase):
         self.materialized = from_api
         self.central_conn = central_conn
         self.id = None
+        self.type = "site"
 
         missing_required_attributes = [
             attr for attr in REQUIRED_ATTRIBUTES if attr not in site_attributes

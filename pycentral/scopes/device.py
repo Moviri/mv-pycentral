@@ -5,7 +5,7 @@ from .scope_base import ScopeBase
 from ..utils import NewCentralURLs
 from .scope_maps import ScopeMaps
 from ..utils.scope_utils import fetch_attribute
-
+from ..utils.constants import SUPPORTED_CONFIG_PERSONAS
 
 urls = NewCentralURLs()
 scope_maps = ScopeMaps()
@@ -65,6 +65,7 @@ class Device(ScopeBase):
         # If device_attributes is provided, use it to set attributes
         self.materialized = from_api
         self.central_conn = central_conn
+        self.type = "device"
         if from_api:
             # Rename keys if attributes are from API
             device_attributes = self.__rename_keys(
@@ -73,7 +74,13 @@ class Device(ScopeBase):
             device_attributes["assigned_profiles"] = []
             for key, value in device_attributes.items():
                 setattr(self, key, value)
-
+            if (
+                self.provisioned_status
+                and device_attributes["persona"] in SUPPORTED_CONFIG_PERSONAS
+            ):
+                self.config_persona = SUPPORTED_CONFIG_PERSONAS[
+                    device_attributes["persona"]
+                ]
         # If only serial is provided, set it and defer fetching other details
         elif serial:
             self.serial = serial
@@ -128,14 +135,14 @@ class Device(ScopeBase):
         return device_data
 
     @staticmethod
-    def get_all_devices(central_conn, new_central_configuration=True):
+    def get_all_devices(central_conn, new_central_provisioned=False):
         """
         Fetches all devices from Central, optionally filtering for new Central configured devices.
 
         :param central_conn: Instance of class:`pycentral.NewCentralBase` to establish connection to Central.
         :type central_conn: class:`NewCentralBase`
-        :param new_central_configuration: If True, only devices that are configured via New Central are returned.
-        :type new_central_configuration: bool, optional
+        :param new_central_provisioned: If True, only devices that are provisioned via New Central are returned.
+        :type new_central_provisioned: bool, optional
         :return: List of device dictionaries fetched from Central.
         :rtype: list
         """
@@ -159,11 +166,11 @@ class Device(ScopeBase):
                 break
             next_cursor += 1
 
-        if new_central_configuration:
+        if new_central_provisioned:
             new_central_device_list = [
                 device
                 for device in device_list
-                if device.get("persona") != "-"
+                if device.get("isProvisioned") == "Yes"
             ]
             return new_central_device_list
         return device_list
@@ -232,14 +239,15 @@ class Device(ScopeBase):
         :return: Renamed dictionary of object attributes
         :rtype: dict
         """
-        integer_attributes = {"id"}
+        integer_attributes = {"scopeId"}
         renamed_dict = {}
-
         for key, value in api_dict.items():
             new_key = api_attribute_mapping.get(key)
             if not new_key:
                 continue  # Skip unknown keys
             if key in integer_attributes and value is not None:
                 value = int(value)
+            if key == "isProvisioned":
+                value = True if value == "Yes" else False
             renamed_dict[new_key] = value
         return renamed_dict
