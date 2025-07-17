@@ -247,5 +247,7 @@ class Device(ScopeBase):
                 continue  # Skip unknown keys
             if key in integer_attributes and value is not None:
                 value = int(value)
+            if key == "isProvisioned":
+                value = True if value == "Yes" else False
             renamed_dict[new_key] = value
         return renamed_dict
