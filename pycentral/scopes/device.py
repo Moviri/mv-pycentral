@@ -239,9 +239,8 @@ class Device(ScopeBase):
         :return: Renamed dictionary of object attributes
         :rtype: dict
         """
-        integer_attributes = {"id"}
+        integer_attributes = {"scopeId"}
         renamed_dict = {}
-
         for key, value in api_dict.items():
             new_key = api_attribute_mapping.get(key)
             if not new_key:
