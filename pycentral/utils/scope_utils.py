@@ -5,11 +5,10 @@ from ..scopes.scope_maps import ScopeMaps
 from pycentral.utils import NewCentralURLs
 import copy
 
-HPE_ORANGE = "#FF8300"
 scope_maps = ScopeMaps()
 urls = NewCentralURLs()
 
-SUPPORTED_SCOPES = ["site", "site_collection"]
+SUPPORTED_SCOPES = ["site", "site_collection", "device_group"]
 DEFAULT_LIMIT = 100
 
 
@@ -105,7 +104,9 @@ def get_all_scope_elements(obj, scope):
         return scope_elements
 
 
-def get_scope_elements(obj, scope, limit=50, offset=0, filter_field="", sort=""):
+def get_scope_elements(
+    obj, scope, limit=50, offset=0, filter_field="", sort=""
+):
     """
     This function makes GET APIs to Central to get the list of scope elements based on the provided attributes. This method is supported for site, site collection, device & device groups scopes.
 

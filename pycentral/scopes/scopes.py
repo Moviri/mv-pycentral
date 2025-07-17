@@ -7,7 +7,6 @@ from ..utils.scope_utils import (
     get_scope_elements,
     get_all_scope_elements,
     DEFAULT_LIMIT,
-    SUPPORTED_SCOPES,
     validate_find_scope_elements,
     lookup_in_map,
 )
@@ -15,9 +14,12 @@ from .device import Device
 from .site import Site
 from .site_collection import Site_Collection
 from .scope_maps import ScopeMaps
+from .device_group import Device_Group
 from ..utils import NewCentralURLs
 from ..exceptions import ParameterError
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+SUPPORTED_SCOPES = ["site", "site_collection", "device", "device_group"]
 
 urls = NewCentralURLs()
 
@@ -50,7 +52,7 @@ class Scopes(ScopeBase):
         self.site_collections = []
         self.sites = []
         self.devices = []
-        # self.device_groups = []
+        self.device_groups = []
 
         self.get()
 
@@ -63,7 +65,7 @@ class Scopes(ScopeBase):
         """
         try:
             self.central_conn.logger.info(
-                "Fetching all scopes (Global, Site Collection, Site, Device)..."
+                "Fetching all scopes (Global, Site Collection, Site, Device, Device Groups)..."
             )
             self.get_all_sites()
             with ThreadPoolExecutor() as executor:
@@ -72,6 +74,9 @@ class Scopes(ScopeBase):
                         self.get_all_site_collections
                     ): "site_collections",
                     executor.submit(self.get_all_devices): "devices",
+                    executor.submit(
+                        self.get_all_device_groups
+                    ): "device_groups",
                 }
 
             for future in as_completed(futures):
@@ -90,7 +95,6 @@ class Scopes(ScopeBase):
                 self.central_conn.logger.info(
                     "Mapping configuration profiles to scopes..."
                 )
-
                 self.get_scope_profiles()
 
             self.central_conn.logger.info(
@@ -154,7 +158,6 @@ class Scopes(ScopeBase):
         :rtype: list
         """
 
-        # device_list = get_all_scope_elements(obj=self, scope="device")
         device_list = Device.get_all_devices(
             central_conn=self.central_conn,
         )
@@ -176,9 +179,16 @@ class Scopes(ScopeBase):
         :rtype: list
         """
         device_groups_list = get_all_scope_elements(
-            obj=self, scope="DEVICE_GROUP"
+            obj=self, scope="device_group"
         )
-        self.device_groups = device_groups_list
+        self.device_groups = [
+            Device_Group(
+                central_conn=self.central_conn,
+                device_group_attributes=device_group,
+                from_api=True,
+            )
+            for device_group in device_groups_list
+        ]
         return device_groups_list
 
     def get_id(self):
@@ -476,6 +486,7 @@ class Scopes(ScopeBase):
             self.sites,
             self.site_collections,
             self.devices,
+            self.device_groups,
         ]:
             self._lookup_maps["id"].update(
                 {element.get_id(): element for element in element_list}
