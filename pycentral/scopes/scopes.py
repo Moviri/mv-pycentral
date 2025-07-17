@@ -926,7 +926,7 @@ class Scopes(ScopeBase):
     def assign_profile_to_scope(
         self,
         profile_name,
-        profile_persona,
+        profile_persona=None,
         scope=None,
         scope_name=None,
         scope_id=None,
@@ -936,7 +936,7 @@ class Scopes(ScopeBase):
 
         :param profile_name: Name of the configuration profile.
         :type profile_name: str
-        :param profile_persona: Device Persona of the profile.
+        :param profile_persona: Device Persona of the profile to assign. Optional if assigning a profile to a device
         :type profile_persona: str
         :param scope: Type of the scope (e.g., global, site, site_collection, device), optional
         :type scope: str
@@ -960,7 +960,7 @@ class Scopes(ScopeBase):
     def unassign_profile_to_scope(
         self,
         profile_name,
-        profile_persona,
+        profile_persona=None,
         scope=None,
         scope_name=None,
         scope_id=None,
@@ -970,7 +970,7 @@ class Scopes(ScopeBase):
 
         :param profile_name: Name of the configuration profile.
         :type profile_name: str
-        :param profile_persona: Device Persona of the profile.
+        :param profile_persona: Device Persona of the profile to unassign. Optional if unassigning a profile from a device
         :type profile_persona: str
         :param scope: Type of the scope (e.g., global, site, site_collection, device), optional
         :type scope: str
@@ -995,7 +995,7 @@ class Scopes(ScopeBase):
         self,
         operation,
         profile_name,
-        profile_persona,
+        profile_persona=None,
         scope=None,
         scope_name=None,
         scope_id=None,
@@ -1027,6 +1027,14 @@ class Scopes(ScopeBase):
                 names=scope_name, ids=scope_id, scope=scope
             )
         if required_scope_element:
+            if (
+                required_scope_element.get_type() != "device"
+                and profile_persona is None
+            ):
+                self.central_conn.logger.error(
+                    "Profile persona is required for assigning or unassigning profiles to/from scopes other than devices."
+                )
+                return False
             if operation == "assign":
                 return required_scope_element.assign_profile(
                     profile_name=profile_name,

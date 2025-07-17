@@ -19,3 +19,16 @@ CLUSTER_BASE_URLS = {
     "APAC-SOUTH1": "https://au1.api.central.arubanetworks.com",
     "Internal": "https://internal.api.central.arubanetworks.com",
 }
+
+# Dictionary of supported device personas and their corresponding API values.
+SUPPORTED_CONFIG_PERSONAS = {
+    "Campus AP": "CAMPUS_AP",
+    "Micro Branch AP": "MICROBRANCH_AP",
+    "Access Switch": "ACCESS_SWITCH",
+    "Core Switch": "CORE_SWITCH",
+    "Aggregation Switch": "AGG_SWITCH",
+    "Mobility GW": "MOBILITY_GW",
+    "Branch GW": "BRANCH_GW",
+    "Bridge": "BRIDGE",
+    "Hybrid NAC": "HYBRID_NAC",
+}

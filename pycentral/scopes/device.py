@@ -5,7 +5,7 @@ from .scope_base import ScopeBase
 from ..utils import NewCentralURLs
 from .scope_maps import ScopeMaps
 from ..utils.scope_utils import fetch_attribute
-
+from ..utils.constants import SUPPORTED_CONFIG_PERSONAS
 
 urls = NewCentralURLs()
 scope_maps = ScopeMaps()
@@ -65,6 +65,7 @@ class Device(ScopeBase):
         # If device_attributes is provided, use it to set attributes
         self.materialized = from_api
         self.central_conn = central_conn
+        self.type = "device"
         if from_api:
             # Rename keys if attributes are from API
             device_attributes = self.__rename_keys(
@@ -73,7 +74,13 @@ class Device(ScopeBase):
             device_attributes["assigned_profiles"] = []
             for key, value in device_attributes.items():
                 setattr(self, key, value)
-
+            if (
+                self.provisioned_status
+                and device_attributes["persona"] in SUPPORTED_CONFIG_PERSONAS
+            ):
+                self.config_persona = SUPPORTED_CONFIG_PERSONAS[
+                    device_attributes["persona"]
+                ]
         # If only serial is provided, set it and defer fetching other details
         elif serial:
             self.serial = serial
