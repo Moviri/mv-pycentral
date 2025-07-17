@@ -45,6 +45,7 @@ class Scopes(ScopeBase):
         self.central_conn = central_conn
         self.id = None
         self.name = "Global"
+        self.type = "global"
         self.materialized = True
         self.assigned_profiles = []
         self._lookup_maps = {"id": {}, "serial": {}, "name": {}}

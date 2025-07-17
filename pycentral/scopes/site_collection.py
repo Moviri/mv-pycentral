@@ -63,6 +63,7 @@ class Site_Collection(ScopeBase):
                     )
         self.materialized = from_api
         self.central_conn = central_conn
+        self.type = "site_collection"
         self.id = None
 
         missing_required_attributes = [

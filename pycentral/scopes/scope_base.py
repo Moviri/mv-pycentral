@@ -35,7 +35,15 @@ class ScopeBase:
         """
         return fetch_attribute(self, "name")
 
-    def assign_profile(self, profile_name, profile_persona):
+    def get_type(self):
+        """
+        Fetches the ID of the scope element.
+
+        :return: ID of the scope element.
+        :rtype: int
+        """
+        return fetch_attribute(self, "type")
+
         """
         Assigns a profile (with the provided name and persona) to the scope.
 
