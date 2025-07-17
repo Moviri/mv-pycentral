@@ -294,15 +294,24 @@ class Scopes(ScopeBase):
         """
         Correlates sites with site collections and devices with sites using internal maps.
         """
+        self._update_lookup_map()
+
         for site in self.sites:
             collection_id = fetch_attribute(site, "site_collection_id")
-            if collection_id and collection_id in self._lookup_maps["id"]:
-                self._lookup_maps["id"][collection_id].add_site(site.get_id())
+            if collection_id and int(collection_id) in self._lookup_maps["id"]:
+                self._lookup_maps["id"][int(collection_id)].add_site(
+                    site.get_id()
+                )
 
         for device in self.devices:
             site_id = fetch_attribute(device, "site_id")
-            if site_id and site_id in self._lookup_maps["id"]:
-                self._lookup_maps["id"][site_id].devices.append(
+            if site_id and int(site_id) in self._lookup_maps["id"]:
+                self._lookup_maps["id"][int(site_id)].devices.append(
+                    device.get_id()
+                )
+            group_id = fetch_attribute(device, "group_id")
+            if group_id and int(group_id) in self._lookup_maps["id"]:
+                self._lookup_maps["id"][int(group_id)].devices.append(
                     device.get_id()
                 )
 
@@ -413,14 +422,16 @@ class Scopes(ScopeBase):
             ids=ids, names=names, serials=serials, scope=scope
         )
         self._update_lookup_map()
-        # Perform the initial search without updating the lookup maps
         result = self._search_scope_elements(ids, names, serials, scope)
 
-        # If no results are found, update the lookup maps and search again
-        # temporary change from logger.error to logger.info. Change after discoverå
         if not result:
-            self.central_conn.logger.info(
-                "Unable to find scope element. Please check the provided parameters."
+            params = [("ids", ids), ("names", names), ("serials", serials)]
+            param_type, param_value = next(
+                ((k, v) for k, v in params if v), ("unknown", None)
+            )
+
+            self.central_conn.logger.error(
+                f"Unable to find scope element for scope '{scope}'. Parameter: {param_type}={param_value}. Please check the provided parameter(s)."
             )
             result = None
 
