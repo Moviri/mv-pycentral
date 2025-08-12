@@ -59,9 +59,9 @@ class Scopes(ScopeBase):
 
     def get(self):
         """
-        Performs GET calls to Central to retrieve latest data of sites & site collections.
+        Performs GET calls to Central to retrieve latest data of all scope elements(Global, Site Collections, Sites, Devices, & Device Groups).
 
-        :return: Returns True if sites & site collections are successfully updated, else None
+        :return: Returns True if all scope elements are successfully fetched, else False
         :rtype: bool
         """
         try:
@@ -88,24 +88,21 @@ class Scopes(ScopeBase):
                         f"Error fetching {futures[future]}: {e}"
                     )
 
-            if len(self.site_collections) > 0:
-                self._correlate_scopes()
-                self.get_id()
-
-            if len(self.site_collections) > 0 and len(self.sites) > 0:
-                self.central_conn.logger.info(
-                    "Mapping configuration profiles to scopes..."
-                )
-                self.get_scope_profiles()
+            self._correlate_scopes()
+            self.get_id()
+            self.central_conn.logger.info(
+               "Mapping configuration profiles to scopes..."
+            )
+            self.get_scope_profiles()
 
             self.central_conn.logger.info(
-                "Successfully fetched configuration hierarchy details from Central"
+               "Successfully fetched configuration hierarchy details from Central"
             )
             self.materialized = True
             return True
 
         except Exception as e:
-            self.central_conn.logger.error(f"Error in get method: {e}")
+            self.central_conn.logger.error(f"Error in scope get method: {e}")
             return False
 
     def get_all_sites(self):
@@ -118,7 +115,7 @@ class Scopes(ScopeBase):
         sites_response = get_all_scope_elements(obj=self, scope="site")
         if not sites_response:
             raise Exception(
-                "Failed to fetch sites from Central. Sites are a required construct of new Central. Please check your Central account & ensure that you have atleast one site created."
+                "Failed to fetch sites from Central. Sites are a required construct of new Central. Please check your Central account & ensure that you have at least one site created."
             )
         self.sites = [
             Site(

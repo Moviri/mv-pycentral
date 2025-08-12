@@ -3,6 +3,12 @@
 
 NETWORKING_PREFIX = "network-config/v1alpha1/"
 
+category_mapping = {
+    "monitoring": "network-monitoring/v1alpha1/",
+    "configuration": "network-config/v1alpha1/",
+    "troubleshooting": "network-troubleshooting/v1alpha1/",
+}
+
 
 def urlJoin(*args):
     trailing_slash = "/" if args[-1].endswith("/") else ""
@@ -73,3 +79,12 @@ class NewCentralURLs:
             exit()
         api_url = NETWORKING_PREFIX + api_endpoint
         return api_url
+
+
+@staticmethod
+def generate_url_with_params(category, api_endpoint):
+    if category not in category_mapping:
+        raise ValueError(
+            f"Invalid category: {category}, Supported categories: {list(category_mapping.keys())}  "
+        )
+    return category_mapping[category] + api_endpoint
