@@ -14,23 +14,6 @@ Upgrading to this pre-release version will not break PyCentral-v1 code. All the 
 
 ---
 
-## Table of contents
-- [PyCentral (Python SDK for HPE Aruba Networking Central)](#pycentral-python-sdk-for-hpe-aruba-networking-central)
-  - [Table of contents](#table-of-contents)
-  - [Install](#install)
-  - [Authentication](#authentication)
-    - [New Central](#new-central)
-    - [HPE GreenLake Platform (GLP)](#hpe-greenlake-platform-glp)
-  - [Example](#example)
-  - [Compatibility](#compatibility)
-  - [Documentation](#documentation)
-  - [Classic Central](#classic-central)
-    - [Documentation](#documentation-1)
-    - [**Use-Cases and Workflows**](#use-cases-and-workflows)
-  - [License](#license)
-
----
-
 ## Install
 
 To install the latest pre-release version of PyCentral, use the following command:
