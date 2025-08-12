@@ -134,8 +134,3 @@ The Classic Central functionality is still fully supported by the SDK and has be
 ### **Use-Cases and Workflows**
 - <a href="https://developer.arubanetworks.com/central/docs/python-getting-started" target="_blank">HPE Aruba Networking Developer Hub</a>
 - <a href="https://github.com/aruba/central-python-workflows/tree/main" target="_blank">central-python-workflows</a>
-
----
-## License
-
-MIT © HPE Aruba Networking
