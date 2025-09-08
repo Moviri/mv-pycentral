@@ -367,8 +367,8 @@ class Scopes(ScopeBase):
     ):
         """
         This function returns the device(of type class:`Device`) based on the
-        provided parameters. Only one of device_ids or device_names or
-         device_serials is required to find the device(s).
+            provided parameters. Only one of device_ids or device_names or
+            device_serials is required to find the device(s).
 
         :param device_ids: ID(s) of devices to find, optional
         :type device_ids: int or list
@@ -395,6 +395,37 @@ class Scopes(ScopeBase):
                 scope="device",
             )
         return devices
+
+    def find_device_group(
+        self,
+        device_group_ids=None,
+        device_group_names=None,
+    ):
+        """
+        This function returns the device group(of type class:`DeviceGroup`) based on the
+            provided parameters. Only one of device_group_ids or device_group_names is required to find the device group(s).
+
+        :param device_group_ids: ID(s) of device groups to find, optional
+        :type device_group_ids: int or list
+        :param device_group_names: Name(s) of device groups to find, optional
+        :type device_group_names: str or list
+
+        :return: Found device group(s) or None if not found.
+        :rtype: list or None
+        """
+        device_groups = self._find_scope_element(
+            ids=device_group_ids,
+            names=device_group_names,
+            scope="device_group",
+        )
+        if not device_groups:
+            self.get_all_device_groups()
+            device_groups = self._find_scope_element(
+                ids=device_group_ids,
+                names=device_group_names,
+                scope="device_group",
+            )
+        return device_groups
 
     def _find_scope_element(
         self, ids=None, names=None, serials=None, scope=""
