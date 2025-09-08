@@ -289,9 +289,44 @@ class Device(ScopeBase):
         :return: Result of the ping test.
         :rtype: dict
         """
-        return self._execute_troubleshooting_command(
-            Troubleshooting.ping_test, destination=destination, **kwargs
-        )
+        if (
+            self.device_type == "SWITCH"
+            and self._identify_switch_os() == CX_API_ENDPOINT
+        ):
+            return Troubleshooting.ping_cx_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                destination=destination,
+                **kwargs,
+            )
+        elif (
+            self.device_type == "SWITCH"
+            and self._identify_switch_os() == AOS_S_API_ENDPOINT
+        ):
+            return Troubleshooting.ping_aoss_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                destination=destination,
+                **kwargs,
+            )
+        elif self.device_type == "ACCESS_POINT":
+            return Troubleshooting.ping_aps_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                destination=destination,
+                **kwargs,
+            )
+        elif self.device_type == "GATEWAY":
+            return Troubleshooting.ping_gateways_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                destination=destination,
+                **kwargs,
+            )
+        else:
+            raise ValueError(
+                f"Ping test is not supported for device type {self.device_type}."
+            )
 
     def traceroute_test(self, destination, **kwargs):
         """
@@ -306,9 +341,44 @@ class Device(ScopeBase):
         :return: Result of the traceroute test.
         :rtype: dict
         """
-        return self._execute_troubleshooting_command(
-            Troubleshooting.traceroute_test, destination=destination, **kwargs
-        )
+        if (
+            self.device_type == "SWITCH"
+            and self._identify_switch_os() == CX_API_ENDPOINT
+        ):
+            return Troubleshooting.traceroute_cx_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                destination=destination,
+                **kwargs,
+            )
+        elif (
+            self.device_type == "SWITCH"
+            and self._identify_switch_os() == AOS_S_API_ENDPOINT
+        ):
+            return Troubleshooting.traceroute_aoss_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                destination=destination,
+                **kwargs,
+            )
+        elif self.device_type == "ACCESS_POINT":
+            return Troubleshooting.traceroute_aps_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                destination=destination,
+                **kwargs,
+            )
+        elif self.device_type == "GATEWAY":
+            return Troubleshooting.traceroute_gateways_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                destination=destination,
+                **kwargs,
+            )
+        else:
+            raise ValueError(
+                f"traceroute test is not supported for device type {self.device_type}."
+            )
 
     def reboot(self):
         """
@@ -334,6 +404,79 @@ class Device(ScopeBase):
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.locate_device
+        )
+
+    def disconnect_all_clients(self):
+        """
+        Disconnects all clients from the specified device.
+
+        Supported device types: gateways (other devices not supported)
+
+        :return: Result of the disconnect all clients operation.
+        :rtype: dict
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.disconnect_all_clients
+        )
+
+    def disconnect_all_users(self):
+        """
+        Disconnects all users from the specified device.
+
+        Supported device types: aps (other devices not supported)
+
+        :return: Result of the disconnect all users operation.
+        :rtype: dict
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.disconnect_all_users
+        )
+
+    def disconnect_client_mac_addr(self, mac_address):
+        """
+        Disconnects client with the specified MAC address on the device.
+
+        Supported device types: gateways (other devices not supported)
+
+        :param mac_address: The MAC address from which to disconnect client.
+        :type mac_address: str
+        :return: Result of the disconnect client operation.
+        :rtype: dict
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.disconnect_client_mac_addr,
+            mac_address=mac_address,
+        )
+
+    def disconnect_user_mac_addr(self, mac_address):
+        """
+        Disconnects user with the specified MAC address on the device.
+
+        Supported device types: aps (other devices not supported)
+
+        :param mac_address: The MAC address from which to disconnect user.
+        :type mac_address: str
+        :return: Result of the disconnect user operation.
+        :rtype: dict
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.disconnect_user_mac_addr,
+            mac_address=mac_address,
+        )
+
+    def disconnect_all_users_ssid(self, network):
+        """
+        Disconnects all users from the specified SSID on the device.
+
+        Supported device types: aps (other devices not supported)
+
+        :param ssid: The SSID from which to disconnect users.
+        :type ssid: str
+        :return: Result of the disconnect all users operation.
+        :rtype: dict
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.disconnect_all_users_ssid, network=network
         )
 
     def http_test(self, destination, **kwargs):
@@ -440,6 +583,21 @@ class Device(ScopeBase):
             Troubleshooting.retrieve_arp_table_test
         )
 
+    def nslookup_test(self, host, **kwargs):
+        """
+        Initiates an NSLOOKUP test on the device.
+
+        Supported device types: aps
+
+        :param host: The hostname or IP address to resolve.
+        :type host: str
+        :return: Result of the NSLOOKUP test.
+        :rtype: dict
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.nslookup_test, host=host, **kwargs
+        )
+
     def speedtest_test(self, iperf_server_address, **kwargs):
         """
         Initiates a speed test using the specified iPerf server address.
@@ -478,35 +636,56 @@ class Device(ScopeBase):
             Troubleshooting.tcp_test, host=host, port=port, **kwargs
         )
 
-    def aaa_test(
-        self, auth_method_type, radius_server_ip, username, password, **kwargs
-    ):
+    def aaa_test(self, radius_server_ip, username, password, **kwargs):
         """
-        Initiates an AAA test with the specified parameters.
+        Initiates an AAA test with the specified parameters, cx devices
+        require auth_method_type as a parameter.
 
-        Supported device types: cx only
+        Supported device types: aps and cx only
 
-        :param auth_method_type: Authentication method type, chap or pap
-        :type auth_method_type: str
-        :param radius_server_ip: RADIUS server IP address
+        :param radius_server_ip: RADIUS server IP address, hostname is valid
+        for APs only
         :type radius_server_ip: str
         :param username: Username for authentication
         :type username: str
         :param password: Password for authentication
         :type password: str
+        :param auth_method_type: Required for cx device type, Authentication
+        method type, chap or pap, See Troubleshooting.aaa_cx_test() for detailed parameter information.
         :param kwargs: Optional arguments for the AAA test.
                       See Troubleshooting.aaa_test() for detailed parameter information.
+        :type auth_method_type: str
         :return: Result of the AAA test.
         :rtype: dict
         """
-        return self._execute_troubleshooting_command(
-            Troubleshooting.aaa_test,
-            auth_method_type=auth_method_type,
-            radius_server_ip=radius_server_ip,
-            username=username,
-            password=password,
-            **kwargs,
-        )
+
+        self._ensure_materialized()
+
+        if (
+            self.device_type == "SWITCH"
+            and self._identify_switch_os() == CX_API_ENDPOINT
+        ):
+            return Troubleshooting.aaa_cx_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                radius_server_ip=radius_server_ip,
+                username=username,
+                password=password,
+                **kwargs,
+            )
+        elif self.device_type == "ACCESS_POINT":
+            return Troubleshooting.aaa_aps_test(
+                central_conn=self.central_conn,
+                serial_number=self.serial,
+                radius_server_ip=radius_server_ip,
+                username=username,
+                password=password,
+                **kwargs,
+            )
+        else:
+            raise ValueError(
+                f"AAA test is not supported for device type {self.device_type}."
+            )
 
     def cable_test(self, ports, **kwargs):
         """
