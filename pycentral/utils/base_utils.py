@@ -211,7 +211,10 @@ def console_logger(name, level="DEBUG"):
 
     logger = logging.getLogger(name)
     logger.setLevel(C_LOG_LEVEL[level])
-    logger.addHandler(channel_handler)
+
+    # Only add Handler if not already present
+    if not logger.handlers:
+        logger.addHandler(channel_handler)
 
     return logger
 
