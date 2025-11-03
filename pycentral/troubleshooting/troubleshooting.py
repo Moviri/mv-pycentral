@@ -1,4 +1,4 @@
-from ..utils.url_utils import generate_url_with_params
+from ..utils.url_utils import generate_url
 import time
 from ..exceptions import ParameterError
 from ..utils.troubleshooting_utils import (
@@ -177,8 +177,8 @@ class Troubleshooting:
         elif password:
             api_data["password"] = password
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/aaa"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/aaa", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -276,8 +276,8 @@ class Troubleshooting:
         elif vrf:
             api_data["vrf"] = vrf
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/aaa"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/aaa", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -317,9 +317,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/aaa/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
 
@@ -419,8 +419,8 @@ class Troubleshooting:
 
         api_data = {"ports": ports}
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/cableTest"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/cableTest", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST",
@@ -463,9 +463,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/cableTest/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
         if resp["code"] != 200:
@@ -508,9 +508,9 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/disconnectClientAll",
+                "troubleshooting",
             ),
         )
         if resp["code"] != 202:
@@ -545,9 +545,9 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/disconnectUserAll",
+                "troubleshooting",
             ),
         )
         if resp["code"] != 202:
@@ -592,9 +592,9 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/disconnectUserByNetwork",
+                "troubleshooting",
             ),
             api_data=api_data,
         )
@@ -641,9 +641,9 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/disconnectClientByMacAddress",
+                "troubleshooting",
             ),
             api_data=api_data,
         )
@@ -689,9 +689,9 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/disconnectUserByMacAddress",
+                "troubleshooting",
             ),
             api_data=api_data,
         )
@@ -834,15 +834,17 @@ class Troubleshooting:
         ):
             api_data["source_port"] = source_port
         elif source_port:
-            raise ParameterError("Source port must be a valid integer 0-65535.")
+            raise ParameterError(
+                "Source port must be a valid integer 0-65535."
+            )
 
         if name_server and not isinstance(name_server, str):
             raise ParameterError("Name server must be a valid string.")
         elif name_server:
             api_data["name_server"] = name_server
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/http"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/http", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -885,9 +887,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/http/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
 
@@ -1117,8 +1119,8 @@ class Troubleshooting:
         elif destination:
             api_data["url"] = destination
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/https"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/https", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -1184,7 +1186,9 @@ class Troubleshooting:
         ):
             api_data["source_port"] = source_port
         elif source_port:
-            raise ParameterError("Source port must be a valid integer 0-65535.")
+            raise ParameterError(
+                "Source port must be a valid integer 0-65535."
+            )
 
         if name_server and not isinstance(name_server, str):
             raise ParameterError("Name server must be a valid string.")
@@ -1198,8 +1202,8 @@ class Troubleshooting:
                 "Destination must be a valid IP address or hostname."
             )
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/http"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/http", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -1275,8 +1279,8 @@ class Troubleshooting:
                 "Destination must be a valid IP address or hostname."
             )
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/https"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/https", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -1315,9 +1319,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/https/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
 
@@ -1519,8 +1523,8 @@ class Troubleshooting:
         elif include_raw_output is not None:
             api_data["includeRawOutput"] = include_raw_output
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/iperf"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/iperf", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -1563,9 +1567,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/iperf/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
 
@@ -1605,8 +1609,8 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting", f"{device_type}/{serial_number}/locate"
+            api_path=generate_url(
+                f"{device_type}/{serial_number}/locate", "troubleshooting"
             ),
         )
         if resp["code"] != 202:
@@ -1705,8 +1709,8 @@ class Troubleshooting:
         if dns_server is not None:
             api_data["dnsServer"] = dns_server
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/nslookup"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/nslookup", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST",
@@ -1745,9 +1749,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/nslookup/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
         if resp["code"] != 200:
@@ -2120,8 +2124,8 @@ class Troubleshooting:
         elif include_raw_output:
             raise ParameterError("include_raw_output must be a boolean value.")
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/ping"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/ping", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST",
@@ -2210,7 +2214,9 @@ class Troubleshooting:
         ):
             api_data["vlan"] = source_vlan
         elif source_vlan:
-            raise ParameterError("source_vlan must be an integer value 1-4094.")
+            raise ParameterError(
+                "source_vlan must be an integer value 1-4094."
+            )
 
         if source_role and isinstance(source_role, str):
             api_data["role"] = source_role
@@ -2222,8 +2228,8 @@ class Troubleshooting:
         elif include_raw_output:
             raise ParameterError("include_raw_output must be a boolean value.")
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/ping"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/ping", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST",
@@ -2317,8 +2323,8 @@ class Troubleshooting:
         elif include_raw_output:
             raise ParameterError("include_raw_output must be a boolean value.")
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/ping"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/ping", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST",
@@ -2423,7 +2429,9 @@ class Troubleshooting:
         ):
             api_data["vlan"] = source_vlan
         elif source_vlan:
-            raise ParameterError("source_vlan must be an integer value 1-4094.")
+            raise ParameterError(
+                "source_vlan must be an integer value 1-4094."
+            )
 
         if use_ipv6 is not None and isinstance(use_ipv6, bool):
             api_data["useIpv6"] = use_ipv6
@@ -2440,8 +2448,8 @@ class Troubleshooting:
         elif include_raw_output:
             raise ParameterError("include_raw_output must be a boolean value.")
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/ping"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/ping", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST",
@@ -2462,7 +2470,9 @@ class Troubleshooting:
         return response
 
     @staticmethod
-    def get_ping_test_result(central_conn, task_id, device_type, serial_number):
+    def get_ping_test_result(
+        central_conn, task_id, device_type, serial_number
+    ):
         """
         Retrieves the results of a ping test on the specified device.
 
@@ -2477,9 +2487,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/ping/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
         if resp["code"] != 200:
@@ -2522,7 +2532,9 @@ class Troubleshooting:
             central_conn,
             device_type,
             serial_number,
-            subset=TROUBLESHOOTING_METHOD_DEVICE_MAPPING.get("poe_bounce_test"),
+            subset=TROUBLESHOOTING_METHOD_DEVICE_MAPPING.get(
+                "poe_bounce_test"
+            ),
         )
         try:
             response = Troubleshooting.initiate_poe_bounce_test(
@@ -2569,7 +2581,9 @@ class Troubleshooting:
             central_conn,
             device_type,
             serial_number,
-            subset=TROUBLESHOOTING_METHOD_DEVICE_MAPPING.get("poe_bounce_test"),
+            subset=TROUBLESHOOTING_METHOD_DEVICE_MAPPING.get(
+                "poe_bounce_test"
+            ),
         )
 
         if not ports or not isinstance(ports, list):
@@ -2577,8 +2591,8 @@ class Troubleshooting:
 
         api_data = {"ports": ports}
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/poeBounce"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/poeBounce", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST",
@@ -2616,14 +2630,16 @@ class Troubleshooting:
             central_conn,
             device_type,
             serial_number,
-            subset=TROUBLESHOOTING_METHOD_DEVICE_MAPPING.get("poe_bounce_test"),
+            subset=TROUBLESHOOTING_METHOD_DEVICE_MAPPING.get(
+                "poe_bounce_test"
+            ),
         )
 
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/poeBounce/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
         if resp["code"] != 200:
@@ -2726,8 +2742,8 @@ class Troubleshooting:
 
         api_data = {"ports": ports}
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/portBounce"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/portBounce", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST",
@@ -2773,9 +2789,9 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/portBounce/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
         if resp["code"] != 200:
@@ -2813,8 +2829,8 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting", f"{device_type}/{serial_number}/reboot"
+            api_path=generate_url(
+                f"{device_type}/{serial_number}/reboot", "troubleshooting"
             ),
         )
         if resp["code"] != 202:
@@ -2901,8 +2917,8 @@ class Troubleshooting:
             ),
         )
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/getArpTable"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/getArpTable", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST",
@@ -2947,9 +2963,9 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/getArpTable/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
         if resp["code"] != 200:
@@ -3108,7 +3124,8 @@ class Troubleshooting:
             server_port
             and not isinstance(server_port, int)
             or (
-                isinstance(server_port, int) and not (0 <= server_port <= 65535)
+                isinstance(server_port, int)
+                and not (0 <= server_port <= 65535)
             )
         ):
             raise ParameterError(
@@ -3157,14 +3174,18 @@ class Troubleshooting:
             and not isinstance(omit, int)
             or (isinstance(omit, int) and not 1 <= omit <= 5)
         ):
-            raise ParameterError("Omit must be a valid integer between 1 to 5.")
+            raise ParameterError(
+                "Omit must be a valid integer between 1 to 5."
+            )
         elif omit:
             api_data["omit"] = omit
 
         if (
             window_size
             and not isinstance(window_size, int)
-            or (isinstance(window_size, int) and not (64 < window_size <= 1638))
+            or (
+                isinstance(window_size, int) and not (64 < window_size <= 1638)
+            )
         ):
             raise ParameterError(
                 "Window size must be a valid integer between 64 to 1638."
@@ -3172,8 +3193,8 @@ class Troubleshooting:
         elif window_size:
             api_data["windowSize"] = window_size
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/speedtest"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/speedtest", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -3213,9 +3234,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/speedtest/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
 
@@ -3327,7 +3348,9 @@ class Troubleshooting:
 
         api_data = dict()
         if not host or not isinstance(host, str):
-            raise ParameterError("Host must be a valid IP address or hostname.")
+            raise ParameterError(
+                "Host must be a valid IP address or hostname."
+            )
 
         api_data["host"] = host
 
@@ -3341,8 +3364,8 @@ class Troubleshooting:
         elif timeout:
             api_data["timeout"] = timeout
 
-        api_path = generate_url_with_params(
-            "troubleshooting", f"{device_type}/{serial_number}/tcp"
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/tcp", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -3383,9 +3406,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/tcp/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
 
@@ -3682,7 +3705,8 @@ class Troubleshooting:
         if (
             source_interface
             and isinstance(source_interface, str)
-            and source_interface in ["loopback", "vlan-interface", "ip-address"]
+            and source_interface
+            in ["loopback", "vlan-interface", "ip-address"]
         ):
             api_data["sourceInterface"] = source_interface
         elif source_interface:
@@ -3715,8 +3739,8 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting", f"{device_type}/{serial_number}/traceroute"
+            api_path=generate_url(
+                f"{device_type}/{serial_number}/traceroute", "troubleshooting"
             ),
             api_data=api_data,
         )
@@ -3776,8 +3800,8 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting", f"{device_type}/{serial_number}/traceroute"
+            api_path=generate_url(
+                f"{device_type}/{serial_number}/traceroute", "troubleshooting"
             ),
             api_data=api_data,
         )
@@ -3855,8 +3879,8 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting", f"{device_type}/{serial_number}/traceroute"
+            api_path=generate_url(
+                f"{device_type}/{serial_number}/traceroute", "troubleshooting"
             ),
             api_data=api_data,
         )
@@ -3919,8 +3943,8 @@ class Troubleshooting:
 
         resp = central_conn.command(
             api_method="POST",
-            api_path=generate_url_with_params(
-                "troubleshooting", f"{device_type}/{serial_number}/traceroute"
+            api_path=generate_url(
+                f"{device_type}/{serial_number}/traceroute", "troubleshooting"
             ),
             api_data=api_data,
         )
@@ -3957,9 +3981,9 @@ class Troubleshooting:
         )
         resp = central_conn.command(
             api_method="GET",
-            api_path=generate_url_with_params(
-                "troubleshooting",
+            api_path=generate_url(
                 f"{device_type}/{serial_number}/traceroute/async-operations/{task_id}",
+                "troubleshooting",
             ),
         )
         if resp["code"] != 200:

@@ -6,11 +6,9 @@ import yaml
 import json
 import os
 from urllib.parse import urlencode, urlparse, urlunparse
-from .url_utils import NewCentralURLs
-from .constants import CLUSTER_BASE_URLS
+from .constants import CLUSTER_BASE_URLS, GLP_URLS
 from .common_utils import parse_input_file
 
-urls = NewCentralURLs()
 try:
     import colorlog  # type: ignore
 
@@ -126,7 +124,7 @@ def _resolve_base_url(app, app_token_info):
         )
     elif app == "glp":
         if "base_url" not in app_token_info:
-            app_token_info["base_url"] = urls.GLP["BaseURL"]
+            app_token_info["base_url"] = GLP_URLS["BaseURL"]
         return valid_url(app_token_info["base_url"])
     else:
         raise ValueError(f"Unsupported app '{app}'.")

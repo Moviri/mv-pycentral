@@ -1,11 +1,9 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-from ..utils.url_utils import NewCentralURLs, urlJoin
+from ..utils import GLP_URLS, generate_url
 from ..utils.glp_utils import rate_limit_check, check_progress
 import time
-
-urls = NewCentralURLs()
 
 # This is the single input size limit for using the POST request endpoint for adding subscriptions.
 INPUT_SIZE = 5
@@ -84,7 +82,7 @@ class Subscriptions(object):
         :return: API response
         :rtype: dict
         """
-        path = urls.GLP_SUBSCRIPTION["DEFAULT"]
+        path = generate_url(GLP_URLS["SUBSCRIPTION"], category="subscriptions")
 
         params = {"limit": limit, "offset": offset}
         if filter:
@@ -134,7 +132,9 @@ class Subscriptions(object):
         :rtype: dict
         """
 
-        path = urlJoin(urls.GLP_SUBSCRIPTION["GET_ASYNC"], id)
+        path = generate_url(
+            f"{GLP_URLS["ASYNC"]}/{id}", category="subscriptions"
+        )
         resp = conn.command("GET", path, "glp")
         return resp
 
@@ -154,7 +154,7 @@ class Subscriptions(object):
         :return: API response
         :rtype: dict
         """
-        path = urls.GLP_SUBSCRIPTION["DEFAULT"]
+        path = generate_url(GLP_URLS["SUBSCRIPTION"], category="subscriptions")
 
         if len(subscriptions) > INPUT_SIZE:
             resp = []

@@ -2,14 +2,12 @@
 # MIT License
 
 from .scope_base import ScopeBase
-from ..utils import NewCentralURLs
 from .scope_maps import ScopeMaps
 from ..utils.scope_utils import fetch_attribute
 from ..utils.constants import SUPPORTED_CONFIG_PERSONAS
 from ..utils.troubleshooting_utils import TROUBLESHOOTING_METHOD_DEVICE_MAPPING
 from ..troubleshooting import Troubleshooting
 
-urls = NewCentralURLs()
 scope_maps = ScopeMaps()
 
 CX_API_ENDPOINT = "cx"

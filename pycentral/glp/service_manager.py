@@ -1,9 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-from ..utils.url_utils import NewCentralURLs
-
-urls = NewCentralURLs()
+from ..utils import GLP_URLS, generate_url
 
 
 class ServiceManager(object):
@@ -93,7 +91,9 @@ class ServiceManager(object):
         :rtype: dict
         """
         conn.logger.info("Getting provisioned services in GLP workspace")
-        path = urls.GLP_SERVICES["SERVICE_MANAGER_PROVISIONS"]
+        path = generate_url(
+            GLP_URLS["SERVICE_MANAGER_PROVISIONS"], category="service_catalog"
+        )
 
         params = {
             "limit": limit,
@@ -116,7 +116,9 @@ class ServiceManager(object):
         :rtype: dict
         """
         conn.logger.info("Getting services managers by region in GLP")
-        path = urls.GLP_SERVICES["SERVICE_MANAGER_BY_REGION"]
+        path = generate_url(
+            GLP_URLS["SERVICE_MANAGER_BY_REGION"], category="service_catalog"
+        )
 
         resp = conn.command(api_method="GET", api_path=path, app_name="glp")
         return resp
@@ -161,7 +163,9 @@ class ServiceManager(object):
         :rtype: dict
         """
         conn.logger.info("Getting service managers in GLP")
-        path = urls.GLP_SERVICES["SERVICE_MANAGER"]
+        path = generate_url(
+            GLP_URLS["SERVICE_MANAGER"], category="service_catalog"
+        )
 
         params = {
             "limit": limit,

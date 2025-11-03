@@ -2,7 +2,7 @@
 # MIT License
 
 from .scope_base import ScopeBase
-from ..utils import NewCentralURLs
+from ..utils import SCOPE_URLS, generate_url
 from .scope_maps import ScopeMaps
 import pytz
 from datetime import datetime
@@ -14,7 +14,6 @@ from ..utils.scope_utils import (
     rename_keys,
 )
 
-urls = NewCentralURLs()
 scope_maps = ScopeMaps()
 
 API_ATTRIBUTE_MAPPING = {
@@ -124,7 +123,7 @@ class Site(ScopeBase):
 
         site_creation_status = False
         api_method = "POST"
-        api_path = urls.fetch_url("SCOPES", "SITE")
+        api_path = generate_url(SCOPE_URLS["SITE"])
         api_data = self.__generate_api_body()
 
         resp = self.central_conn.command(
@@ -223,7 +222,7 @@ class Site(ScopeBase):
 
         if site_attributes != object_attributes:
             api_method = "PUT"
-            api_path = urls.fetch_url("SCOPES", "SITE")
+            api_path = generate_url(SCOPE_URLS["SITE"])
             api_data = self.__generate_api_body()
 
             resp = self.central_conn.command(
@@ -259,7 +258,7 @@ class Site(ScopeBase):
 
         site_deletion_status = False
         api_method = "DELETE"
-        api_path = urls.fetch_url("SCOPES", "SITE")
+        api_path = generate_url(SCOPE_URLS["SITE"])
         api_params = {"scopeId": self.get_id()}
         resp = self.central_conn.command(
             api_method=api_method, api_path=api_path, api_params=api_params

@@ -1,7 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-from .verification_error import VerificationError
+from pycentral.exceptions.verification_error import VerificationError
 
 
 class ParameterError(VerificationError):

@@ -1,7 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-from .pycentral_error import PycentralError
+from pycentral.exceptions.pycentral_error import PycentralError
 
 
 class UnsupportedCapabilityError(PycentralError):

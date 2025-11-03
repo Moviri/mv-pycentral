@@ -15,13 +15,12 @@ from .site import Site
 from .site_collection import Site_Collection
 from .scope_maps import ScopeMaps
 from .device_group import Device_Group
-from ..utils import NewCentralURLs
+from ..utils import SCOPE_URLS, generate_url
 from ..exceptions import ParameterError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 SUPPORTED_SCOPES = ["site", "site_collection", "device", "device_group"]
 
-urls = NewCentralURLs()
 
 scope_maps = ScopeMaps()
 
@@ -91,12 +90,12 @@ class Scopes(ScopeBase):
             self._correlate_scopes()
             self.get_id()
             self.central_conn.logger.info(
-               "Mapping configuration profiles to scopes..."
+                "Mapping configuration profiles to scopes..."
             )
             self.get_scope_profiles()
 
             self.central_conn.logger.info(
-               "Successfully fetched configuration hierarchy details from Central"
+                "Successfully fetched configuration hierarchy details from Central"
             )
             self.materialized = True
             return True
@@ -605,7 +604,7 @@ class Scopes(ScopeBase):
             sites = [sites]
         if all(sites):
             api_method = "DELETE"
-            api_path = urls.fetch_url("SCOPES", "REMOVE_SITE_FROM_COLLECTION")
+            api_path = generate_url(SCOPE_URLS["REMOVE_SITE_FROM_COLLECTION"])
             api_params = {
                 "siteIds": ",".join([str(site.get_id()) for site in sites])
             }
@@ -914,7 +913,7 @@ class Scopes(ScopeBase):
                 return None
 
         api_method = "GET"
-        api_path = urls.fetch_url("SCOPES", "HIERARCHY")
+        api_path = generate_url(SCOPE_URLS["HIERARCHY"])
         api_params = {"scopeId": scope_id, "scopeType": scope.lower()}
         resp = self.central_conn.command(
             api_method=api_method, api_path=api_path, api_params=api_params

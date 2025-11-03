@@ -22,13 +22,45 @@ CLUSTER_BASE_URLS = {
 
 # Dictionary of supported device personas and their corresponding API values.
 SUPPORTED_CONFIG_PERSONAS = {
-    "Campus AP": "CAMPUS_AP",
+    "Campus Access Point": "CAMPUS_AP",
     "Micro Branch AP": "MICROBRANCH_AP",
     "Access Switch": "ACCESS_SWITCH",
     "Core Switch": "CORE_SWITCH",
     "Aggregation Switch": "AGG_SWITCH",
-    "Mobility GW": "MOBILITY_GW",
+    "Mobility Gateway": "MOBILITY_GW",
     "Branch GW": "BRANCH_GW",
     "Bridge": "BRIDGE",
     "Hybrid NAC": "HYBRID_NAC",
 }
+
+AUTHENTICATION = {"OAUTH": "https://sso.common.cloud.hpe.com/as/token.oauth2"}
+
+GLP_URLS = {
+    "BaseURL": "https://global.api.greenlake.hpe.com",
+    "DEVICE": "devices",
+    "SUBSCRIPTION": "subscriptions",
+    "USER_MANAGEMENT": "users",
+    "ASYNC": "async-operations",
+    "SERVICE_MANAGER": "service-managers",
+    "SERVICE_MANAGER_PROVISIONS": "service-manager-provisions",
+    "SERVICE_MANAGER_BY_REGION": "per-region-service-managers",
+}
+
+SCOPE_URLS = {
+    "SITE": "sites",
+    "SITE_COLLECTION": "site-collections",
+    "DEVICE": "devices",
+    "DEVICE_GROUP": "device-collections",
+    "ADD_SITE_TO_COLLECTION": "site-collection-add-sites",
+    "REMOVE_SITE_FROM_COLLECTION": "site-collection-remove-sites",
+    "HIERARCHY": "hierarchy",
+    "SCOPE-MAPS": "scope-maps",
+}
+
+__all__ = [
+    "CLUSTER_BASE_URLS",
+    "SUPPORTED_CONFIG_PERSONAS",
+    "AUTHENTICATION",
+    "GLP_URLS",
+    "SCOPE_URLS",
+]

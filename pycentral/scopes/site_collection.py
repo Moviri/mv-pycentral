@@ -1,7 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-from ..utils import NewCentralURLs
+from ..utils import SCOPE_URLS, generate_url
 from ..utils.scope_utils import (
     set_attributes,
     get_scope_element,
@@ -10,8 +10,6 @@ from .scope_maps import ScopeMaps
 from .site import Site
 from ..exceptions import ParameterError
 from .scope_base import ScopeBase
-
-urls = NewCentralURLs()
 
 OPTIONAL_ATTRIBUTES = {
     "id": None,
@@ -117,7 +115,7 @@ class Site_Collection(ScopeBase):
 
         site_collection_creation_status = False
         api_method = "POST"
-        api_path = urls.fetch_url("SCOPES", "SITE_COLLECTION")
+        api_path = generate_url(SCOPE_URLS["SITE_COLLECTION"])
         api_data = self.__generate_api_body()
 
         resp = self.central_conn.command(
@@ -219,7 +217,7 @@ class Site_Collection(ScopeBase):
 
         if collection_attributes != object_attributes:
             api_method = "PUT"
-            api_path = urls.fetch_url("SCOPES", "SITE_COLLECTION")
+            api_path = generate_url(SCOPE_URLS["SITE_COLLECTION"])
             api_data = self.__generate_api_body()
 
             resp = self.central_conn.command(
@@ -255,7 +253,7 @@ class Site_Collection(ScopeBase):
 
         site_collection_deletion_status = False
         api_method = "DELETE"
-        api_path = urls.fetch_url("SCOPES", "SITE_COLLECTION")
+        api_path = generate_url(SCOPE_URLS["SITE_COLLECTION"])
         api_params = {"scopeId": self.get_id()}
         resp = self.central_conn.command(
             api_method=api_method, api_path=api_path, api_params=api_params
@@ -284,7 +282,7 @@ class Site_Collection(ScopeBase):
         :rtype: bool
         """
         api_method = "POST"
-        api_path = urls.fetch_url("SCOPES", "ADD_SITE_TO_COLLECTION")
+        api_path = generate_url(SCOPE_URLS["ADD_SITE_TO_COLLECTION"])
 
         if all(isinstance(site, Site) for site in sites):
             site_ids = [str(site.get_id()) for site in sites]
@@ -334,7 +332,7 @@ class Site_Collection(ScopeBase):
         :rtype: bool
         """
         api_method = "DELETE"
-        api_path = urls.fetch_url("SCOPES", "REMOVE_SITE_FROM_COLLECTION")
+        api_path = generate_url(SCOPE_URLS["REMOVE_SITE_FROM_COLLECTION"])
         if all(isinstance(site, Site) for site in sites):
             site_ids = [str(site.get_id()) for site in sites]
         elif all(isinstance(site_id, int) for site_id in sites):

@@ -1,9 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-from ..utils import NewCentralURLs
-
-urls = NewCentralURLs()
+from ..utils import SCOPE_URLS, generate_url
 
 
 class ScopeMaps:
@@ -23,7 +21,7 @@ class ScopeMaps:
         """
         scope_maps_list = []
         api_method = "GET"
-        api_path = urls.fetch_url("SCOPES", "SCOPE-MAPS")
+        api_path = generate_url(SCOPE_URLS["SCOPE-MAPS"])
         resp = central_conn.command(api_method=api_method, api_path=api_path)
         if resp["code"] == 200:
             for mapping in resp["msg"]["scope-map"]:
@@ -74,7 +72,7 @@ class ScopeMaps:
         :rtype: dict
         """
         api_method = "POST"
-        api_path = urls.fetch_url("SCOPES", "SCOPE-MAPS")
+        api_path = generate_url(SCOPE_URLS["SCOPE-MAPS"])
         valid_personas = [
             "SERVICE_PERSONA",
             "HYBRID_NAC",
@@ -157,7 +155,7 @@ class ScopeMaps:
         :rtype: dict
         """
         api_method = "DELETE"
-        api_path = urls.fetch_url("SCOPES", "SCOPE-MAPS")
+        api_path = generate_url(SCOPE_URLS["SCOPE-MAPS"])
         valid_personas = [
             "SERVICE_PERSONA",
             "HYBRID_NAC",
