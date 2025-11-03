@@ -1,9 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-from ..utils.url_utils import NewCentralURLs, urlJoin
-
-urls = NewCentralURLs()
+from ..utils import GLP_URLS, generate_url
 
 
 class UserMgmt(object):
@@ -39,7 +37,9 @@ class UserMgmt(object):
         :return: API response
         :rtype: dict
         """
-        path = urls.GLP_USER_MANAGEMENT["GET"]
+        path = generate_url(
+            GLP_URLS["USER_MANAGEMENT"], category="user_management"
+        )
 
         params = {
             "limit": limit,
@@ -69,7 +69,9 @@ class UserMgmt(object):
         if email:
             id = self.get_user_id(conn, email)[1]
 
-        path = urlJoin(urls.GLP_USER_MANAGEMENT["GET_USER"], id)
+        path = generate_url(
+            f"{GLP_URLS["USER_MANAGEMENT"]}/{id}", category="user_management"
+        )
 
         resp = conn.command("GET", path, "glp")
         if resp["code"] == 200:
@@ -116,7 +118,10 @@ class UserMgmt(object):
         if email:
             user_id = self.get_user_id(conn, email)[1]
 
-        path = urlJoin(urls.GLP_USER_MANAGEMENT["DELETE"], user_id)
+        path = generate_url(
+            f"{GLP_URLS["USER_MANAGEMENT"]}/{user_id}",
+            category="user_management",
+        )
         resp = conn.command(api_method="DELETE", api_path=path, app_name="glp")
         return resp
 
@@ -134,11 +139,13 @@ class UserMgmt(object):
         :rtype: dict
         """
 
-        path = urls.GLP_USER_MANAGEMENT["POST"]
+        path = generate_url(
+            GLP_URLS["USER_MANAGEMENT"], category="user_management"
+        )
         body = {"email": email, "sendWelcomeEmail": send_link}
 
         resp = conn.command("POST", path, "glp", api_data=body)
-        if resp["code"] == 200:
+        if resp["code"] == 201:
             conn.logger.info("Invite user successful!")
         else:
             conn.logger.error("Invite user failed!")

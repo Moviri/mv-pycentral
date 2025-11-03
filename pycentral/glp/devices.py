@@ -1,12 +1,10 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-from ..utils.url_utils import NewCentralURLs, urlJoin
+from ..utils import GLP_URLS, generate_url
 from .subscriptions import Subscriptions
 from ..utils.glp_utils import check_progress, rate_limit_check
 import time
-
-urls = NewCentralURLs()
 
 DEVICE_GET_LIMIT = 2000
 # Input size per request for DEVICE module APIs.
@@ -87,7 +85,7 @@ class Devices(object):
         """
 
         conn.logger.info("Getting a device in GLP workspace")
-        path = urls.GLP_DEVICES["DEFAULT"]
+        path = generate_url(GLP_URLS["DEVICE"], category="devices")
 
         params = {"limit": limit, "offset": offset}
         if filter:
@@ -142,7 +140,7 @@ class Devices(object):
         :rtype: dict
         """
 
-        path = urlJoin(urls.GLP_DEVICES["GET_ASYNC"], id)
+        path = generate_url(f"{GLP_URLS['ASYNC']}/{id}", category="devices")
         resp = conn.command("GET", path, "glp")
         return resp
 
@@ -181,7 +179,7 @@ class Devices(object):
             resp_list.append(self.__add_dev("storage", storage))
             return resp_list
         else:
-            path = urls.GLP_DEVICES["DEFAULT"]
+            path = generate_url(GLP_URLS["DEVICE"], category="devices")
             data = {"network": network, "compute": compute, "storage": storage}
             resp = conn.command("POST", path, "glp", api_data=data)
             resp_list.append(resp)
@@ -209,7 +207,7 @@ class Devices(object):
         :rtype: list
         """
 
-        path = urls.GLP_DEVICES["DEFAULT"]
+        path = generate_url(GLP_URLS["DEVICE"], category="devices")
         data = {"network": [], "compute": [], "storage": []}
 
         if len(inputs) > INPUT_SIZE:
@@ -300,7 +298,7 @@ class Devices(object):
         # Setup variables for iterating commands.
         queue = [devices] if not split_input else split_input
         resp_list = []
-        path = urls.GLP_DEVICES["DEFAULT"]
+        path = generate_url(GLP_URLS["DEVICE"], category="devices")
         body = {"subscription": [{"id": sub}]}
 
         for inputs in queue:
@@ -372,7 +370,7 @@ class Devices(object):
         # Setup variables for iterating commands.
         queue = [devices] if not split_input else split_input
         resp_list = []
-        path = urls.GLP_DEVICES["DEFAULT"]
+        path = generate_url(GLP_URLS["DEVICE"], category="devices")
         body = {"subscription": []}
 
         for inputs in queue:
@@ -421,7 +419,7 @@ class Devices(object):
         :rtype: dict
         """
         conn.logger.info("Assigning device(s) to an application")
-        path = urls.GLP_DEVICES["DEFAULT"]
+        path = generate_url(GLP_URLS["DEVICE"], category="devices")
 
         if serial:
             d_list = []
@@ -498,7 +496,7 @@ class Devices(object):
         :rtype: dict
         """
         conn.logger.info("Unassigning device(s) from an application")
-        path = urls.GLP_DEVICES["DEFAULT"]
+        path = generate_url(GLP_URLS["DEVICE"], category="devices")
 
         if serial:
             d_list = []

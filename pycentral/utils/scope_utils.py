@@ -2,11 +2,10 @@
 # MIT License
 
 from ..scopes.scope_maps import ScopeMaps
-from pycentral.utils import NewCentralURLs
+from pycentral.utils import SCOPE_URLS, generate_url
 import copy
 
 scope_maps = ScopeMaps()
-urls = NewCentralURLs()
 
 SUPPORTED_SCOPES = ["site", "site_collection", "device_group"]
 DEFAULT_LIMIT = 100
@@ -133,7 +132,7 @@ def get_scope_elements(
         )
         return None
 
-    api_path = urls.fetch_url("SCOPES", scope.upper())
+    api_path = generate_url(SCOPE_URLS[scope.upper()])
     api_method = "GET"
     api_params = {"limit": limit, "offset": offset}
 

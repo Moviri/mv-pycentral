@@ -14,10 +14,9 @@ from .utils.base_utils import (
     save_access_token,
 )
 from .scopes import Scopes
-from .utils.url_utils import NewCentralURLs
+from .utils import AUTHENTICATION
 from .exceptions import LoginError, ResponseError
 
-urls = NewCentralURLs()
 SUPPORTED_API_METHODS = ("POST", "PATCH", "DELETE", "GET", "PUT")
 
 
@@ -100,7 +99,7 @@ class NewCentralBase:
         try:
             self.logger.info(f"Attempting to create new token from {app_name}")
             token = oauth.fetch_token(
-                token_url=urls.Authentication["OAUTH"], auth=auth
+                token_url=AUTHENTICATION["OAUTH"], auth=auth
             )
 
             if "access_token" in token:
