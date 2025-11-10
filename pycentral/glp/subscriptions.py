@@ -103,7 +103,8 @@ class Subscriptions(object):
 
         :param conn: new pycentral base object
         :type conn: class: `pycentral.NewCentralBase`
-        :param serial: str, subscription key
+        :param key: str, subscription key
+        :type key: string
 
         :return: Tuple of two elements. First element of the tuple returns True
             if sub id is found, else False. The second element is a GLP
@@ -133,7 +134,7 @@ class Subscriptions(object):
         """
 
         path = generate_url(
-            f"{GLP_URLS["ASYNC"]}/{id}", category="subscriptions"
+            f"{GLP_URLS['ASYNC']}/{id}", category="subscriptions"
         )
         resp = conn.command("GET", path, "glp")
         return resp

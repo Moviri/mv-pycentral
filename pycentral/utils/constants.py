@@ -1,9 +1,10 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-# Dictionary of Public HPE Aruba Networking cluster naames with their corresponding API Base
-# URLs. You can update this dictionary, if you want to add your own private
-# cluster details. You can learn more about Base URLs here - https://developer.arubanetworks.com/new-hpe-anw-central/docs/getting-started-with-rest-apis#api-gateway-base-urls
+"""
+This module contains constant values used across the pycentral package.
+"""
+
 CLUSTER_BASE_URLS = {
     "EU-1": "https://ge1.api.central.arubanetworks.com",
     "EU-Central2": "https://ge2.api.central.arubanetworks.com",
@@ -19,8 +20,11 @@ CLUSTER_BASE_URLS = {
     "APAC-SOUTH1": "https://au1.api.central.arubanetworks.com",
     "Internal": "https://internal.api.central.arubanetworks.com",
 }
+"""Dict[str, str]: Public HPE Aruba Networking cluster names with their corresponding API Base URLs.
+You can update this dictionary to add your own private cluster details.
+Learn more about Base URLs: https://developer.arubanetworks.com/new-hpe-anw-central/docs/getting-started-with-rest-apis#api-gateway-base-urls
+"""
 
-# Dictionary of supported device personas and their corresponding API values.
 SUPPORTED_CONFIG_PERSONAS = {
     "Campus Access Point": "CAMPUS_AP",
     "Micro Branch AP": "MICROBRANCH_AP",
@@ -32,8 +36,10 @@ SUPPORTED_CONFIG_PERSONAS = {
     "Bridge": "BRIDGE",
     "Hybrid NAC": "HYBRID_NAC",
 }
+"""Dict[str, str]: Supported device personas and their corresponding API values."""
 
 AUTHENTICATION = {"OAUTH": "https://sso.common.cloud.hpe.com/as/token.oauth2"}
+"""Dict[str, str]: Authentication endpoints for OAuth flows."""
 
 GLP_URLS = {
     "BaseURL": "https://global.api.greenlake.hpe.com",
@@ -45,6 +51,7 @@ GLP_URLS = {
     "SERVICE_MANAGER_PROVISIONS": "service-manager-provisions",
     "SERVICE_MANAGER_BY_REGION": "per-region-service-managers",
 }
+"""Dict[str, str]: GreenLake Platform (GLP) API URLs and endpoints."""
 
 SCOPE_URLS = {
     "SITE": "sites",
@@ -56,6 +63,7 @@ SCOPE_URLS = {
     "HIERARCHY": "hierarchy",
     "SCOPE-MAPS": "scope-maps",
 }
+"""Dict[str, str]: Scope-related API URLs for site and device organization."""
 
 __all__ = [
     "CLUSTER_BASE_URLS",
