@@ -1,0 +1,81 @@
+# PyCentral Documentation
+
+PyCentral is a Python SDK that makes it easier to interact with HPE Aruba Networking Central and the HPE GreenLake Platform (GLP) through REST APIs. Instead of building and managing low-level HTTP requests, developers can:
+
+- Authenticate securely
+- Configure and manage devices and subscriptions
+- Monitor performance and collect analytics
+- Run troubleshooting workflows
+
+PyCentral handles authentication, request formatting, and error handling, while exposing simple Python functions. This lets you configure, monitor, and troubleshoot your network without dealing with raw REST API calls.
+
+## Overview
+
+PyCentral(v2) is the latest version of the SDK, designed for compatibility and simplicity:
+
+- Backwards Compatible → Works with PyCentral v1 scripts, with no breaking changes.
+- Multi-Platform Support → Works across Classic Central, New Central, and GLP.
+- Simplified Token Management → Built-in OAuth2.0 support (no manual refresh needed).
+- Simplified Automation → Modules for configuration, monitoring, devices, subscriptions, and troubleshooting.
+
+## Versions
+
+PyCentral-v2 is currently in pre-release, and we welcome feedback [here](https://github.com/aruba/pycentral/issues) as we continue improving it.
+Today, there are two versions of PyCentral, each designed for different versions of HPE Aruba Networking Central
+
+| Version                                                        | Supports                                                                                       | Notes                        |
+| :------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- | :--------------------------- |
+| [v1](https://pypi.org/project/pycentral/)                      | HPE Aruba Networking Central (Classic Central)                                                 | Legacy Version               |
+| [v2(pre-release)](https://pypi.org/project/pycentral/2.0.0a8/) | HPE Aruba Networking Central(new Central), GLP, HPE Aruba Networking Central (Classic Central) | Backwards compatible with v1 |
+
+## Quick Example
+
+```python
+from pycentral import NewCentralBase
+
+central_credential = {
+   "new_central": {
+       "base_url": "https://us5.api.central.arubanetworks.com",
+       "client_id": "client_id",
+       "client_secret": "client_secret",
+   }
+}
+
+# Initialize NewCentralBase class with the token credentials for Central/GLP
+central_conn = NewCentralBase(token_info=central_credential)
+
+# Central API Call
+central_resp = central_conn.command(
+    api_method="GET", api_path="network-monitoring/v1alpha1/devices"
+)
+
+# Check response status and print results or error message
+if central_resp["code"] == 200:
+    print(central_resp["msg"])
+else:
+    print(f"Error - Response code {central_resp['code']}")
+    print(central_resp["msg"])
+
+```
+
+## Getting Started
+
+- [Installation](getting-started/installation.md) - Install PyCentral
+- [Authentication](getting-started/authentication.md) - Configure credentials
+- [Quick Start](getting-started/quickstart.md) - Basic usage examples
+
+## Module Documentation
+
+Browse the complete module documentation:
+
+- [Base Module](modules/base.md) - Core connection classes
+- [Exceptions](modules/scopes.md) - Exceptions used throughout Pycentral
+- [GLP](modules/glp.md) - GreenLake Platform management
+- [Profiles](modules/profiles.md) - Configuration profile management
+- [Troubleshooting](modules/troubleshooting.md) - Device troubleshooting
+- [Utils](modules/utils.md) - Utilities used throughout Pycentral
+- [Classic](modules/classic.md) - Legacy Pycentral module reference
+
+## License
+
+MIT License - Copyright © 2025 Hewlett Packard Enterprise Development LP
