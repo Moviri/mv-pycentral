@@ -290,8 +290,6 @@ def lookup_in_map(keys, lookup_map):
     :type keys: str or list
     :param lookup_map: Map to search in
     :type lookup_map: dict
-    :param key_type: The type of key to use for lookup (e.g., "id", "name", "serial")
-    :type key_type: str
 
     :return: Found value(s) or None if not found
     :rtype: dict, list, or None

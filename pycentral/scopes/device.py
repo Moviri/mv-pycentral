@@ -84,6 +84,7 @@ class Device(ScopeBase):
         :param from_api: Boolean indicates if the device_attributes is from the
         Central API response.
         :type from_api: bool, optional
+        :raises ValueError: If neither serial nor device_attributes is provided.
         """
 
         # If device_attributes is provided, use it to set attributes
@@ -117,7 +118,7 @@ class Device(ScopeBase):
 
     def get_serial(self):
         """
-        returns the value of self.serial
+        Returns the serial number of the device.
 
         :return: value of self.serial
         :rtype: str
@@ -130,6 +131,7 @@ class Device(ScopeBase):
 
         :return: Device attributes as a dictionary.
         :rtype: dict
+        :raises Exception: If central_conn is not set.
         """
         if self.central_conn is None:
             raise Exception(
@@ -212,15 +214,22 @@ class Device(ScopeBase):
         """
         Fetch device inventory from New Central with optional filtering, sorting, and pagination.
 
-        :param filter: Dictionary of attributes to filter devices by.
+        :param central_conn: Instance of class:`pycentral.NewCentralBase` to establish connection to Central.
+        :type central_conn: class:`NewCentralBase`
+        :param filter_string: Dictionary of attributes to filter devices by.
+        :type filter_string: dict, optional
         :param sort: Sorting criteria for the device list.
-        :param search: Search term to apply to device attributes. Search term to filter devices. Supported fields are: "deviceName", "persona", "model", "serialNumber", "macAddress", "ipv4", "softwareVersion"
+        :type sort: str, optional
+        :param search: Search term to filter devices. Supported fields are: "deviceName", "persona", "model", "serialNumber", "macAddress", "ipv4", "softwareVersion"
+        :type search: str, optional
         :param site_assigned: Specifies the site assignment status of the devices. Can be either "ASSIGNED" or "UNASSIGNED".
+        :type site_assigned: str, optional
         :param limit: Maximum number of devices to return.
-        :param next: Pagination cursor for fetching the next set of devices. Minimum is 1
-
+        :type limit: int, optional
+        :param next_cursor: Pagination cursor for fetching the next set of devices. Minimum is 1
+        :type next_cursor: int, optional
         :return: List of devices matching the criteria.
-        :rtype: list
+        :rtype: dict
         """
         # Construct API parameters with only non-None values
         api_params = {}
@@ -286,6 +295,7 @@ class Device(ScopeBase):
                       See Troubleshooting.ping_test() for detailed parameter information.
         :return: Result of the ping test.
         :rtype: dict
+        :raises ValueError: If device type is unsupported.
         """
         if (
             self.device_type == "SWITCH"
@@ -338,6 +348,7 @@ class Device(ScopeBase):
                       See Troubleshooting.traceroute_test() for detailed parameter information.
         :return: Result of the traceroute test.
         :rtype: dict
+        :raises ValueError: If device type is unsupported.
         """
         if (
             self.device_type == "SWITCH"
@@ -468,8 +479,8 @@ class Device(ScopeBase):
 
         Supported device types: aps (other devices not supported)
 
-        :param ssid: The SSID from which to disconnect users.
-        :type ssid: str
+        :param network: The SSID from which to disconnect users.
+        :type network: str
         :return: Result of the disconnect all users operation.
         :rtype: dict
         """
@@ -506,6 +517,7 @@ class Device(ScopeBase):
                       See https_cx_test(), https_aps_test(), or https_gateways_test() for detailed parameter information.
         :return: Result of the HTTPS test.
         :rtype: dict
+        :raises ValueError: If device type is unsupported.
         """
         self._ensure_materialized()
 
@@ -655,6 +667,7 @@ class Device(ScopeBase):
         :type auth_method_type: str
         :return: Result of the AAA test.
         :rtype: dict
+        :raises ValueError: If device type is unsupported.
         """
 
         self._ensure_materialized()
@@ -728,6 +741,7 @@ class Device(ScopeBase):
         :param kwargs: Additional arguments to pass to the command.
         :return: Result of the troubleshooting command.
         :rtype: dict
+        :raises ValueError: If method is not supported for device type.
         """
         self._ensure_materialized()
         device_type = self._get_effective_device_type()
@@ -765,6 +779,7 @@ class Device(ScopeBase):
 
         :return: The effective device type for troubleshooting operations.
         :rtype: str
+        :raises ValueError: If device type is unsupported.
         """
         device_type = self.device_type
 
@@ -784,6 +799,13 @@ class Device(ScopeBase):
         )
 
     def _identify_switch_os(self):
+        """
+        Identifies the switch OS based on device model.
+
+        :return: Switch OS endpoint ("cx" or "aos-s").
+        :rtype: str
+        :raises ValueError: If device type is not SWITCH or model is missing/unsupported.
+        """
         if self.device_type != "SWITCH":
             raise ValueError(
                 "This method is only applicable for devices of type 'SWITCH'."

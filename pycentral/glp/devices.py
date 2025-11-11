@@ -254,8 +254,8 @@ class Devices(object):
 
         :param conn: new pycentral base object
         :type conn: class: `pycentral.NewCentralBase`
-        :param device: list of device id(s) or serial
-        :type device: list
+        :param devices: list of device id(s) or serial
+        :type devices: list
         :param sub: subscription id or key
         :type sub: str
         :param serial: flag to use device serial

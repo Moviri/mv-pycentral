@@ -1,10 +1,20 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
+
 from pycentral.exceptions import ParameterError
 
 
 def validate_local(local):
+    """
+    Validate local profile attributes and prepare them for API requests.
+
+    :param local: Local profile attributes dictionary containing scope_id and persona
+    :type local: dict or None
+    :return: Validated local attributes dictionary with object_type set to "LOCAL"
+    :rtype: dict
+    :raises ParameterError: If local is not a dictionary or missing required keys with correct types
+    """
     required_keys = {"scope_id": int, "persona": str}
     local_attributes = dict()
     if local:
