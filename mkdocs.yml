@@ -48,6 +48,7 @@ nav:
       - Exceptions: modules/exceptions.md
       - GLP: modules/glp.md
       - Profiles: modules/profiles.md
+      - New Monitoring: modules/new_monitoring.md
       - Scopes: modules/scopes.md
       - Troubleshooting: modules/troubleshooting.md      
       - Utils: modules/utils.md      

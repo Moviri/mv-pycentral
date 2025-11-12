@@ -1,6 +1,6 @@
 # GLP
 
-The GLP module provides interfaces for device, subscription, and user management through the GreenLake Platform
+The GLP module provides interfaces for device, subscription, and user management through the HPE GreenLake Platform
 
 ---
 

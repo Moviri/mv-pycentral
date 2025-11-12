@@ -69,12 +69,14 @@ else:
 Browse the complete module documentation:
 
 - [Base Module](modules/base.md) - Core connection classes
-- [Exceptions](modules/scopes.md) - Exceptions used throughout Pycentral
-- [GLP](modules/glp.md) - GreenLake Platform management
+- [Exceptions](modules/scopes.md) - Exceptions used throughout PyCentral
+- [GLP](modules/glp.md) - HPE GreenLake Platform management
+- [Monitoring](modules/new_monitoring.md) - Monitoring modules
 - [Profiles](modules/profiles.md) - Configuration profile management
-- [Troubleshooting](modules/troubleshooting.md) - Device troubleshooting
-- [Utils](modules/utils.md) - Utilities used throughout Pycentral
-- [Classic](modules/classic.md) - Legacy Pycentral module reference
+- [Scopes](modules/scopes.md) - Scope management modules
+- [Troubleshooting](modules/troubleshooting.md) - Troubleshooting Modules
+- [Utils](modules/utils.md) - Utilities used throughout PyCentral
+- [Classic](modules/classic.md) - Legacy PyCentral module reference
 
 ## License
 
