@@ -99,12 +99,14 @@ class Device(ScopeBase):
             device_attributes["assigned_profiles"] = []
             for key, value in device_attributes.items():
                 setattr(self, key, value)
+
             if (
                 self.provisioned_status
-                and device_attributes["persona"] in SUPPORTED_CONFIG_PERSONAS
+                and device_attributes["device_function"]
+                in SUPPORTED_CONFIG_PERSONAS
             ):
                 self.config_persona = SUPPORTED_CONFIG_PERSONAS[
-                    device_attributes["persona"]
+                    device_attributes["device_function"]
                 ]
         # If only serial is provided, set it and defer fetching other details
         elif serial:
