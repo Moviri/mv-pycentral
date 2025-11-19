@@ -26,7 +26,7 @@ Learn more about Base URLs: https://developer.arubanetworks.com/new-hpe-anw-cent
 """
 
 SUPPORTED_CONFIG_PERSONAS = {
-    "Campus Access Point": "CAMPUS_AP",
+    "Campus AP": "CAMPUS_AP",
     "Micro Branch AP": "MICROBRANCH_AP",
     "Access Switch": "ACCESS_SWITCH",
     "Core Switch": "CORE_SWITCH",

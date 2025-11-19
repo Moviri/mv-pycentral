@@ -5,7 +5,7 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as fh:
     long_description = fh.read()
 
-VERSION = "2.0a10"
+VERSION = "2.0a11"
 
 setuptools.setup(
     name="pycentral",
@@ -15,7 +15,11 @@ setuptools.setup(
     description="HPE Aruba Networking Central Python Package",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/aruba/pycentral",
+    project_urls={
+        "Documentation": "https://pycentral.readthedocs.io/en/v2/",
+        "Repository": "https://github.com/aruba/pycentral/",
+        "Issues": "https://github.com/aruba/pycentral/issues",
+    },
     packages=setuptools.find_packages(exclude=["docs", "tests", "sample_scripts"]),
     classifiers=[
         "Programming Language :: Python :: 3 :: Only",
