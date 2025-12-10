@@ -1,6 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
+from pycentral.new_monitoring.devices import MonitoringDevices
 from .scope_base import ScopeBase
 from .scope_maps import ScopeMaps
 from ..utils.scope_utils import fetch_attribute
@@ -136,8 +137,9 @@ class Device(ScopeBase):
             raise Exception(
                 "Unable to get device without Central connection. Please provide the central connection with the central_conn variable."
             )
-        device_data = Device.get_devices(
-            self.central_conn,
+
+        device_data = MonitoringDevices.get_device_inventory(
+            central_conn=self.central_conn,
             search=str(self.get_serial()),
             limit=1,
         )
@@ -171,14 +173,22 @@ class Device(ScopeBase):
         Returns:
             (list): List of device dictionaries fetched from Central
         """
+        device_list = MonitoringDevices.get_all_device_inventory(
+            central_conn=central_conn
+        )
+
+        if device_list is None:
+            central_conn.logger.error(
+                "Failed to fetch device inventory from Central API."
+            )
+            return []
 
         if new_central_provisioned:
-            new_central_device_list = [
+            return [
                 device
                 for device in device_list
                 if device.get("isProvisioned") == "Yes"
             ]
-            return new_central_device_list
         return device_list
 
     def __rename_keys(self, api_dict, api_attribute_mapping):
