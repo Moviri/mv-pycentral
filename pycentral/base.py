@@ -1,7 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-import oauthlib
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 from requests_oauthlib import OAuth2Session
 from requests.auth import HTTPBasicAuth
 from oauthlib.oauth2 import BackendApplicationClient
@@ -114,15 +114,25 @@ class NewCentralBase:
                         self.logger,
                     )
                 return token["access_token"]
-        except oauthlib.oauth2.rfc6749.errors.InvalidClientError:
-            exitString = (
-                "Invalid client_id or client_secret provided for "
-                + app_name
-                + ". Please provide valid credentials to create an access token."
-            )
-            exit(exitString)
         except Exception as e:
-            raise LoginError(e)
+            # unified extraction of status code (from exception or its response)
+            status_code = getattr(e, "status_code", None)
+            resp = getattr(e, "response", None)
+            if resp is not None:
+                status_code = getattr(resp, "status_code", status_code)
+
+            # special-case invalid client credentials to provide a clearer, actionable message
+            if isinstance(e, InvalidClientError):
+                description = getattr(e, "description", None) or str(e)
+                msg = (
+                    f"{description} for {app_name}. "
+                    "Provide valid client_id and client_secret to create an access token."
+                )
+            else:
+                msg = str(e) or "Unexpected error while creating access token"
+
+            self.logger.error(msg)
+            raise LoginError(msg, status_code)
 
     def handle_expired_token(self, app_name):
         """Handle expired access token by creating a new one.
@@ -134,15 +144,15 @@ class NewCentralBase:
             LoginError: If client credentials are missing.
         """
         self.logger.info(
-            f"{app_name} access Token has expired. Handling Token Expiry..."
+            f"{app_name} access token has expired. Handling Token Expiry..."
         )
         client_id, client_secret = self._return_client_credentials(app_name)
         if any(
             credential is None for credential in [client_id, client_secret]
         ):
-            exit(
-                f"Please provide client_id and client_secret in {app_name} required to generate an access token"
-            )
+            msg = f"Please provide client_id and client_secret in {app_name} required to generate an access token"
+            self.logger.error(msg)
+            raise LoginError(msg)
         else:
             self.create_token(app_name)
 

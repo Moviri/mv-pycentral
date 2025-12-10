@@ -26,20 +26,18 @@ class LoginError(PycentralError):
 
     base_msg = "LOGIN ERROR"
 
-    def __init__(self, *args):
-        self.message = None
-        self.status_code = None
-        if args:
-            msg = ", ".join((self.base_msg, str(args[0])))
-            if len(args) > 1:
-                self.status_code = args[1]
-                msg = ", ".join(
-                    str(a)
-                    for a in (
-                        msg,
-                        *args[1:][1:],
-                    )
-                )
-            self.message = msg
-        else:
-            self.message = self.base_msg
+    def __init__(self, message, status_code=None, *details):
+        self.status_code = status_code
+
+        parts = [self.base_msg]
+        if message:
+            parts.append(str(message))
+        if details:
+            parts.extend(str(d) for d in details)
+
+        self.message = " - ".join(parts)
+
+    def __str__(self):
+        if self.status_code is not None:
+            return f"{self.message} (status_code={self.status_code})"
+        return self.message
