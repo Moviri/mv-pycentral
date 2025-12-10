@@ -24,11 +24,15 @@ This documentation provides an overview of the troubleshooting capabilities avai
 | **Speed Test**                  | `speedtest_test`              | ✅  | ❌     | ❌    | ❌     |
 | **TCP Test**                    | `tcp_test`                    | ✅  | ❌     | ❌    | ❌     |
 | **Traceroute Test**             | -             | `traceroute_aps_test` | `traceroute_cx_test`     | `traceroute_aoss_test`    | `traceroute_gateways_test`      |
+| **List Show Commands**          | `list_show_commands`          | ✅  | ✅     | ✅    | ✅     |
+| **Run Show Command**            | `run_show_command`            | ✅  | ✅     | ✅    | ✅     |
+| **List Active Tasks**           | `list_active_tasks`           | ✅  | ✅     | ✅    | ✅     |
 
 **Legend:**  
+
 - ✅ = Supported with the method named in the "Method Name" column
 - ❌ = Not supported
-- For device-specific implementations (HTTPS, AAA), the specific method name is shown in the device column
-- `-` in the Method Name column indicates different methods per device type
+
+For device-specific implementations (HTTPS Test, Ping Test), the specific method name is shown in the device column in the table above.
 
 ::: pycentral.troubleshooting.troubleshooting
