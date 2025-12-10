@@ -33,16 +33,17 @@ CATEGORIES = {
 
 
 def get_prefix(category="configuration", version="latest"):
-    """
-    Generate URL prefix for a given category and version.
+    """Generate URL prefix for a given category and version.
 
-    :param category: API category name, defaults to "configuration"
-    :type category: str, optional
-    :param version: API version, defaults to "latest"
-    :type version: str, optional
-    :return: URL prefix in the format "category_value/version/"
-    :rtype: str
-    :raises ValueError: If category is not supported or version is invalid
+    Args:
+        category (str, optional): API category name.
+        version (str, optional): API version.
+
+    Returns:
+        (str): URL prefix in the format "category_value/version/".
+
+    Raises:
+        ValueError: If category is not supported or version is invalid.
     """
     if category not in CATEGORIES:
         raise ValueError(
@@ -64,19 +65,19 @@ def get_prefix(category="configuration", version="latest"):
 
 
 def generate_url(api_endpoint, category="configuration", version="latest"):
-    """
-    Generate complete API URL for a given endpoint, category, and version.
+    """Generate complete API URL for a given endpoint, category, and version.
 
-    :param api_endpoint: The API endpoint path to append to the URL
-    :type api_endpoint: str
-    :param category: API category name, defaults to "configuration"
-    :type category: str, optional
-    :param version: API version, defaults to "latest"
-    :type version: str, optional
-    :return: Complete API URL in the format "category[value]/version/api_endpoint"
-    :rtype: str
-    :raises ValueError: If category is not supported or version is invalid
-    :raises TypeError: If api_endpoint is not a string
+    Args:
+        api_endpoint (str): The API endpoint path to append to the URL.
+        category (str, optional): API category name.
+        version (str, optional): API version.
+
+    Returns:
+        (str): Complete API URL in the format "category[value]/version/api_endpoint".
+
+    Raises:
+        ValueError: If category is not supported or version is invalid.
+        TypeError: If api_endpoint is not a string.
     """
     if category not in CATEGORIES:
         raise ValueError(

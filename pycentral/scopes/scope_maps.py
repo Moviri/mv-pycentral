@@ -10,14 +10,13 @@ class ScopeMaps:
 
     # ? Should central_conn be stored in self
     def get(self, central_conn):
-        """
-        Perform a GET call to retrieve data for the Global Scope Map then sets
-            attrs on ScopeMap Object based on data received
+        """Perform a GET call to retrieve data for the Global Scope Map.
 
-        :param central_conn: established Central connection object
-        :type central_conn: NewCentralBase
-        :return: Returns JSON Data of GET call if success, else None
-        :rtype: dict
+        Args:
+            central_conn (NewCentralBase): Established Central connection object
+
+        Returns:
+            (list): List of scope map dictionaries if success, empty list otherwise
         """
         scope_maps_list = []
         api_method = "GET"
@@ -35,14 +34,14 @@ class ScopeMaps:
 
     # ? should this return a value or set a value to self?
     def get_scope_assigned_profiles(self, central_conn, scope_id):
-        """
-        Performs a GET call to retrieve Global Scope Map then finds the
-            matching scope based on the id provided
+        """Performs a GET call to retrieve Global Scope Map then finds matching scope.
 
-        :param central_conn: established Central connection object
-        :type central_conn: NewCentralBase
-        :param scope_id: id of the scope to be matched on
-        :type scope_id: str
+        Args:
+            central_conn (NewCentralBase): Established Central connection object
+            scope_id (int): ID of the scope to be matched on
+
+        Returns:
+            (list): List of assigned profile dictionaries for the scope
         """
         assigned_profiles = []
         mappings = self.get(central_conn=central_conn)
@@ -56,20 +55,19 @@ class ScopeMaps:
     def associate_profile_to_scope(
         self, central_conn, scope_id, profile_name, persona
     ):
-        """
-        Performs a POST call to associate to a profile with the respective
-            device persona to the provided scope.
+        """Performs a POST call to associate a profile with device persona to the provided scope.
 
-        :param central_conn: established Central connection object
-        :type central_conn: NewCentralBase
-        :param scope_id: id of the scope to associate the profile
-        :type scope_id: str
-        :param profile_name: name of the profile to be assigned
-        :type profile_name: str
-        :param persona: device persona to be associated with the profile
-        :type persona: str
-        :return: Returns JSON Data of returned response from POST call
-        :rtype: dict
+        Args:
+            central_conn (NewCentralBase): Established Central connection object
+            scope_id (int or str): ID of the scope to associate the profile
+            profile_name (str): Name of the profile to be assigned
+            persona (str or list): Device persona(s) to be associated with the profile.
+                Valid values: SERVICE_PERSONA, HYBRID_NAC, CORE_SWITCH, BRIDGE,
+                CAMPUS_AP, IOT, MOBILITY_GW, AGG_SWITCH, BRANCH_GW, VPNC,
+                ACCESS_SWITCH, MICROBRANCH_AP, or "ALL"
+
+        Returns:
+            (dict): JSON Data of returned response from POST call
         """
         api_method = "POST"
         api_path = generate_url(SCOPE_URLS["SCOPE-MAPS"])
@@ -139,20 +137,19 @@ class ScopeMaps:
     def unassociate_profile_from_scope(
         self, central_conn, scope_id, profile_name, persona
     ):
-        """
-        Performs a DELETE call to unassign a profile with the respective
-            device persona from the provided scope.
+        """Performs a DELETE call to unassign a profile with device persona from the provided scope.
 
-        :param central_conn: established Central connection object
-        :type central_conn: NewCentralBase
-        :param scope_id: id of the scope to associate the profile
-        :type scope_id: str
-        :param profile_name: name of the profile to be assigned
-        :type profile_name: str
-        :param persona: device persona to be associated with the profile
-        :type persona: str
-        :return: Returns JSON Data of returned response from DELETE call
-        :rtype: dict
+        Args:
+            central_conn (NewCentralBase): Established Central connection object
+            scope_id (int or str): ID of the scope to unassociate the profile from
+            profile_name (str): Name of the profile to be unassigned
+            persona (str or list): Device persona(s) to be unassociated from the profile.
+                Valid values: SERVICE_PERSONA, HYBRID_NAC, CORE_SWITCH, BRIDGE,
+                CAMPUS_AP, IOT, MOBILITY_GW, AGG_SWITCH, BRANCH_GW, VPNC,
+                ACCESS_SWITCH, MICROBRANCH_AP, or "ALL"
+
+        Returns:
+            (dict): JSON Data of returned response from DELETE call
         """
         api_method = "DELETE"
         api_path = generate_url(SCOPE_URLS["SCOPE-MAPS"])

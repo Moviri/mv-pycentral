@@ -5,8 +5,23 @@ from pycentral.exceptions.pycentral_error import PycentralError
 
 
 class LoginError(PycentralError):
-    """
-    Exception raised for errors during login.
+    """Exception raised when login or authentication fails.
+
+    This exception is raised when authentication to HPE Aruba Networking Central fails,
+    typically due to invalid credentials, expired tokens, or network issues.
+
+    Attributes:
+        base_msg (str): The base error message for this exception type.
+        message (str): Detailed error message describing the login failure.
+        status_code (int): HTTP status code associated with the login failure, if available.
+
+    Example:
+        ```python
+        >>> raise LoginError(msg, status_code)
+        LoginError: LOGIN ERROR - Invalid client or client credentials. for
+        new_central. Provide valid client_id and client_secret to create an
+        access token. (status_code=401)
+        ```
     """
 
     base_msg = "LOGIN ERROR"

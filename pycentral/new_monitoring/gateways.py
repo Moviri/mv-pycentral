@@ -15,12 +15,15 @@ class MonitoringGateways:
     @staticmethod
     def get_all_gateways(central_conn, filter_str=None, sort=None):
         """
-        Retrieves a list of all Gateways, with optional filtering and sorting.
+        Retrieve all gateways, handling pagination.
 
-        :param central_conn: Central connection object
-        :param filter_str: Optional filter string to filter devices
-        :param sort: Optional sort parameter to sort devices
-        :return: List response from the API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
+            sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
+
+        Returns:
+            (list[dict]): List of gateway items.
         """
         gateways = []
         total_gateways = None
@@ -45,14 +48,19 @@ class MonitoringGateways:
         central_conn, filter_str=None, sort=None, limit=GATEWAY_LIMIT, next=1
     ):
         """
-        Retrieves a list of Gateways, details include serial number, name,
-        MAC address, siteId, status and more
+        Retrieve a single page of gateways, including optional filtering and sorting as supported by the API.
 
-        :param central_conn: Central connection object
-        :param filter_str: Optional filter string to filter devices
-        :param sort: Optional sort parameter to sort devices
-        :param limit: Number of entries to return (default is 100)
-        :param next: Pagination parameter for next page (default is 1)
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/gateways`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
+            sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
+            limit (int, optional): Number of entries to return (default is 100).
+            next (int, optional): Pagination cursor/index for next page (default is 1).
+
+        Returns:
+            (dict):  API response containing keys like 'items', 'total', and 'next'.
         """
         params = {
             "limit": limit,
@@ -67,30 +75,44 @@ class MonitoringGateways:
     @staticmethod
     def get_cluster_leader_details(central_conn, cluster_name):
         """
-        Retrieves a details of the specified Gateway, details include serial
-        number, name, MAC address, siteId, status and more
+        Get details for the leader of a gateway cluster.
 
-        :param central_conn: Central connection object
-        :param cluster_name: Name of the cluster
-        :return: Dict response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/clusters/{cluster_name}/leader`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            cluster_name (str): Name of the cluster.
+
+        Returns:
+            (dict): API response for the cluster leader.
+
+        Raises:
+            ParameterError: If cluster_name is missing or not a string.
         """
         if not cluster_name or not isinstance(cluster_name, str):
             raise ParameterError(
                 "cluster_name is required and must be a string"
             )
-        path = f"{MONITOR_TYPE}/{cluster_name}/leader"
+        path = f"clusters/{cluster_name}/leader"
 
         return execute_get(central_conn, endpoint=path)
 
     @staticmethod
     def get_gateway_details(central_conn, serial_number):
         """
-        Retrieves a details of the specified Gateway, details include serial
-        number, name, MAC address, siteId, status and more
+        Get details for a specific gateway.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :return: List response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/gateways/{serial_number}`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the gateway.
+
+        Returns:
+            (dict): API response with gateway details.
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
         MonitoringGateways._validate_central_conn_and_serial(
             central_conn, serial_number
@@ -108,16 +130,23 @@ class MonitoringGateways:
         next=1,
     ):
         """
-        Retrieves the details of ports/interfaces for the specified Gateway,
-        details include interface name, status, speed, mtu and more
+        Retrieve port/interface details for a gateway.
 
-        :param central_conn: Central connection object
-        :param filter_str: Optional filter string supported fields are portType,
-        vlanMode, speed, duplex, status, uplink and vlan.
-        :param sort: Optional sort parameter supported fields are mtu,
-        vlanMode, speed, duplex, status and vlan.
-        :param limit: Number of entries to return (default is 100)
-        :param next: Pagination parameter for next page (default is 1)
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/gateways/{serial_number}/ports`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the gateway.
+            filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
+            sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
+            limit (int, optional): Number of entries to return (default is 100).
+            next (int, optional): Pagination cursor/index for next page (default is 1).
+
+        Returns:
+            (dict): API response for the ports endpoint.
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
         MonitoringGateways._validate_central_conn_and_serial(
             central_conn, serial_number
@@ -141,16 +170,23 @@ class MonitoringGateways:
         next=1,
     ):
         """
-        Retrieves the details of ports/interfaces for the specified Gateway,
-        details include interface name, status, speed, mtu and more
+        Retrieve LAN tunnel details for a gateway.
 
-        :param central_conn: Central connection object
-        :param filter_str: Optional filter string supported fields are tunnelName,
-        health, encapsulation, mode, and status.
-        :param sort: Optional sort parameter supported fields are tunnelName,
-        encapsulation, destinationIpAddress, sourceIpAddress, mode, uptime and vni.
-        :param limit: Number of entries to return (default is 100)
-        :param next: Pagination parameter for next page (default is 1)
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/gateways/{serial_number}/lan-tunnels`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the gateway.
+            filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
+            sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
+            limit (int, optional): Number of entries to return (default is 100).
+            next (int, optional): Pagination cursor/index for next page (default is 1).
+
+        Returns:
+            (dict): API response for the lan-tunnels endpoint.
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
         MonitoringGateways._validate_central_conn_and_serial(
             central_conn, serial_number
@@ -174,15 +210,23 @@ class MonitoringGateways:
         return_raw_response=False,
     ):
         """
-        Retrieves the details of multiple statistics for the specified Gateway,
-        stats will be gathered from an optional timerange default is 5 minutes.
-        CPU utilization, Memory utilization, Wan availability stats are gathered.
+        Collect multiple statistics (like CPU, memory, WAN availability) for a gateway for the specified time range. Default is to return sorted trend statistics for last 3 hours.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :return: List response from the API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the gateway.
+            start_time (int, optional): Start time (epoch seconds) for range queries.
+            end_time (int, optional): End time (epoch seconds) for range queries.
+            duration (str|int, optional): Duration string (e.g. '5m') or seconds for relative queries.
+            return_raw_response (bool, optional): If True, return raw per-metric API responses.
+
+        Returns:
+            (list|dict): If return_raw_response is True returns raw list of responses; otherwise returns merged, sorted trend statistics for the gateway.
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
+            RuntimeError: If any of the parallel metric requests fail.
         """
-        # API implementation of network-monitoring/v1alpha1/gateways/serial_number/cpu, wan-availability memory(Parallel loop of individual endpoints)
         MonitoringGateways._validate_central_conn_and_serial(
             central_conn, serial_number
         )
@@ -236,13 +280,17 @@ class MonitoringGateways:
         serial_number,
     ):
         """
-        Retrieves the details of multiple statistics for the specified Gateway,
-        from the last 5 minutes.
-        CPU utilization, Memory utilization, Wan availability stats are gathered.
+        Get the latest gateway statistics (like CPU, memory, WAN availability)
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :return: List response from the API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the gateway.
+
+        Returns:
+            (dict): Latest statistics for the gateway, or empty dict if none exist.
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
         MonitoringGateways._validate_central_conn_and_serial(
             central_conn, serial_number
@@ -264,12 +312,22 @@ class MonitoringGateways:
         duration=None,
     ):
         """
-        Retrieves the details of CPU utilization for the specified Gateway,
-        stats will be gathered from an optional timerange default is 5 minutes.
+        Retrieve CPU utilization trends for a gateway.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :return: List response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/gateways/{serial_number}/cpu-utilization-trends`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the gateway.
+            start_time (int, optional): Start time (epoch seconds) for range queries.
+            end_time (int, optional): End time (epoch seconds) for range queries.
+            duration (str|int, optional): Duration string or seconds for relative queries.
+
+        Returns:
+            (dict|list): API response for cpu-utilization-trends.
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
         MonitoringGateways._validate_central_conn_and_serial(
             central_conn, serial_number
@@ -299,12 +357,22 @@ class MonitoringGateways:
         duration=None,
     ):
         """
-        Retrieves the details of memory utilization for the specified Gateway,
-        stats will be gathered from an optional timerange default is 5 minutes.
+        Retrieve memory utilization trends for a gateway.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :return: List response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/gateways/{serial_number}/memory-utilization-trends`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the gateway.
+            start_time (int, optional): Start time (epoch seconds) for range queries.
+            end_time (int, optional): End time (epoch seconds) for range queries.
+            duration (str|int, optional): Duration string or seconds for relative queries.
+
+        Returns:
+            (dict|list): API response for memory-utilization-trends.
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
         MonitoringGateways._validate_central_conn_and_serial(
             central_conn, serial_number
@@ -334,12 +402,22 @@ class MonitoringGateways:
         duration=None,
     ):
         """
-        Retrieves the details of wan availability for the specified Gateway,
-        stats will be gathered from an optional timerange default is 5 minutes.
+        Retrieve WAN availability trends for a gateway.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :return: List response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/gateways/{serial_number}/wan-availability-trends`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the gateway.
+            start_time (int, optional): Start time (epoch seconds) for range queries.
+            end_time (int, optional): End time (epoch seconds) for range queries.
+            duration (str|int, optional): Duration string or seconds for relative queries.
+
+        Returns:
+            (dict|list): API response for wan-availability-trends.
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
         MonitoringGateways._validate_central_conn_and_serial(
             central_conn, serial_number
@@ -363,11 +441,19 @@ class MonitoringGateways:
     @staticmethod
     def get_tunnel_health_summary(central_conn, serial_number):
         """
-        Retrieves health summary of LAN tunnels present in the specified gateway.
+        Retrieve LAN tunnels health summary for a gateway.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :return: List response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/gateways/{serial_number}/lan-tunnels-health-summary`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the gateway.
+
+        Returns:
+            (dict): API response for lan-tunnels-health-summary.
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
         MonitoringGateways._validate_central_conn_and_serial(
             central_conn, serial_number
@@ -377,8 +463,17 @@ class MonitoringGateways:
 
     def _validate_central_conn_and_serial(central_conn, serial_number):
         """
-        Utility to validate central_conn and serial_number.
-        Raises ParameterError if validation fails.
+        Validate central_conn and serial_number.
+
+        Args:
+            central_conn: Central connection object (required).
+            serial_number (str): Device serial number (required).
+
+        Raises:
+            ParameterError: If central_conn is None or serial_number is missing/invalid.
+
+        Note:
+            Internal SDK function
         """
         if central_conn is None:
             raise ParameterError("central_conn is required")

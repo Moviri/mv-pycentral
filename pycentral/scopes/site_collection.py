@@ -33,22 +33,22 @@ scope_maps = ScopeMaps()
 
 
 class Site_Collection(ScopeBase):
-    """
-    This class holds site collection and all of its attributes & related methods.
-    """
+    """This class holds site collection and all of its attributes & related methods."""
 
     def __init__(
         self, collection_attributes, central_conn=None, from_api=False
     ):
-        """
-        Constructor for Site Collection object
+        """Constructor for Site Collection object.
 
-        :param collection_attributes: Attributes of the site collection
-        :type collection_attributes: dict
-        :param central_conn: Instance of class:`pycentral.NewCentralBase` to establish connection to Central.
-        :type central_conn: class:`NewCentralBase`, optional
-        :param from_api: Boolean indicates if the collection_attributes is from the Central API response.
-        :type from_api: bool, optional
+        Args:
+            collection_attributes (dict): Attributes of the site collection
+            central_conn (NewCentralBase, optional): Instance of NewCentralBase to establish
+                connection to Central.
+            from_api (bool, optional): Boolean indicates if the collection_attributes is from
+                the Central API response.
+
+        Raises:
+            ValueError: If unexpected or missing attributes are provided
         """
         if from_api:
             collection_attributes = self.__rename_keys(collection_attributes)
@@ -57,7 +57,7 @@ class Site_Collection(ScopeBase):
             for attribute in collection_attributes:
                 if attribute not in valid_attributes:
                     raise ValueError(
-                        f'Unexpected attribute: {attribute}. For collection_attributes(not via API) only the following attributes are supported - {", ".join(valid_attributes)}'
+                        f"Unexpected attribute: {attribute}. For collection_attributes(not via API) only the following attributes are supported - {', '.join(valid_attributes)}"
                     )
         self.materialized = from_api
         self.central_conn = central_conn
@@ -71,7 +71,7 @@ class Site_Collection(ScopeBase):
         ]
         if missing_required_attributes:
             raise ValueError(
-                f'Missing required attributes: {", ".join(missing_required_attributes)}'
+                f"Missing required attributes: {', '.join(missing_required_attributes)}"
             )
 
         valid_attributes = (
@@ -86,7 +86,7 @@ class Site_Collection(ScopeBase):
         ]
         if unexpected_attributes:
             raise ValueError(
-                f'Unexpected attributes: {", ".join(unexpected_attributes)}.\n If site_collections is being created based off api_response ensure that the from_api flag is set to True'
+                f"Unexpected attributes: {', '.join(unexpected_attributes)}.\n If site_collections is being created based off api_response ensure that the from_api flag is set to True"
             )
         set_attributes(
             obj=self,
@@ -97,11 +97,13 @@ class Site_Collection(ScopeBase):
         )
 
     def create(self):
-        """
-        Perform a POST call to create a site collection on Central.
+        """Perform a POST call to create a site collection on Central.
 
-        :return: True if site collection was created, else False
-        :rtype: bool
+        Returns:
+            (bool): True if site collection was created, False otherwise
+
+        Raises:
+            Exception: If site collection already exists or central connection is missing
         """
         if self.materialized:
             raise Exception(
@@ -138,16 +140,18 @@ class Site_Collection(ScopeBase):
                 pass
         else:
             self.central_conn.logger.error(
-                f'Failed to create site collection {self.get_name()} in Central.\nError message - {resp["msg"]}'
+                f"Failed to create site collection {self.get_name()} in Central.\nError message - {resp['msg']}"
             )
         return site_collection_creation_status
 
     def get(self):
-        """
-        Performs a GET call to retrieve data of a site collection then sets attributes of self based on API response.
+        """Performs a GET call to retrieve data of a site collection then sets attributes.
 
-        :return: Returns JSON Data of GET call if success, else None
-        :rtype: dict
+        Returns:
+            (dict): JSON Data of GET call if success, None otherwise
+
+        Raises:
+            Exception: If site collection doesn't exist or central connection is missing
         """
         if not self.materialized:
             raise Exception(
@@ -182,11 +186,15 @@ class Site_Collection(ScopeBase):
         return site_collection_data
 
     def update(self):
-        """
-        Performs a PUT call to update attributes of site collection on Central if any changes are detected. The source of truth is self
+        """Performs a PUT call to update attributes of site collection on Central if changes are detected.
 
-        :return: Returns JSON Data of GET call if success, else None
-        :rtype: dict
+        The source of truth is self.
+
+        Returns:
+            (bool): True if modifications were made, False otherwise
+
+        Raises:
+            Exception: If site collection doesn't exist on Central or central connection is missing
         """
         if not self.materialized:
             raise Exception(
@@ -235,11 +243,13 @@ class Site_Collection(ScopeBase):
         return modified
 
     def delete(self):
-        """
-        Performs DELETE call to delete Site Collection.
+        """Performs DELETE call to delete Site Collection.
 
-        :return: True if DELETE was successful, else returns False if DELETE was unsuccessful
-        :rtype: bool
+        Returns:
+            (bool): True if DELETE was successful, False otherwise
+
+        Raises:
+            Exception: If site collection doesn't exist on Central or central connection is missing
         """
         if not self.materialized:
             raise Exception(
@@ -272,14 +282,17 @@ class Site_Collection(ScopeBase):
         return site_collection_deletion_status
 
     def associate_site(self, sites):
-        """
-        Performs POST call to associate sites with a site collection.
+        """Performs POST call to associate sites with a site collection.
 
-        :param sites: List of sites that need to be associated with this site collection. Each element of this list is of type class:`Site` or list of site ids(integer type)
-        :type sites: list
+        Args:
+            sites (list): List of Site objects or list of site IDs (int) to associate
+                with this site collection
 
-        :return: True if site association was successful, else returns False if site association failed.
-        :rtype: bool
+        Returns:
+            (bool): True if site association was successful, False otherwise
+
+        Raises:
+            ParameterError: If sites parameter is not a list of Site or int types
         """
         api_method = "POST"
         api_path = generate_url(SCOPE_URLS["ADD_SITE_TO_COLLECTION"])
@@ -302,7 +315,7 @@ class Site_Collection(ScopeBase):
         )
         if resp["code"] == 200 and len(resp["msg"]["items"]) == len(site_ids):
             self.central_conn.logger.info(
-                f'Successfully associated site(s) {", ".join([str(site.name) for site in sites])} to site collection {self.name}'
+                f"Successfully associated site(s) {', '.join([str(site.name) for site in sites])} to site collection {self.name}"
             )
             self.get()
             for site in sites:
@@ -317,19 +330,22 @@ class Site_Collection(ScopeBase):
             return True
         else:
             self.central_conn.logger.error(
-                f'Failed to associate site(s) {", ".join([str(site.name) for site in sites])} to site collection {self.name}.\n Error message - {resp["msg"]}'
+                f"Failed to associate site(s) {', '.join([str(site.name) for site in sites])} to site collection {self.name}.\n Error message - {resp['msg']}"
             )
             return False
 
     def unassociate_site(self, sites):
-        """
-        Performs DELETE call to unassociate sites with a site collection.
+        """Performs DELETE call to unassociate sites with a site collection.
 
-        :param sites: List of sites that need to be unassociated with this site collection. Each element of this list is of type class:`Site` or list of site ids(integer type)
-        :type sites: list
+        Args:
+            sites (list): List of Site objects or list of site IDs (int) to unassociate
+                from this site collection
 
-        :return: True if site unassociation was successful, else returns False if site unassociation failed.
-        :rtype: bool
+        Returns:
+            (bool): True if site unassociation was successful, False otherwise
+
+        Raises:
+            ParameterError: If sites parameter is not a list of Site or int types
         """
         api_method = "DELETE"
         api_path = generate_url(SCOPE_URLS["REMOVE_SITE_FROM_COLLECTION"])
@@ -347,7 +363,7 @@ class Site_Collection(ScopeBase):
         )
         if resp["code"] == 200 and len(resp["msg"]["items"]) == len(site_ids):
             self.central_conn.logger.info(
-                f'Successfully unassociated site(s) {", ".join([str(site.name) for site in sites])} from site collection {self.name}'
+                f"Successfully unassociated site(s) {', '.join([str(site.name) for site in sites])} from site collection {self.name}"
             )
             self.get()
             for site in sites:
@@ -359,19 +375,18 @@ class Site_Collection(ScopeBase):
             return True
         else:
             self.central_conn.logger.error(
-                f'Failed to unassociate site(s) {", ".join([str(site.name) for site in sites])} to site collection {self.name}.\n Error message - {resp["msg"]}'
+                f"Failed to unassociate site(s) {', '.join([str(site.name) for site in sites])} to site collection {self.name}.\n Error message - {resp['msg']}"
             )
             return False
 
     def add_site(self, site_id):
-        """
-        This function adds the site details(site ID) to the site collection attributes.
+        """Adds the site details (site ID) to the site collection attributes.
 
-        :param site_id: Site ID of the site
-        :type site_id: str
+        Args:
+            site_id (int or str): Site ID of the site
 
-        :return: True if site details were successfully updated to site collection attributes, else returns False.
-        :rtype: bool
+        Returns:
+            (bool): True if site details were successfully updated, False otherwise
         """
         if int(site_id):
             self.sites.append(int(site_id))
@@ -379,14 +394,13 @@ class Site_Collection(ScopeBase):
         return False
 
     def remove_site(self, site_id):
-        """
-        This function removes the site details(site ID) the site collection attributes.
+        """Removes the site details (site ID) from the site collection attributes.
 
-        :param site_id: Site ID of the site
-        :type site_id: str
+        Args:
+            site_id (int): Site ID of the site
 
-        :return: True if site details were removed from site collection attributes, else returns False.
-        :rtype: bool
+        Returns:
+            (bool): True if site details were removed, False otherwise
         """
         if site_id in self.sites:
             self.sites.remove(site_id)
@@ -394,23 +408,24 @@ class Site_Collection(ScopeBase):
         return False
 
     def __str__(self):
-        """
-        This function returns the string containing the name and ID of the site collection.
+        """Returns the string containing the name and ID of the site collection.
 
-        :return: String representation of this class
-        :rtype: str
+        Returns:
+            (str): String representation of this class
         """
         return f"Site Collection ID - {self.get_id()}, Site Collection Name - {self.get_name()}"
 
     def __rename_keys(self, api_attributes):
-        """
-        This function renames the keys of the site collection attributes from the API response
+        """Renames the keys of the site collection attributes from the API response.
 
-        :param api_attributes: Site collection attributes from Central API Response
-        :type api_attributes: dict
+        Args:
+            api_attributes (dict): Site collection attributes from Central API Response
 
-        :return: Renamed dictionary of site collection attributes. The renamed keys maps to attributes that will be defined in the site collection object
-        :rtype: dict
+        Returns:
+            (dict): Renamed dictionary of site collection attributes mapped to object attributes
+
+        Raises:
+            ValueError: If unknown attribute is found in API response
         """
         extra_keys = ["type", "scopeId"]
         for key in extra_keys:
@@ -432,11 +447,10 @@ class Site_Collection(ScopeBase):
         return renamed_dict
 
     def __generate_api_body(self):
-        """
-        This function returns the dictionary of site collection attributes are needed to making API calls
+        """Returns the dictionary of site collection attributes needed for making API calls.
 
-        :return: Dictionary of site collection attributes needed for making API calls to Central.
-        :rtype: dict
+        Returns:
+            (dict): Dictionary of site collection attributes needed for making API calls to Central
         """
         api_body = {
             "scopeName": self.name,

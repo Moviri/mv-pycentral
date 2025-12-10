@@ -11,10 +11,14 @@ class MonitoringSites:
     @staticmethod
     def get_all_sites(central_conn, return_raw_response=False):
         """
-        Retrieves a list of all sites with their details.
+        Retrieve all sites information including health details, handling pagination.
 
-        :param central_conn: Central connection object
-        :return: List response from the API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            return_raw_response (bool, optional): If True, return the raw API payloads. Defaults to False.
+
+        Returns:
+            (list[dict]): List of site records. If return_raw_response is False, each site response is simplified via simplified_site_resp.
         """
         sites = []
         total_sites = None
@@ -34,34 +38,39 @@ class MonitoringSites:
             sites = [simplified_site_resp(site) for site in sites]
         return sites
 
-    # need to include logic to handle params/filters/sorting
     @staticmethod
     def get_sites(central_conn, limit=SITE_LIMIT, offset=0):
         """
-        Retrieves a list of health information for each site, including
-        devices, clients, critical alerts with count, along with their
-        respective health and health reasons.
+        Retrieve a single page of site health information. It returns details such as devices, clients, critical alerts with count, along with their respective health and health reasons for each site.
 
-        :param central_conn: Central connection object
-        :param limit: Number of entries to return (default is 100)
-        :param offset: Number of entries to skip for pagination (default is 0)
-        :return: List response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/sites-health`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            limit (int, optional): Number of entries to return (default is 100).
+            offset (int, optional): Number of entries to skip for pagination (default is 0).
+
+        Returns:
+            (dict): Raw API response for the requested page (typically contains 'items' and 'total').
         """
         params = {"limit": limit, "offset": offset}
         path = "sites-health"
         return execute_get(central_conn, endpoint=path, params=params)
 
-    # need to include logic to handle params/filters/sorting
     @staticmethod
     def list_sites_device_health(central_conn, limit=100, offset=0):
         """
-        Retrieves a list of sites with the number of poor, fair, and good
-        performing devices for each site.
+        Retrieve per-site device health statistics. It returns the number of poor, fair, and good performing devices for each site.
 
-        :param central_conn: Central connection object
-        :param limit: Number of entries to return (default is 100)
-        :param offset: Number of entries to skip for pagination (default is 0)
-        :return: List response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/sites-device-health`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            limit (int, optional): Number of entries to return (default is 100).
+            offset (int, optional): Number of entries to skip for pagination (default is 0).
+
+        Returns:
+            (dict): Raw API response containing device health counts per site.
         """
         params = {"limit": limit, "offset": offset}
         path = "sites-device-health"
@@ -71,14 +80,21 @@ class MonitoringSites:
     @staticmethod
     def list_site_information(central_conn, site_id, limit=100, offset=0):
         """
-        Retrieves a list of health information for each site, including
-        devices, clients, critical alerts with count, along with their
-        respective health and health reasons.
+        Retrieve detailed health information for a specific site. It returns details such as devices, clients, critical alerts with count, along with their respective health and health reasons.
 
-        :param central_conn: Central connection object
-        :param limit: Number of entries to return (default is 100)
-        :param offset: Number of entries to skip for pagination (default is 0)
-        :return: List response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/site-health/{site_id}`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (int): Identifier of the site to query.
+            limit (int, optional): Number of entries to return (default is 100).
+            offset (int, optional): Number of entries to skip for pagination (default is 0).
+
+        Returns:
+            (dict): Raw API response with site health details.
+
+        Raises:
+            ParameterError: If site_id is missing or not an integer.
         """
         if not site_id or not isinstance(site_id, int):
             raise ParameterError("site_id is required and must be an integer")

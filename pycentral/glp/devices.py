@@ -17,13 +17,16 @@ POST_RPM = 4
 
 class Devices(object):
     def get_all_devices(self, conn, select=None):
-        """
-        Get a list of devices managed in a workspace.
+        """Get a list of devices managed in a workspace.
 
-        :param select: A comma separated list of select properties to display in the response. The default is that all properties are returned.
-        :type select: Array of strings unique (Example: select=serialNumber,macAddress)
-        :return: A list of all devices in the workspace, or an empty list if an error occurs.
-        :rtype: list of dict
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            select (list, optional): A comma separated list of select properties to display in
+                the response. The default is that all properties are returned.
+                Example: select=serialNumber,macAddress
+
+        Returns:
+            (list[dict]): A list of all devices in the workspace, or an empty list if an error occurs
         """
         conn.logger.info("Getting all devices in GLP workspace")
         limit = DEVICE_GET_LIMIT
@@ -59,29 +62,23 @@ class Devices(object):
         select=None,
         sort=None,
     ):
-        """
-        Get a list of devices managed in a GLP workspace from filter/select
-        and sort inputs.
-        Rate limits are enforced on this API. 160 requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
+        """Get a list of devices managed in a GLP workspace from filter/select and sort inputs.
 
-        :param conn: new pycentral base object
-        :type conn: class: `pycentral.NewCentralBase`
-        :param limit: specifies the number of results to be returned.
-            The default value is 2000.
-        :type limit: int
-        :param offset: specifies the zero-based resource offset to start the
-            response from. The default value is 0.
-        :type offset: int
-        :param filter: device filters joined by logical operators
-        :type filter: str
-        :param select: properties of devices to be displayed in response.
-        :type select: list
-        :param sort: sort string expressions
-        :type sort: str
+        Rate limits are enforced on this API. 160 requests per minute is supported per workspace.
+        API will result in 429 if this threshold is breached.
 
-        :return: response as provided by 'command' function in
-            class: `pycentral.NewCentralBase`
-        :rtype: dict
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            limit (int, optional): Specifies the number of results to be returned.
+                The default value is 2000
+            offset (int, optional): Specifies the zero-based resource offset to start the
+                response from. The default value is 0
+            filter (str, optional): Device filters joined by logical operators
+            select (list, optional): Properties of devices to be displayed in response
+            sort (str, optional): Sort string expressions
+
+        Returns:
+            (dict): Response as provided by 'command' function in NewCentralBase
         """
 
         conn.logger.info("Getting a device in GLP workspace")
@@ -103,18 +100,16 @@ class Devices(object):
         return resp
 
     def get_device_id(self, conn, serial):
-        """
-        Get device ID in a GLP workspace by serial.
+        """Get device ID in a GLP workspace based on serial number.
 
-        :param conn: new pycentral base object
-        :type conn: class: `pycentral.NewCentralBase`
-        :param serial: device serial
-        :type serial: str
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            serial (str): Device serial number
 
-        :return: Tuple of two elements. First element of the tuple returns True
-            if device id is found, else False. The second element is a GLP
-            device ID if found. Else, an error message from the response.
-        :rtype: (bool, str)
+        Returns:
+            (tuple(bool, str)): Tuple of two elements. First element returns True if device id
+                is found, else False. The second element is a GLP device ID if found, else an
+                error message from the response
         """
 
         filter = f"serialNumber eq '{serial}'"
@@ -127,17 +122,14 @@ class Devices(object):
             return (True, resp["msg"]["items"][0]["id"])
 
     def get_status(self, conn, id):
-        """
-        Get status of an async GLP devices request.
+        """Get status of an async GLP devices request.
 
-        :param conn: new pycentral base object
-        :type conn: class: `pycentral.NewCentralBase`
-        :param id: transaction ID from async API request
-        :type id: str
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            id (str): Transaction ID from async API request
 
-        :return: response as provided by 'command' function in
-            class: `pycentral.NewCentralBase`
-        :rtype: dict
+        Returns:
+            (dict): Response as provided by 'command' function in NewCentralBase
         """
 
         path = generate_url(f"{GLP_URLS['ASYNC']}/{id}", category="devices")
@@ -145,25 +137,21 @@ class Devices(object):
         return resp
 
     def add_devices(self, conn, network=[], compute=[], storage=[]):
-        """
-        Post devices to GLP workspace. Handles coordinating chaining requests
-        if passed more than 5 devices(max per api call). Can use any
-        combination of network, compute, and storage devices. Always return a
-        202 response code if basic input validation is met. Currently does not
-        support Async get status handling to confirm operation success.
+        """Add devices to a workspace in GreenLake Platform (GLP).
 
-        :param conn: new pycentral base object
-        :type conn: class: `pycentral.NewCentralBase`
-        :param network: network devices as dict objects
-        :type network: list
-        :param compute: compute devices as dict objects
-        :type compute: list
-        :param storage: storage devices as dict objects
-        :type storage: list
+        Handles coordinating chaining requests if passed more than 5 devices (max per api call).
+        Can use any combination of network, compute, and storage devices. Always returns a 202
+        response code if basic input validation is met. Currently does not support Async get
+        status handling to confirm operation success.
 
-        :return: list of resp objects as provided by 'command' function in
-            class: `pycentral.NewCentralBase`
-        :rtype: list
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            network (list, optional): Network devices as dict objects
+            compute (list, optional): Compute devices as dict objects
+            storage (list, optional): Storage devices as dict objects
+
+        Returns:
+            (list[dict]): List of response objects as provided by 'command' function in NewCentralBase
         """
 
         count = len(network) + len(compute) + len(storage)
@@ -171,9 +159,7 @@ class Devices(object):
 
         # Check for rate limit handler
         if count > INPUT_SIZE:
-            conn.logger.info(
-                "WARNING MORE THAN 5 DEVICES IS AN ALPHA FEATURE!"
-            )
+            conn.logger.info("WARNING MORE THAN 5 DEVICES IS AN ALPHA FEATURE!")
             resp_list.append(self.__add_dev("network", network))
             resp_list.append(self.__add_dev("compute", compute))
             resp_list.append(self.__add_dev("storage", storage))
@@ -190,21 +176,18 @@ class Devices(object):
             return resp_list
 
     def __add_dev(self, conn, type, inputs):
-        """
-        Helper function for add_devices. Handles splitting inputs larger than
-        input size and coordinates running the commands to not exceed rate
-        limit.
+        """Helper function for add_devices.
 
-        :param conn: new pycentral base object
-        :type conn: class: `pycentral.NewCentralBase`
-        :param type: one of network, compute, or storage
-        :type param: str
-        :param inputs: list of 'type' objects in dict format
-        :type inputs: list
+        Handles splitting inputs larger than input size and coordinates running the commands
+        to not exceed rate limit.
 
-        :return: response object as provided by 'command' function in
-            class: `pycentral.NewCentralBase`
-        :rtype: list
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            type (str): One of network, compute, or storage
+            inputs (list): List of 'type' objects in dict format
+
+        Returns:
+            (list[dict]): Response object(s) as provided by 'command' function in NewCentralBase
         """
 
         path = generate_url(GLP_URLS["DEVICE"], category="devices")
@@ -245,27 +228,22 @@ class Devices(object):
             return resp
 
     def add_sub(self, conn, devices, sub, serial=False, key=False):
-        """
-        Add subscription to device(s). API endpoint supports five devices
-        per request. Handles chaining multiple requests for greater than
-        five devices supplied. An additional response dict object will be
-        appended to the return list for each additional request required to
-        handle the number of input devices passed to the function.
+        """Add subscription to device(s).
 
-        :param conn: new pycentral base object
-        :type conn: class: `pycentral.NewCentralBase`
-        :param devices: list of device id(s) or serial
-        :type devices: list
-        :param sub: subscription id or key
-        :type sub: str
-        :param serial: flag to use device serial
-        :type serial: bool
-        :param key: flag to use subscription key
-        :type key: bool
+        API endpoint supports five devices per request. Handles chaining multiple requests for
+        greater than five devices supplied. An additional response dict object will be appended
+        to the return list for each additional request required to handle the number of input
+        devices passed to the function.
 
-        :return: list of API response objects as provided by 'command' function
-            in class: `pycentral.NewCentralBase`
-        :rtype: list
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            devices (list): List of device id(s) or serial numbers
+            sub (str): Subscription id or key
+            serial (bool, optional): Flag to use device serial numbers, default is False
+            key (bool, optional): Flag to use subscription key, default is False
+
+        Returns:
+            (list[dict]): List of API response objects as provided by 'command' function in NewCentralBase
         """
 
         if serial:
@@ -329,23 +307,20 @@ class Devices(object):
         return resp_list
 
     def remove_sub(self, conn, devices, serial=False):
-        """
-        Remove a subscription from a device. API endpoint supports five devices
-        per request. Handles chaining multiple requests for greater than
-        five devices supplied. An additional response dict object will be
-        appended to the return list for each additional request required to
-        handle the number of input devices passed to the function.
+        """Remove a subscription from a device.
 
-        :param conn: new pycentral base object
-        :type conn: class: `pycentral.NewCentralBase`
-        :param devices: list of device(s) to remove sub
-        :type devices: list
-        :param serial: flag to use device serial
-        :type serial: bool
+        API endpoint supports five devices per request. Handles chaining multiple requests for
+        greater than five devices supplied. An additional response dict object will be appended
+        to the return list for each additional request required to handle the number of input
+        devices passed to the function.
 
-        :return: list of API response objects as provided by 'command' function
-            in class: `pycentral.NewCentralBase`
-        :rtype: list
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            devices (list): List of device id(s) or serial numbers
+            serial (bool, optional): Flag to use device serial numbers, default is False
+
+        Returns:
+            (list[dict]): List of API response objects as provided by 'command' function in NewCentralBase
         """
 
         if serial:
@@ -403,21 +378,24 @@ class Devices(object):
     def assign_devices(
         self, conn, devices=None, application=None, region=None, serial=False
     ):
-        """
-        Update devices by passing one or more device IDs. Currently supports assigning and un-assigning devices to and from an application or applying/removing subscriptions to/from devices.
-        Rate limits are enforced on this API. Five requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
+        """Assign devices to an application by passing one or more device id(s) or serial numbers.
 
-        :param devices: array of strings consisting of device serial numbers
-        :type devices: array of strings
-        :param application: application id
-        :type application: string
-        :param region: ahe region of the application the device is provisioned in.
-        :type region: string
-        :param serial: True or False value, deafult is set to True
-        :type serial: boolean (Example: True)
-        :return: API response
-        :rtype: dict
+        Currently supports assigning and un-assigning devices to and from an application or
+        applying/removing subscriptions to/from devices. Rate limits are enforced on this API.
+        Five requests per minute is supported per workspace. API will result in 429 if this
+        threshold is breached.
+
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            devices (list, optional):  List of device id(s) or serial numbers
+            application (str, optional): Application id
+            region (str, optional): AHE region of the application the device is provisioned in
+            serial (bool, optional): Flag to use device serial numbers, default is False
+
+        Returns:
+            (dict): API response
         """
+
         conn.logger.info("Assigning device(s) to an application")
         path = generate_url(GLP_URLS["DEVICE"], category="devices")
 
@@ -484,17 +462,22 @@ class Devices(object):
         return resp
 
     def unassign_devices(self, conn, devices=None, serial=False):
-        """
-        Update devices by passing one or more device IDs. Currently supports assigning and un-assigning devices to and from an application or applying/removing subscriptions to/from devices.
-        Rate limits are enforced on this API. Five requests per minute is supported per workspace. API will result in 429 if this threshold is breached.
+        """Unassign devices from an application by passing one or more device id(s) or serial numbers.
 
-        :param devices: array of strings consisting of device serial numbers
-        :type devices: array of strings
-        :param serial: True or False value, deafult is set to True
-        :type serial: boolean (Example: True)
-        :return: API response
-        :rtype: dict
+        Currently supports assigning and un-assigning devices to and from an application or
+        applying/removing subscriptions to/from devices. Rate limits are enforced on this API.
+        Five requests per minute is supported per workspace. API will result in 429 if this
+        threshold is breached.
+
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            devices (list, optional): List of device id(s) or serial numbers
+            serial (bool, optional): Flag to use device serial numbers, default is False
+
+        Returns:
+            (dict): API response
         """
+
         conn.logger.info("Unassigning device(s) from an application")
         path = generate_url(GLP_URLS["DEVICE"], category="devices")
 
@@ -553,9 +536,7 @@ class Devices(object):
                 )
                 return status[1]
             else:
-                conn.logger.error(
-                    "Unassign device(s) from application failed!"
-                )
+                conn.logger.error("Unassign device(s) from application failed!")
                 return status[1]
         conn.logger.error(
             "Bad request for unassign device(s) from application!"

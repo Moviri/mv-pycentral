@@ -6,17 +6,16 @@ from ..utils import GLP_URLS, generate_url
 
 class ServiceManager(object):
     def get_application_id_and_region(self, conn, application_name, region):
-        """
-        Retrieve the application ID and API region name for a specified application and region.
-        This method performs the following steps:
-        1. Validates that the `application_name` and `region` parameters are not empty.
-        2. Fetches the list of service managers and their associated regions.
-        3. Maps the provided region (UI name) to its corresponding API region name.
-        4. Verifies if the specified application exists in the given region.
-        5. Fetches the list of provisioned service managers and verifies if the application is installed in the specified region.
-        :param region: The region (UI name) where the application is deployed.
-        :returns: A dictionary containing the application ID and API region name if found, otherwise None.
-        :rtype: dict or None
+        """Retrieve the application ID and API region name for a specified application and region.
+
+
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            application_name (str): name of the application to search for.
+            region (str): The region (UI name) where the application is deployed.
+
+        Returns:
+            (dict): Dictionary containing the application ID and API region name if found, otherwise None.
         """
         if not application_name or not region:
             conn.logger.error("Application name or region cannot be empty.")
@@ -77,18 +76,15 @@ class ServiceManager(object):
         return None
 
     def get_service_manager_provisions(self, conn, limit=2000, offset=0):
-        """
-        Retrieve all provisioned services in GLP workspace.
+        """Retrieve all provisioned services in GLP workspace.
 
-        :param conn: Connection object used to interact with the service.
-        :type conn: object
-        :param limit: Specify the maximum number of entries per page. NOTE: The maximum value accepted is 2000.
-        :type limit: int
-        :param offset: Specify pagination offset. An offset argument defines how many pages to skip before returning results.
-        :type offset: int
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+            limit (int, optional): Specify the maximum number of entries per page. Maximum value accepted is 2000.
+            offset (int, optional): Specify pagination offset. Defines how many pages to skip before returning results. Default is 0.
 
-        :returns: API response
-        :rtype: dict
+        Returns:
+            (dict): API response containing provisioned services.
         """
         conn.logger.info("Getting provisioned services in GLP workspace")
         path = generate_url(
@@ -106,14 +102,13 @@ class ServiceManager(object):
         return resp
 
     def get_service_manager_by_region(self, conn):
-        """
-        Get the region mapping for the service manager.
+        """Get the region mapping for the service manager.
 
-        :param conn: The connection object.
-        :type conn: object
+        Args:
+            conn (NewCentralBase): pycentral base connection object
 
-        :returns: API response
-        :rtype: dict
+        Returns:
+            (dict): API response containing service managers by region.
         """
         conn.logger.info("Getting services managers by region in GLP")
         path = generate_url(
@@ -124,19 +119,14 @@ class ServiceManager(object):
         return resp
 
     def _generate_application_region_mapping(self, service_manager_list):
-        """
-        Generates mappings for service managers and regions based on the provided service manager by region's API response.
+        """Generate mappings for service managers and regions.
 
-        This method processes a list of regions, each containing service managers, to create two mappings:
-        1. A mapping of service manager names to their corresponding IDs.
-        2. A mapping of region names from UI to their corresponding API name.
+        Args:
+            service_manager_list (list): List of dictionaries where each dictionary represents a region
+                and contains its name, ID, and associated service managers.
 
-        :param service_manager_list: A list of dictionaries, where each dictionary represents a region
-            and contains its name, ID, and associated service managers.
-        :type service_manager_list: list
-
-        :returns: A dictionary mapping region names to their IDs.
-        :rtype: dict
+        Returns:
+            (dict): Dictionary mapping region names to their IDs and service managers.
         """
         region_map = {}
         for region in service_manager_list:
@@ -149,18 +139,15 @@ class ServiceManager(object):
         return region_map
 
     def get_service_managers(self, conn, limit=2000, offset=0):
-        """
-        Retrieve all available service managers in GLP.
+        """Retrieve all available service managers in GLP.
 
-        :param conn: Connection object used to interact with the service.
-        :type conn: object
-        :param limit: Specify the maximum number of entries per page. NOTE: The maximum value accepted is 2000.
-        :type limit: int
-        :param offset: Specify pagination offset. An offset argument defines how many pages to skip before returning results.
-        :type offset: int
+        Args:
+            conn (NewCentralBase): pycentral base connection object
+           limit (int, optional): Specify the maximum number of entries per page. Maximum value accepted is 2000.
+           offset (int, optional): Specify pagination offset. Defines how many pages to skip before returning results.
 
-        :returns: API response
-        :rtype: dict
+        Returns:
+            (dict): API response containing service managers.
         """
         conn.logger.info("Getting service managers in GLP")
         path = generate_url(
