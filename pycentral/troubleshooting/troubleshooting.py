@@ -4496,6 +4496,250 @@ class Troubleshooting:
         return resp["msg"]
 
     @staticmethod
+    def list_active_tasks(central_conn, device_type, serial_number):
+        """Retrieves a list of all active or recently completed asynchronous operations for the specified device, grouped by test name.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+        Results are sorted by startTime in descending order (most recently started first).
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response dictionary containing code (int), msg (list of task groups),
+                and other metadata. Each task group contains testName (str) and locations (list).
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/list-tasks", "troubleshooting"
+        )
+        resp = central_conn.command(api_method="GET", api_path=api_path)
+
+        if resp["code"] != 200:
+            raise Exception(
+                f"Failed to list active tasks for {device_type} {serial_number}: {resp['code']} - {resp['msg']}"
+            )
+
+        return resp
+
+    @staticmethod
+    def list_show_commands(central_conn, device_type, serial_number):
+        """Returns most used/top 'show' commands supported on given device.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (list or dict): List of show commands organized by category if successful (code 200),
+                otherwise full response dict containing error information.
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/show-commands", "troubleshooting"
+        )
+        resp = central_conn.command(api_method="GET", api_path=api_path)
+
+        if resp["code"] != 200:
+            raise Exception(
+                f"Failed to list show commands for {device_type} {serial_number}: {resp['code']} - {resp['msg']}"
+            )
+
+        return resp["msg"]
+
+    @staticmethod
+    def run_show_command(
+        central_conn,
+        device_type,
+        serial_number,
+        command,
+        max_attempts=5,
+        poll_interval=5,
+    ):
+        """Runs a 'show' command on a device and polls for test result.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+        The command must start with 'show '.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            command (str): Show command to execute (must start with 'show ').
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing command output and status.
+
+        Raises:
+            Exception: If initiating the show command fails.
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+
+        try:
+            response = Troubleshooting.initiate_show_command(
+                central_conn=central_conn,
+                device_type=device_type,
+                serial_number=serial_number,
+                command=command,
+            )
+
+            task_id = Troubleshooting._get_task_id(response)
+
+            return Troubleshooting._poll_task_completion(
+                Troubleshooting.get_show_command_result,
+                task_id,
+                central_conn,
+                max_attempts=max_attempts,
+                poll_interval=poll_interval,
+                device_type=device_type,
+                serial_number=serial_number,
+            )
+        except Exception as e:
+            central_conn.logger.error(
+                f"Error running show command on {device_type} {serial_number}: {str(e)}"
+            )
+            raise
+
+    @staticmethod
+    def initiate_show_command(
+        central_conn, device_type, serial_number, command
+    ):
+        """Initiates an asynchronous execution of a 'show' command on a device.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+        The command must start with 'show '.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            command (str): Show command to execute (must start with 'show ').
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If command is not a valid string.
+            ParameterError: If command doesn't start with 'show '.
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+
+        if not command or not isinstance(command, str):
+            raise ParameterError(
+                "command must be a valid string and is required"
+            )
+
+        if not command.strip().lower().startswith("show "):
+            raise ParameterError(
+                "command must start with 'show '. Example: 'show ap debug system-status'"
+            )
+
+        api_data = {"command": command}
+
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/showCommand", "troubleshooting"
+        )
+        resp = central_conn.command(
+            api_method="POST", api_path=api_path, api_data=api_data
+        )
+
+        if resp["code"] != 202:
+            raise Exception(
+                f"Failed to initiate show command for {device_type} {serial_number}: {resp['code']} - {resp['msg']}"
+            )
+
+        response = resp["msg"]
+        task_id = Troubleshooting._get_task_id(response)
+        central_conn.logger.info(
+            f"Show command initiated successfully for {device_type} {serial_number}. Task ID: {task_id}"
+        )
+        return response
+
+    @staticmethod
+    def get_show_command_result(
+        central_conn,
+        task_id,
+        device_type,
+        serial_number,
+    ):
+        """Retrieves the results of a show command execution on a device with the provided task ID.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API containing command output and status.
+
+        Raises:
+            Exception: If retrieving the command result fails.
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+        resp = central_conn.command(
+            api_method="GET",
+            api_path=generate_url(
+                f"{device_type}/{serial_number}/showCommand/async-operations/{task_id}",
+                "troubleshooting",
+            ),
+        )
+
+        if resp["code"] != 200:
+            raise Exception(
+                f"Failed to get show command result: {resp['code']} - {resp['msg']}"
+            )
+
+        if resp["msg"].get("status") in ["RUNNING", "INITIATED"]:
+            central_conn.logger.info(
+                f"Show command for {device_type} {serial_number} with task ID {task_id} "
+                f"is not yet completed. Current status: {resp['msg'].get('status')}"
+            )
+        else:
+            central_conn.logger.info(
+                f"Show command for {device_type} {serial_number} with task ID {task_id} "
+                f"has successfully completed."
+            )
+
+        return resp["msg"]
+
+    @staticmethod
     def _poll_task_completion(
         get_result_func,
         task_id,

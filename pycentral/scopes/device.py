@@ -667,6 +667,51 @@ class Device(ScopeBase):
             **kwargs,
         )
 
+    def list_show_commands(self):
+        """Returns most used/top 'show' commands supported on this device.
+
+        Supported device types: aps, gateways, cx, aos-s
+
+        Returns:
+            (list or dict): List of show commands organized by category if successful, otherwise full response dict
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.list_show_commands
+        )
+
+    def run_show_command(self, command, **kwargs):
+        """Runs a 'show' command on the device and polls for test result.
+
+        The command must start with 'show '.
+
+        Supported device types: aps, gateways, cx, aos-s
+
+        Args:
+            command (str): Show command to execute (must start with 'show ')
+            **kwargs (dict, Optional): Optional arguments for the show command test.
+                See [Troubleshooting.run_show_command()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.run_show_command) for detailed parameter information.
+
+        Returns:
+            (dict): Response from the test results API
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.run_show_command, command=command, **kwargs
+        )
+
+    def list_active_tasks(self):
+        """Retrieves a list of all active or recently completed asynchronous operations for this device, grouped by test name.
+
+        Results are sorted by startTime in descending order (most recently started first).
+
+        Supported device types: aps, gateways, cx, aos-s
+
+        Returns:
+            (dict): Response containing list of active tasks grouped by test name
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.list_active_tasks
+        )
+
     def _execute_troubleshooting_command(self, command_method, **kwargs):
         """Executes a troubleshooting command with common setup.
 
