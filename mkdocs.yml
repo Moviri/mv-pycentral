@@ -41,7 +41,7 @@ nav:
   - Home: index.md
   - Getting Started:
       - Installation: getting-started/installation.md
-      - Authentication: getting-started/authentication.md      
+      - Authentication: getting-started/authentication.md
       - Quick Start: getting-started/quickstart.md
   - Module Reference:
       - Base Module: modules/base.md
@@ -50,10 +50,9 @@ nav:
       - Profiles: modules/profiles.md
       - New Monitoring: modules/new_monitoring.md
       - Scopes: modules/scopes.md
-      - Troubleshooting: modules/troubleshooting.md      
-      - Utils: modules/utils.md      
+      - Troubleshooting: modules/troubleshooting.md
+      - Utils: modules/utils.md
       - Classic Modules: modules/classic.md
-
 
 plugins:
   - search
