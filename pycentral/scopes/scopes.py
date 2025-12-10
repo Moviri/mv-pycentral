@@ -155,10 +155,7 @@ class Scopes(ScopeBase):
         Returns:
             (list): List of Device objects
         """
-
-        device_list = Device.get_all_devices(
-            central_conn=self.central_conn,
-        )
+        device_list = Device.get_all_devices(central_conn=self.central_conn)
         self.devices = [
             Device(
                 central_conn=self.central_conn,
@@ -167,6 +164,9 @@ class Scopes(ScopeBase):
             )
             for device in device_list
         ]
+        self.central_conn.logger.info(
+            f"Total devices fetched from account: {len(self.devices)}"
+        )
         return self.devices
 
     def get_all_device_groups(self):
