@@ -12,24 +12,22 @@ REQUIRED_ATTRIBUTES = ["name", "id"]
 
 
 class Device_Group(ScopeBase):
-    """
-    This class holds device groups and all of its attributes & related methods.
-    """
+    """This class holds device groups and all of its attributes & related methods."""
 
     def __init__(
         self, device_group_attributes=None, central_conn=None, from_api=False
     ):
-        """
-        Constructor for Device Group object
+        """Constructor for Device Group object.
 
-        :param device_group_attributes: Attributes of the Device Group.
-        :type device_group_attributes: dict
-        :param central_conn: Instance of class:`pycentral.NewCentralBase`
-        to establish connection to Central.
-        :type central_conn: class:`NewCentralBase`, optional
-        :param from_api: Boolean indicates if the device_group_attributes is from the
-        Central API response.
-        :type from_api: bool, optional
+        Args:
+            device_group_attributes (dict, optional): Attributes of the Device Group
+            central_conn (NewCentralBase, optional): Instance of NewCentralBase
+                to establish connection to Central
+            from_api (bool, optional): Boolean indicates if the device_group_attributes is from the
+                Central API response
+
+        Raises:
+            Exception: If from_api is False (currently not supported)
         """
         self.materialized = from_api
         self.central_conn = central_conn
@@ -49,15 +47,14 @@ class Device_Group(ScopeBase):
             )
 
     def __rename_keys(self, api_dict, api_attribute_mapping):
-        """
-        Renames the keys of the attributes from the API response.
+        """Renames the keys of the attributes from the API response.
 
-        :param api_dict: dict from Central API Response
-        :type api_dict: dict
-        :param api_attribute_mapping: Dict mapping API keys to object attributes
-        :type api_attribute_mapping: dict
-        :return: Renamed dictionary of object attributes
-        :rtype: dict
+        Args:
+            api_dict (dict): Dict from Central API Response
+            api_attribute_mapping (dict): Dict mapping API keys to object attributes
+
+        Returns:
+            (dict): Renamed dictionary of object attributes
         """
         integer_attributes = {"id"}
         renamed_dict = {}

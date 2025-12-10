@@ -11,25 +11,27 @@ def build_timestamp_filter(
     duration=None,
     fmt="rfc3339",
 ):
-    """
-    Returns a formatted filter string:
-        "timestamp gt <start> and timestamp lt <end>"
+    """Build a formatted timestamp filter for API queries.
+
+    Returns timestamps for filtering based on the provided parameters.
 
     Behavior:
-      - If start_time and end_time are given → passes through directly.
-      - If duration is given → computes timestamps relative to now.
-      - If nothing is given → defaults to last 3 hours.
-      - Max supported duration = 3 months.
+        - If start_time and end_time are given, passes through directly.
+        - If duration is given, computes timestamps relative to now.
+        - Max supported duration is 3 months (90 days).
 
     Args:
-        start_time: RFC3339 or Unix timestamp for start.
-        end_time: RFC3339 or Unix timestamp for end.
-        duration: String like '3h', '2d', '1w', '1m'.
-        fmt: 'rfc3339' or 'unix' for output format.
-        default_duration: Used when nothing is provided.
+        start_time (str, optional): RFC3339 or Unix timestamp for start.
+        end_time (str, optional): RFC3339 or Unix timestamp for end.
+        duration (str, optional): Duration string like '3h', '2d', '1w', '1m'
+            (hours, days, weeks, minutes).
+        fmt (str, optional): Output format, either 'rfc3339' or 'unix'.
 
     Returns:
-        start_time and end_time
+        (tuple): A tuple of (start_time, end_time) formatted strings.
+
+    Raises:
+        ValueError: If invalid parameter combinations are provided or duration exceeds maximum.
     """
     now = datetime.now(timezone.utc)
 
@@ -85,6 +87,16 @@ def build_timestamp_filter(
 
 
 def generate_timestamp_str(start_time, end_time, duration):
+    """Generate a timestamp filter string for API queries.
+
+    Args:
+        start_time (str): Start timestamp.
+        end_time (str): End timestamp.
+        duration (str): Duration string.
+
+    Returns:
+        (str): Formatted filter string "timestamp gt <start> and timestamp lt <end>".
+    """
     start_time, end_time = build_timestamp_filter(
         start_time=start_time, end_time=end_time, duration=duration
     )
@@ -92,6 +104,20 @@ def generate_timestamp_str(start_time, end_time, duration):
 
 
 def execute_get(central_conn, endpoint, params={}):
+    """Execute a GET request to the monitoring API.
+
+    Args:
+        central_conn (NewCentralBase): Central connection object.
+        endpoint (str): API endpoint path.
+        params (dict, optional): Query parameters for the request.
+
+    Returns:
+        (dict): The message portion of the API response.
+
+    Raises:
+        ParameterError: If central_conn is None or endpoint is invalid.
+        Exception: If the API call returns a non-200 status code.
+    """
     if not central_conn:
         raise ParameterError("central_conn(Central connection) is required")
 
@@ -113,6 +139,14 @@ def execute_get(central_conn, endpoint, params={}):
 
 
 def simplified_site_resp(site):
+    """Simplify the site response structure for easier consumption.
+
+    Args:
+        site (dict): Raw site data from API response.
+
+    Returns:
+        (dict): Simplified site data with restructured health, devices, clients, and alerts.
+    """
     site["health"] = _groups_to_dict(site.get("health", {}).get("groups", []))
     site["devices"] = {
         "count": site.get("devices", {}).get("count", 0),
@@ -139,6 +173,15 @@ def simplified_site_resp(site):
 
 
 def _groups_to_dict(groups_list):
+    """Convert a list of group objects to a dictionary.
+
+    Args:
+        groups_list (list): List of group dictionaries with 'name' and 'value' keys.
+
+    Returns:
+        (dict): Dictionary with group names as keys and values as values.
+            Defaults to {"Poor": 0, "Fair": 0, "Good": 0}.
+    """
     result = {"Poor": 0, "Fair": 0, "Good": 0}
     if isinstance(groups_list, list):
         for group in groups_list:
@@ -152,6 +195,15 @@ def _groups_to_dict(groups_list):
 
 
 def clean_raw_trend_data(raw_results, data=None):
+    """Clean and restructure raw trend data from API response.
+
+    Args:
+        raw_results (dict): Raw trend data containing 'graph' with 'keys' and 'samples'.
+        data (dict, optional): Existing data dictionary to append to.
+
+    Returns:
+        (dict): Dictionary with timestamps as keys and metric values as nested dictionaries.
+    """
     if data is None:
         data = {}
     graph = raw_results.get("graph", {}) or {}
@@ -177,6 +229,14 @@ def clean_raw_trend_data(raw_results, data=None):
 
 
 def merged_dict_to_sorted_list(merged):
+    """Convert a merged dictionary to a sorted list of timestamped entries.
+
+    Args:
+        merged (dict): Dictionary with timestamps as keys.
+
+    Returns:
+        (list): Sorted list of dictionaries with 'timestamp' key and all associated values.
+    """
     # try strict RFC3339 parsing (Z -> +00:00), fallback to lexicographic
     try:
         keys = sorted(

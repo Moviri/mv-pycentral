@@ -35,14 +35,17 @@ URL_BASE_ERR_MESSAGE = "Please provide the base_url of API Gateway where Central
 
 
 def new_parse_input_args(token_info):
-    """
-    Parse and validate the input token information.
+    """Parse and validate the input token information.
 
-    :param token_info: Dictionary containing token information or a file path to a YAML/JSON file with token information.
-    :type token_info: dict or str
-    :return: Parsed token information for supported applications.
-    :rtype: dict
-    :raises ValueError: If the token_info is invalid.
+    Args:
+        token_info (dict or str): Dictionary containing token information or a file path
+            to a YAML/JSON file with token information.
+
+    Returns:
+        (dict): Parsed token information for supported applications.
+
+    Raises:
+        ValueError: If the token_info is invalid.
     """
     token_info = load_token_info(token_info)
 
@@ -73,15 +76,18 @@ def new_parse_input_args(token_info):
 
 
 def load_token_info(token_info):
-    """
-    Load token information from a file if it's a string path, or return the dictionary as is.
+    """Load token information from a file if it's a string path, or return the dictionary as is.
 
-    :param token_info: Either a dictionary containing token information or a string path to a YAML/JSON file with token information.
-    :type token_info: dict or str
-    :return: Parsed token information dictionary.
-    :rtype: dict
-    :raises ValueError: If the file format is unsupported or the file cannot be parsed.
-    :raises FileNotFoundError: If the specified file path does not exist.
+    Args:
+        token_info (dict or str): Either a dictionary containing token information or a
+            string path to a YAML/JSON file with token information.
+
+    Returns:
+        (dict): Parsed token information dictionary.
+
+    Raises:
+        ValueError: If the file format is unsupported or the file cannot be parsed.
+        FileNotFoundError: If the specified file path does not exist.
     """
     if isinstance(token_info, str):
         try:
@@ -93,16 +99,17 @@ def load_token_info(token_info):
 
 
 def _resolve_base_url(app, app_token_info):
-    """
-    Resolve the base_url using cluster_name or validate the provided base_url.
+    """Resolve the base_url using cluster_name or validate the provided base_url.
 
-    :param app: Name of the application (e.g., "new_central", "glp").
-    :type app: str
-    :param app_token_info: Token information for a specific app.
-    :type app_token_info: dict
-    :return: Validated or resolved base_url.
-    :rtype: str
-    :raises ValueError: If both cluster_name and base_url are provided or neither is valid.
+    Args:
+        app (str): Name of the application (e.g., "new_central", "glp").
+        app_token_info (dict): Token information for a specific app.
+
+    Returns:
+        (str): Validated or resolved base_url.
+
+    Raises:
+        ValueError: If both cluster_name and base_url are provided or neither is valid.
     """
     if app == "new_central":
         if "cluster_name" in app_token_info and "base_url" in app_token_info:
@@ -131,12 +138,16 @@ def _resolve_base_url(app, app_token_info):
 
 
 def _validate_token_creation_keys(app_token_info):
-    """
-    Validate that the required keys for token creation are present.
+    """Validate that the required keys for token creation are present.
 
-    :param app_token_info: Token information for a specific app.
-    :type app_token_info: dict
-    :raises ValueError: If required keys are missing.
+    Args:
+        app_token_info (dict): Token information for a specific app.
+
+    Raises:
+        ValueError: If required keys are missing.
+
+    Note:
+        Internal SDK function
     """
     if "access_token" not in app_token_info:
         required_keys = {"client_id", "client_secret"}
@@ -149,21 +160,17 @@ def _validate_token_creation_keys(app_token_info):
 
 
 def build_url(base_url, path="", params="", query={}, fragment=""):
-    """
-    Construct a complete URL based on multiple parts of the URL.
+    """Construct a complete URL based on multiple parts of the URL.
 
-    :param base_url: Base URL for an HTTP request.
-    :type base_url: str
-    :param path: API endpoint path, defaults to ''.
-    :type path: str, optional
-    :param params: API endpoint path parameters, defaults to ''.
-    :type params: str, optional
-    :param query: HTTP request URL query parameters, defaults to {}.
-    :type query: dict, optional
-    :param fragment: URL fragment identifier, defaults to ''.
-    :type fragment: str, optional
-    :return: Parsed URL.
-    :rtype: str
+    Args:
+        base_url (str): Base URL for an HTTP request.
+        path (str, optional): API endpoint path.
+        params (str, optional): API endpoint path parameters.
+        query (dict, optional): HTTP request URL query parameters.
+        fragment (str, optional): URL fragment identifier.
+
+    Returns:
+        (str): Parsed URL.
     """
     base_url = valid_url(base_url)
     parsed_baseurl = urlparse(base_url)
@@ -175,16 +182,17 @@ def build_url(base_url, path="", params="", query={}, fragment=""):
 
 
 def console_logger(name, level="DEBUG"):
-    """
-    This method create an instance of python logging and sets the following format for log messages.\n<date> <time> - <name> - <level> - <message>
+    """Create an instance of python logging with a formatted output.
 
-    :param name: String displayed after data and time. Define it to identify\
-        from which part of the code, log message is generated.
-    :type name: str
-    :param level: Logging level to display messages from a certain level, defaults to "DEBUG".
-    :type level: str, optional
-    :return: An instance of the logging.Logger class.
-    :rtype: logging.Logger
+    Sets the following format for log messages: `<date> <time> - <name> - <level> - <message>`
+
+    Args:
+        name (str): String displayed after date and time. Define it to identify
+            from which part of the code the log message is generated.
+        level (str, optional): Logging level to display messages from a certain level.
+
+    Returns:
+        (logging.Logger): An instance of the logging.Logger class.
     """
     channel_handler = logging.StreamHandler()
     format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -218,14 +226,19 @@ def console_logger(name, level="DEBUG"):
 
 
 def valid_url(url):
-    """
-    This method verifies & returns the URL in a valid format. If the URL is missing the https prefix, the function will prepend the prefix after verifiying that its a valid base URL of an HPE Aruba Networking Central cluster.
+    """Verify and return the URL in a valid format.
 
-    :param url: Base URL for an HTTP request.
-    :type url: str
-    :return: Valid base URL.
-    :rtype: str
-    :raises ValueError: If the URL is invalid.
+    If the URL is missing the https prefix, the function will prepend the prefix
+    after verifying that it's a valid base URL of an HPE Aruba Networking Central cluster.
+
+    Args:
+        url (str): Base URL for an HTTP request.
+
+    Returns:
+        (str): Valid base URL.
+
+    Raises:
+        ValueError: If the URL is invalid.
     """
     parsed_url = urlparse(url)
     if all([parsed_url.scheme, parsed_url.netloc]):
@@ -243,20 +256,18 @@ def valid_url(url):
 
 
 def save_access_token(app_name, access_token, token_file_path, logger):
-    """
-    Update the access token for a specific application in the credentials file.
+    """Update the access token for a specific application in the credentials file.
 
-    :param app_name: Name of the application to update (e.g., "new_central", "glp").
-    :type app_name: str
-    :param access_token: The new access token value.
-    :type access_token: str
-    :param token_file_path: Path to the credentials file.
-    :type token_file_path: str
-    :param logger: Logger instance to log messages.
-    :type logger: logging.Logger
-    :raises FileNotFoundError: If the credentials file doesn't exist.
-    :raises ValueError: If the app_name isn't found in the credentials file.
-    :raises IOError: If there is an error writing to the credentials file.
+    Args:
+        app_name (str): Name of the application to update (e.g., "new_central", "glp").
+        access_token (str): The new access token value.
+        token_file_path (str): Path to the credentials file.
+        logger (logging.Logger): Logger instance to log messages.
+
+    Raises:
+        FileNotFoundError: If the credentials file doesn't exist.
+        ValueError: If the app_name isn't found in the credentials file.
+        IOError: If there is an error writing to the credentials file.
     """
     if not os.path.isfile(token_file_path):
         raise FileNotFoundError(

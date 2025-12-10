@@ -5,8 +5,21 @@ from pycentral.exceptions.pycentral_error import PycentralError
 
 
 class ResponseError(PycentralError):
-    """
-    Exception class for a PYCENTRAL Response Error.
+    """Exception raised when an API response indicates an error.
+
+    This exception is raised when the API returns an error response, such as
+    HTTP error codes (4xx, 5xx) or when the response content indicates a failure.
+
+    Attributes:
+        base_msg (str): The base error message for this exception type.
+        message (str): Detailed error message describing the response failure.
+        response (dict): The API response object containing error details.
+
+    Example:
+        ```python
+        >>> raise ResponseError({"code": 404, "msg": "Not found"}, "Resource does not exist")
+        ResponseError: 'RESPONSE ERROR: Resource does not exist: Response: {"code": 404, "msg": "Not found"}'
+        ```
     """
 
     base_msg = "RESPONSE ERROR"

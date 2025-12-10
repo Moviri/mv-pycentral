@@ -16,21 +16,22 @@ class Profiles:
         config_dict=dict(),
         local=None,
     ):
-        """
-        instantiate a configuration Profile object
+        """Instantiate a configuration Profile object.
 
-        :param name: profiles require an identifier key/value pair, typically
-         "name" or "id" or another key is used, this value will be mapped
-         accordingly
-        :type name: str, optional
-        :param central_conn: established Central connection object
-        :type central_conn: class:`NewCentralBase`, optional
-        :param config_dict: dictionary containing API keys & values used to
-        configure the configuration profile, defaults to {}
-        :type config_dict: dict, optional
-        :param local: dictionary containing required local keys & values used
-        to assign the profile, ex) {"scope_id": 12345, "persona": "CAMPUS_AP"}
-        :type local: dict, optional
+        Args:
+            name (str, optional): Profiles require an identifier key/value pair,
+                typically "name" or "id" or another key is used, this value will
+                be mapped accordingly.
+            central_conn (NewCentralBase, optional): Established Central connection
+                object.
+            config_dict (dict, optional): Dictionary containing API keys & values
+                used to configure the configuration profile.
+            local (dict, optional): A dictionary containing keys scope_id type int and persona.
+                type str required to designate a local profile.
+
+
+        Raises:
+            ParameterError: If name is provided but not a valid string.
         """
         # Initialize attrs that will be later defined by child
         self.config_dict = config_dict
@@ -61,13 +62,20 @@ class Profiles:
             self.local = None
 
     def get_resource_str(self):
-        """
-        Returns the resource string for the profile, used in profile assignment
-        to scopes
+        """Return the resource string for the profile.
 
-        :return: resource string for the profile, ex) "layer2-vlan/StaffVlan"
+        Used in profile assignment to scopes.
+
+        Returns:
+            (str): Resource string for the profile, ex: "layer2-vlan/StaffVlan".
+
+        Raises:
+            VerificationError: If self.object_data['resource'] or self.name is missing.
         """
-        if not self.object_data["resource"]:
+        if (
+            "resource" not in self.object_data
+            or not self.object_data["resource"]
+        ):
             err_str = "Missing self.object_data['resource'] attribute"
             raise VerificationError(err_str, " get_resource_str() failed")
         elif not self.name:
@@ -76,13 +84,17 @@ class Profiles:
         return f"{self.object_data['resource']}/{self.name}"
 
     def set_resource(self, resource):
-        """
-        Set the resource for the profile, the resource is used for assigning local
-        profiles and is typically the same as last value (not including name/id)
-        of the API path ex) "layer2-vlan" for VLAN profiles, "policies" for Policy profiles, etc.
+        """Set the resource for the profile.
 
-        :param resource: Resource for the profile, ex) "layer2-vlan"
-        :type resource: str
+        The resource is used for assigning local profiles and is typically the
+        same as the last value (not including name/id) of the API path, ex)
+        "layer2-vlan" for VLAN profiles, "policies" for Policy profiles, etc.
+
+        Args:
+            resource (str): Resource for the profile, ex: "layer2-vlan".
+
+        Raises:
+            ParameterError: If resource is not provided or not a valid string.
         """
         if not resource or not isinstance(resource, str):
             raise ParameterError(
@@ -91,11 +103,13 @@ class Profiles:
         self.object_data["resource"] = resource
 
     def set_name(self, name):
-        """
-        Set the name for the profile
+        """Set the name for the profile.
 
-        :param name: name for the profile, ex) "StaffVlan"
-        :type name: str
+        Args:
+            name (str): Name for the profile, ex: "StaffVlan".
+
+        Raises:
+            ParameterError: If name is not provided or not a valid string.
         """
         if not name or not isinstance(name, str):
             raise ParameterError(
@@ -104,11 +118,13 @@ class Profiles:
         self.name = name
 
     def set_bulk_key(self, bulk_key):
-        """
-        Set the bulk key for the profile
+        """Set the bulk key for the profile.
 
-        :param bulk_key: bulk key for the profile, ex) "profile"
-        :type bulk_key: str
+        Args:
+            bulk_key (str): Bulk key for the profile, ex: "profile".
+
+        Raises:
+            ParameterError: If bulk_key is not provided or not a valid string.
         """
         if not bulk_key or not isinstance(bulk_key, str):
             raise ParameterError(
@@ -117,21 +133,27 @@ class Profiles:
         self.object_data["bulk_key"] = bulk_key
 
     def get_bulk_key(self):
-        """
-        Returns the bulk key for the profile
+        """Return the bulk key for the profile.
+
+        Returns:
+            (str|None): The bulk key if set, otherwise None.
         """
         if "bulk_key" in self.object_data:
             return self.object_data["bulk_key"]
         return None
 
     def set_path(self, path):
-        """
-        Set the URL path (self.object_data['path']) for the profile, does NOT
-        include base_url (https://<base_url>.com/) or configuration
-        prefix ("network-config/v1alpha1/")
+        """Set the URL path for the profile.
 
-        :param path: URL path for the profile, ex) "layer2-vlan"
-        :type path: str
+        Sets self.object_data['path']. Does NOT include base_url
+        (https://<base_url>.com/) or configuration prefix
+        ("network-config/v1alpha1/").
+
+        Args:
+            path (str): URL path for the profile, ex: "layer2-vlan".
+
+        Raises:
+            ParameterError: If URL path is not provided.
         """
         # Remove any URL prefix matching https://.*\.com
         if path:
@@ -151,19 +173,23 @@ class Profiles:
             )
 
     def get_path(self):
-        """
-        Returns the URL path for the profile, excluding base_url
+        """Return the URL path for the profile, excluding base_url.
+
+        Returns:
+            (str|None): The URL path if set, otherwise None.
         """
         if "path" in self.object_data:
             return self.object_data["path"]
         return None
 
     def set_central_conn(self, central_conn):
-        """
-        Set the central connection object for the profile
+        """Set the central connection object for the profile.
 
-        :param central_conn: established Central connection object
-        :type central_conn: class:`NewCentralBase`, required
+        Args:
+            central_conn (NewCentralBase): Established Central connection object.
+
+        Raises:
+            ParameterError: If central_conn is not provided.
         """
 
         if not central_conn:
@@ -174,11 +200,11 @@ class Profiles:
         self.central_conn = central_conn
 
     def get_central_conn(self):
-        """
-        Retrieve the Central connection object associated with the profile, if set.
+        """Retrieve the Central connection object associated with the profile, if set.
 
-        :return: The Central connection object if set, otherwise `None`.
-        :rtype: NewCentralBase or None
+        Returns:
+            (NewCentralBase or None): The Central connection object if set,
+                otherwise None.
         """
 
         if not hasattr(self, "central_conn") or not self.central_conn:
@@ -190,25 +216,31 @@ class Profiles:
         return self.central_conn
 
     def set_config_dict(self, config_dict):
-        """
-        Sets self.config_dict as a copy of the provided dictionary
+        """Set self.config_dict as a copy of the provided dictionary.
 
-        :param config_dict: dictionary containing the configuration properties for a Profile
-        :type config_dict: dict
+        Args:
+            config_dict (dict): Dictionary containing the configuration properties
+                for a Profile.
+
+        Raises:
+            ParameterError: If config_dict is not provided or not a valid dictionary.
         """
         if not config_dict or not isinstance(config_dict, dict):
             raise ParameterError("config_dict must be a valid dictionary")
         self.config_dict = config_dict.copy()
 
     def set_config(self, config_key, config_value):
-        """
-        Updates self.config_dict[config_key] with the provided config_value and
-        sets the attribute of the object to match the same config_value
+        """Update self.config_dict[config_key] with the provided config_value.
 
-        :param config_key: _description_
-        :type config_key: _type_
-        :param config_value: _description_
-        :type config_value: _type_
+        Updates self.config_dict[config_key] with the provided config_value and
+        sets the attribute of the object to match the same config_value.
+
+        Args:
+            config_key (str): The configuration key to update.
+            config_value (any): The configuration value to set.
+
+        Raises:
+            ParameterError: If config_key is not provided or not a valid string.
         """
         if not config_key and isinstance(config_key) is not str:
             raise ParameterError(
@@ -218,36 +250,37 @@ class Profiles:
         self.__dict__[config_key] = config_value
 
     def set_local_parameters(self, local):
-        """
-        Sets the local profile parameters for the object. Dict provided must
-        have the keys scope_id type int and persona type str
+        """Set the local profile parameters for the object.
 
-        :param local: A dictionary containing keys scope_id type int and persona type str
-        :type local: dict
+        Dict provided must have the keys scope_id type int and persona type str.
+
+        Args:
+            local (dict): A dictionary containing keys scope_id type int and persona
+                type str required to designate a local profile.
         """
         self.local = profile_utils.validate_local(local)
 
     def get_local_parameters(self):
-        """
-        Returns a dictionary of required keys/values to be used in API calls
-        for local profiles. If local profile is not set, returns None.
+        """Return required keys/values for local profile API calls.
 
-        :return: local_attributes dictionary if self.local is set, else None
-        :rtype: dict
+        Returns:
+            (dict|None): Local attributes dictionary if self.local is set,
+                otherwise None.
         """
         if self.local:
             return profile_utils.validate_local(self.local)
         return None
 
     def _getattrsdict(self, config_attrs):
-        """
-        Utility function to dynamically retrieve attributes of an object based on
-        the provided dictionary.
+        """Dynamically retrieve attributes of an object based on provided dictionary.
 
-        :param config_attrs: dict whose keys will be the attributes to retrieve
-            from the provided object with the value set to the value found in
-            self, else the value in dict if not present in self.
-        :type config_attrs: dict
+        Args:
+            config_attrs (dict): Dictionary whose keys will be the attributes to
+                retrieve from the provided object with the value set to the value
+                found in self, else the value in dict if not present in self.
+
+        Returns:
+            (dict): Dictionary containing retrieved attribute values.
         """
         attr_data_dict = dict()
         for key, value in config_attrs.items():
@@ -262,16 +295,16 @@ class Profiles:
         return attr_data_dict
 
     def _createattrs(obj, data_dictionary):
-        """
-        Given a dictionary object creates class attributes. The methods
-            implements setattr() which sets the value of the specified
-            attribute of the specified object. If the attribute is already
-            created within the object. It's state changes only if the current
-            value is not None. Otherwise it keeps the previous value.
-        :param obj: Object instance to create/set attributes
-        :type obj: PYCENTRAL object
-        :param data_dictionary: dictionary containing keys that will be attrs
-        :type data_dictionary: dict
+        """Create class attributes from a dictionary.
+
+        Implements setattr() which sets the value of the specified attribute
+        of the specified object. If the attribute is already created within
+        the object, its state changes only if the current value is not None.
+        Otherwise it keeps the previous value.
+
+        Args:
+            obj (object): Object instance to create/set attributes.
+            data_dictionary (dict): Dictionary containing keys that will be attrs.
         """
 
         # Used to create a deep copy of the dictionary
@@ -285,13 +318,13 @@ class Profiles:
             obj.__dict__[k] = v
 
     def apply(self):
-        """
-        Main method used to update or create a Profile.
-            Checks whether the Profile exists in Central. Calls
-            self.update() if Profile is being updated.
-            Calls self.create() if a Profile is being created.
-        :return: var modified - True if object was created or modified.
-        :rtype: bool
+        """Main method used to update or create a Profile.
+
+        Checks whether the Profile exists in Central. Calls self.update() if Profile is
+        being updated. Calls self.create() if a Profile is being created.
+
+        Returns:
+            (bool): True if object was created or modified, else False.
         """
         modified = False
         if self.materialized:
@@ -303,16 +336,18 @@ class Profiles:
         return modified
 
     def create(self):
-        """
-        Create configuration profile in Central through a POST request. This
-        function assumes that required attributes such as central_conn, path,
+        """Create new configuration profile in Central.
+
+        This function assumes that required attributes such as central_conn, path,
         and config_dict are set. Use Profiles.set_path(), Profiles.set_central_conn(),
         and Profiles.set_config_dict() to ensure all required attributes are set
         if not provided at initialization.
 
-        :return: Tuple including bool (True/False) if profile was
-        successfully created, and the result of the API call.
-        :rtype: tuple (bool, dict)
+        Returns:
+            (tuple(bool, dict)): Boolean of operation success, and dict of the API response.
+
+        Raises:
+            VerificationError: If required attributes are missing.
         """
         result = False
         body = dict()
@@ -386,15 +421,17 @@ class Profiles:
         return (result, response)
 
     def get(self):
-        """
-        Get configuration profile in Central through a GET request. This
-        function assumes that required attributes such as central_conn and path
+        """Get a configuration profile in Central.
+
+        This function assumes that required attributes such as central_conn and path
         are set. Use Profiles.set_path() and Profiles.set_central_conn() to
         ensure all required attributes are set if not provided at initialization.
 
-        :return: Tuple including bool (True/False) if profile was
-        successfully retrieved, and the result of the API call.
-        :rtype: tuple (bool, dict)
+        Returns:
+            (tuple(bool, dict)): Boolean of operations success, and dict of the get API response.
+
+        Raises:
+            VerificationError: If required attributes are missing.
         """
         result = False
         response = None
@@ -444,16 +481,16 @@ class Profiles:
             return result, response
 
     def compare_objects(self, obj1, obj2):
-        """
-        Recursively compare two objects (dicts or lists) and report differences.
+        """Recursively compare two objects (dicts or lists) and report differences.
+
         Prioritizes contents of obj1 and ignores extra attributes in obj2.
 
-        :param obj1: First object (reference object)
-        :type obj1: dict or list
-        :param obj2: Second object (comparison object)
-        :type obj2: dict or list
-        :return: List of dictionaries containing differences found
-        :rtype: list
+        Args:
+            obj1 (dict|list): First object (reference object).
+            obj2 (dict|list): Second object (comparison object).
+
+        Returns:
+            (list): Dictionaries containing differences found.
         """
         diff_dict_list = []
 
@@ -555,26 +592,28 @@ class Profiles:
         return diff_dict_list
 
     def update(self, compare_dict=None, update_data=None):
-        """
-        Updates the configuration profile in Central with values from
-        self.config_dict OR update_data if provided.
-        If no compare_dict provided the function will execute a GET to retrieve
-        data for the Central profile. If a diff is found, self.config_dict will
-        be pushed to Central. Invalid configurations in self.config_dict or
-        update_data results in a failed update. This function assumes that
-        required attributes such as central_conn, path, and config_dict are set.
-        Use Profiles.set_path(), Profiles.set_central_conn(), and
-        Profiles.set_config_dict() to ensure all required attributes are set if
-        not provided at initialization.
+        """Updates a configuration profile in Central.
 
-        :param compare_dict: optional dict to compare against, if provided no GET
-         request will be executed
-        :type compare_dict: dict, optional
-        :param update_data: values for updating existing profile
-        :type update_data: dict, optional
-        :return: Tuple including bool (True/False) if profile was
-        successfully updated, and the result of the API call.
-        :rtype: tuple (bool, dict)
+        Uses values from self.config_dict OR update_data if provided. If no compare_dict
+        provided the function will execute a GET to retrieve data for the Central
+        profile. If a diff is found, self.config_dict will be pushed to Central. Invalid
+        configurations in self.config_dict or update_data results in a failed update.
+        This function assumes that required attributes such as central_conn, path, and
+        config_dict are set. Use Profiles.set_path(), Profiles.set_central_conn(), and
+        Profiles.set_config_dict() to ensure all required attributes are set if not
+        provided at initialization.
+
+        Args:
+            compare_dict (dict, optional): Optional dict to compare against, if provided
+                no GET request will be executed.
+            update_data (dict, optional): Values for updating existing profile.
+
+        Returns:
+            (tuple(bool, dict)): Boolean of operation result, and dict of the update API response.
+
+        Raises:
+            VerificationError: If required attributes are missing.
+            ParameterError: If compare_dict invalid.
         """
         result = False
         response = dict()
@@ -665,11 +704,10 @@ class Profiles:
         return result, response
 
     def delete(self):
-        """
-        Delete profile from Central.
+        """Delete a profile from Central.
 
-        :return result: result of profile delete attempt
-        :rtype: bool
+        Returns:
+            (tuple(bool, dict)): Boolean of operation result, and dict of the create API response.
         """
         path = self.object_data["path"]
         params = self.get_local_parameters()
@@ -688,25 +726,25 @@ class Profiles:
     def create_profile(
         path, config_dict, central_conn, bulk_key=None, local=None
     ):
-        """
-        Create a configuration profile using a POST request - it's recommended
-        to use the helper function pycentral.utils.url_utils.generate_url()
-        to provide the path parameter.
+        """Create a configuration profile.
 
-        :param path: The API endpoint for request, omitting base_url - it's recommended
-        to use the helper function pycentral.utils.url_utils.generate_url()
-        :type path: str
-        :param config_dict: dictionary containing API keys & values used to
-        create the configuration profile
-        :type config_dict: dict
-        :param central_conn: established Central connection object
-        :type central_conn: class:`NewCentralBase`, optional
-        :param local: dictionary containing local keys & values used to assign
-            the profile, defaults to {}
-        :type local: dict, optional
-        :return: Tuple including bool (True/False) if profile was
-        successfully created, and the result of the API call.
-        :rtype: tuple (bool, dict)
+        Args:
+            path (str): The API endpoint for request, omitting base_url - it's recommended
+                to use the helper function pycentral.utils.url_utils.generate_url().
+            config_dict (dict): Dictionary containing API keys & values used to
+                create the configuration profile.
+            central_conn (NewCentralBase): Established Central connection object.
+            bulk_key (str, optional): The key required to wrap the configurations for
+                multiple profiles for the bulk API - refer to the API reference for valid values.
+                ex: "profile" for DNS, "layer2-vlan" for VLANs, etc.
+            local (dict, optional): A dictionary containing keys scope_id type int and
+                persona type str required to designate a local profile.
+
+        Returns:
+            (tuple(bool, dict)): Boolean of operation result, and dict of the create API response.
+
+        Raises:
+            ParameterError: If config_dict is invalid.
         """
 
         if not isinstance(config_dict, dict) or not config_dict:
@@ -751,23 +789,19 @@ class Profiles:
 
     @staticmethod
     def get_profile(path, central_conn, local=None):
-        """
-        Get existing Profile from Central - it's recommended
-        to use the helper function pycentral.utils.url_utils.generate_url()
-        to provide the path parameter. If the path does not include the profile name/id,
-        the API will return all profiles for that type.
+        """Get existing profile from Central.
 
-        :param path: The API endpoint for request, omitting base_url - it's recommended
-        to use the helper function pycentral.utils.url_utils.generate_url()
-        :type path: str
-        :param central_conn: established Central connection object
-        :type central_conn: class:`NewCentralBase`, optional
-        :param local: dictionary containing local keys & values used to assign
-            the profile, defaults to {}
-        :type local: dict, optional
-        :return: Tuple including bool (True/False) if profile was
-        successfully retrieved, and the result of the API call.
-        :rtype: tuple (bool, dict)
+        Args:
+            path (str): The API endpoint for request, omitting base_url - it's recommended
+                to use the helper function pycentral.utils.url_utils.generate_url(). If
+                the path does not include the profile name/id, the API will return all
+                profiles for that type.
+            central_conn (NewCentralBase): Established Central connection object.
+            local (dict, optional): A dictionary containing keys scope_id type int and persona
+                type str required to designate a local profile.
+
+        Returns:
+            (tuple(bool, dict)): Boolean of operation result, and dict of the get API response.
         """
         # defaults to None if local is not provided
         params = profile_utils.validate_local(local)
@@ -795,29 +829,25 @@ class Profiles:
     def update_profile(
         path, config_dict, central_conn, bulk_key=None, local=None
     ):
-        """
-        Update a configuration profile using a PATCH request
+        """Update a configuration profile.
 
+        Args:
+            path (str): The API endpoint for request, omitting base_url - it's recommended
+                to use the helper function pycentral.utils.url_utils.generate_url().
+            config_dict (dict): Dictionary containing API keys & values used to
+                update the configuration profile.
+            central_conn (NewCentralBase): Established Central connection object.
+            bulk_key (str, optional): The key required to wrap the configurations for
+                multiple profiles for the bulk API - refer to the API reference for valid values.
+                ex: "profile" for DNS, "layer2-vlan" for VLANs, etc.
+            local (dict): A dictionary containing keys scope_id type int and persona
+                type str required to designate a local profile.
 
-        :param path: The API path for request - valid values found in
-            pycentral.utils.url_utils.NewCentralURLs
-        :type path: str
-        :param config_dict: dictionary containing API keys & values used to
-        update the configuration profile
-        :type config_dict: dict
-        :param central_conn: established Central connection object
-        :type central_conn: class:`NewCentralBase`, optional
-        :param bulk_key: The key required to wrap the configurations for
-        multiple profiles for the bulk API - refer to the API reference for valid values
-        ex) "profile" for DNS, "layer2-vlan" for VLANs, etc.
-        :type bulk_key: str
-        :param local: dictionary containing local keys & values used to assign
-            the profile, defaults to {}
-        :type local: dict, optional
-        :raises ParameterError: If neither list_dict nor list_obj is provided.
-        :return: Tuple including bool (True/False) if profile was
-        successfully updated, and the result of the API call.
-        :rtype: tuple (bool, dict)
+        Returns:
+            (tuple(bool, dict)): Boolean of operation result, and dict of the update API response.
+
+        Raises:
+            ParameterError: If config_dict is invalid or not provided.
         """
 
         if not isinstance(config_dict, dict) or not config_dict:
@@ -834,7 +864,7 @@ class Profiles:
         result = False
 
         # defaults to None if local is not provided
-        params = params = profile_utils.validate_local(local)
+        params = profile_utils.validate_local(local)
 
         resp = central_conn.command(
             "PATCH", path, api_data=body, api_params=params
@@ -855,20 +885,20 @@ class Profiles:
 
     @staticmethod
     def delete_profile(path, central_conn, local=None):
-        """
-        Delete a configuration profile using a DELETE request
+        """Delete a configuration profile.
 
-        :param path: The API endpoint for request, omitting base_url - it's recommended
-        to use the helper function pycentral.utils.url_utils.generate_url()
-        :type path: str
-        :param central_conn: established Central connection object
-        :type central_conn: class:`NewCentralBase`, optional
-        :param local: dictionary containing local keys & values used to assign
-            the profile, defaults to {}
-        :type local: dict, optional
-        :return: Tuple including bool (True/False) if profile was
-        successfully deleted, and the result of the API call.
-        :rtype: tuple (bool, dict)
+        Args:
+            path (str): The API endpoint for request, omitting base_url - it's recommended
+                to use the helper function pycentral.utils.url_utils.generate_url().
+            central_conn (NewCentralBase): Established Central connection object.
+            local (dict, optional): A dictionary containing keys scope_id type int and persona
+                type str required to designate a local profile.
+
+        Returns:
+            (tuple(bool, dict)): Boolean of operation result, and dict of the delete API response.
+
+        Raises:
+            ParameterError: If path is invalid.
         """
 
         if not isinstance(path, str):
@@ -903,30 +933,26 @@ class Profiles:
     def create_profiles(
         bulk_key, path, central_conn, list_dict=None, list_obj=None, local=None
     ):
-        """
-        Create configuration profiles using a POST request to a bulk API endpoint-
-        it's recommended to use the helper function pycentral.utils.url_utils.generate_url()
-        to provide the path parameter.
+        """Create multiple configuration profiles.
 
-        :param bulk_key: The key required to wrap the configurations for
-        multiple profiles for the bulk API - refer to the API reference for valid values
-        ex) "profile" for DNS, "layer2-vlan" for VLANs, etc.
-        :type bulk_key: str
-        :param path: The API endpoint for request, omitting base_url - it's recommended
-        to use the helper function pycentral.utils.url_utils.generate_url()
-        :type path: str
-        :param central_conn: established Central connection object
-        :type central_conn: class:`NewCentralBase`, optional
-        :param list_dict: List of profile configuration dictionaries, defaults to None.
-        :type list_dict: list, required if list_obj is not provided
-        :param list_obj: List of Profiles objects containing the config_dict attribute, defaults to None.
-        :type list_obj: list, optional required if list_dict is not provided
-        :raises ParameterError: If neither list_dict nor list_obj is provided.
-        :param local: Dictionary containing local keys & values used to assign the profile, defaults to None.
-        :type local: dict, optional
-        :return: Tuple including bool (True/False) if profiles were
-        successfully created, and the result of the API call.
-        :rtype: tuple (bool, dict)
+        Args:
+            bulk_key (str): The key required to wrap the configurations for
+                multiple profiles for the bulk API - refer to the API reference for valid values.
+                ex: "profile" for DNS, "layer2-vlan" for VLANs, etc.
+            path (str): The API endpoint for request, omitting base_url - it's recommended
+                to use the helper function pycentral.utils.url_utils.generate_url().
+            central_conn (NewCentralBase): Established Central connection object.
+            list_dict (list, optional): List of profile configuration dictionaries.
+            list_obj (list, optional): List of Profiles objects containing the config_dict
+                attribute.
+            local (dict, optional): A dictionary containing keys scope_id type int and persona
+                type str required to designate a local profile.
+
+        Returns:
+            (tuple(bool, dict)): Boolean of operation result, and dict of the create API response.
+
+        Raises:
+            ParameterError: If neither list_dict nor list_obj is provided or invalid.
         """
 
         if not list_dict and not list_obj:
@@ -977,28 +1003,25 @@ class Profiles:
     def update_profiles(
         bulk_key, path, central_conn, list_dict=None, list_obj=None, local=None
     ):
-        """
-        Update multiple configuration profiles in a single API call using a PATCH
-        request.
+        """Update multiple configuration profiles.
 
-        :param bulk_key: bulk key for profiles - valid values found in
-            pycentral.utils.profile_utils.ProfilesUtils
-        :type bulk_key: str
-        :param path: API path for request.
-        :type path: str
-        :param central_conn: established Central connection object
-        :type central_conn: class:`NewCentralBase`, optional
-        :param list_dict: List of profile configuration dictionaries, defaults to None.
-        :type list_dict: list, required if list_obj is not provided
-        :param list_obj: List of Profiles objects containing the config_dict attribute, defaults to None.
-        :type list_obj: list, optional required if list_dict is not provided
-        :raises ParameterError: If neither list_dict nor list_obj is provided.
-        :param local: dictionary containing required local keys & values used
-        to assign the profile, ex) {"scope_id": 12345, "persona": "CAMPUS_AP"}
-        :type local: dict, optional
-        :return: Tuple including bool (True/False) if profiles were
-        successfully updated, and the result of the API call.
-        :rtype: tuple (bool, dict)
+        Args:
+            bulk_key (str): The key required to wrap the configurations for
+                multiple profiles for the bulk API - refer to the API reference for valid values.
+                ex: "profile" for DNS, "layer2-vlan" for VLANs, etc.
+            path (str): The API endpoint for request, omitting base_url - it's recommended
+                to use the helper function pycentral.utils.url_utils.generate_url().
+            central_conn (NewCentralBase): Established Central connection object.
+            list_dict (list, optional): List of profile configuration dictionaries.
+            list_obj (list, optional): List of Profiles objects containing the config_dict attribute.
+            local (dict): A dictionary containing keys scope_id type int and persona
+                type str required to designate a local profile.
+
+        Returns:
+            (tuple(bool, dict)): Boolean of operation result, and dict of the update API response.
+
+        Raises:
+            ParameterError: If neither list_dict nor list_obj is provided.
         """
 
         if not list_dict and not list_obj:
@@ -1039,22 +1062,25 @@ class Profiles:
     def delete_profiles(
         path_list, central_conn, local=None, error_on_fail=True
     ):
-        """
-        Delete multiple configuration profiles through multiple API calls using
-        a DELETE request.
+        """Delete multiple configuration profiles.
 
-        :param path_list: list of API paths as type string for requests.
-        :type path_list: list, required
-        :param central_conn: established Central connection object
-        :type central_conn: class:`NewCentralBase`, optional
-        :raises ParameterError: If neither list_dict nor list_obj is provided.
-        :param local: dictionary containing required local keys & values used
-        to assign the profile, ex) {"scope_id": 12345, "persona": "CAMPUS_AP"}
-        :type local: dict, optional
-        :param error_on_fail: list of API paths as type string for requests.
-        :type error_on_fail: bool, optional
-        :return: Empty if profiles were successfully deleted, populated otherwise.
-        :rtype: list
+        Args:
+            path_list (list): List of API paths as type string for requests. It's recommended
+                to use the helper function pycentral.utils.url_utils.generate_url().
+            central_conn (NewCentralBase): Established Central connection object.
+            local (dict): A dictionary containing keys scope_id type int and persona
+                type str required to designate a local profile.
+            error_on_fail (bool, optional): Flag to indicate whether to log an error
+                with the logger on failure. When flag is set True each delete operation
+                that fails will log the error message from the API response with the
+                central_conn logger. When set, False operations will not log errors to
+                the central_conn logger.
+
+        Returns:
+            (list): Empty if profiles were successfully deleted, else populated with failed paths.
+
+        Raises:
+            ParameterError: If path_list is invalid.
         """
         if not isinstance(path_list, list) or not path_list:
             err_str = "path_list should be a valid list containing config\

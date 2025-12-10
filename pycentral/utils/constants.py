@@ -1,8 +1,25 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-"""
-This module contains constant values used across the pycentral package.
+"""Constants used across the pycentral package.
+
+This module contains constant values for API endpoints, cluster URLs,
+and configuration mappings used throughout the pycentral SDK.
+
+Attributes:
+    CLUSTER_BASE_URLS (dict[str, str]): Public HPE Aruba Networking Central cluster
+        names with their corresponding API Base URLs. You can update this
+        dictionary to add your own private cluster details. You can learn more about Base URLs <a href="https://developer.arubanetworks.com/new-central/docs/getting-started-with-rest-apis#api-gateway-base-urls" target="_blank">here</a>.
+
+    SUPPORTED_CONFIG_PERSONAS (dict[str, str]): Supported New Central Device Personas
+        and their corresponding API values. You can learn more about Device Personas <a href="https://developer.arubanetworks.com/new-central/docs/device-function-and-persona" target="_blank">here</a>.
+
+    AUTHENTICATION (dict[str, str]): Authentication endpoints for OAuth flows for token creation.
+
+    GLP_URLS (dict[str, str]): GreenLake Platform (GLP) API URLs and endpoints.
+
+    SCOPE_URLS (dict[str, str]): Scope-related API URLs for site and device
+        organization.
 """
 
 CLUSTER_BASE_URLS = {
@@ -20,10 +37,6 @@ CLUSTER_BASE_URLS = {
     "APAC-SOUTH1": "https://au1.api.central.arubanetworks.com",
     "Internal": "https://internal.api.central.arubanetworks.com",
 }
-"""Dict[str, str]: Public HPE Aruba Networking cluster names with their corresponding API Base URLs.
-You can update this dictionary to add your own private cluster details.
-Learn more about Base URLs: https://developer.arubanetworks.com/new-hpe-anw-central/docs/getting-started-with-rest-apis#api-gateway-base-urls
-"""
 
 SUPPORTED_CONFIG_PERSONAS = {
     "Campus AP": "CAMPUS_AP",
@@ -36,10 +49,8 @@ SUPPORTED_CONFIG_PERSONAS = {
     "Bridge": "BRIDGE",
     "Hybrid NAC": "HYBRID_NAC",
 }
-"""Dict[str, str]: Supported device personas and their corresponding API values."""
 
 AUTHENTICATION = {"OAUTH": "https://sso.common.cloud.hpe.com/as/token.oauth2"}
-"""Dict[str, str]: Authentication endpoints for OAuth flows."""
 
 GLP_URLS = {
     "BaseURL": "https://global.api.greenlake.hpe.com",
@@ -51,7 +62,6 @@ GLP_URLS = {
     "SERVICE_MANAGER_PROVISIONS": "service-manager-provisions",
     "SERVICE_MANAGER_BY_REGION": "per-region-service-managers",
 }
-"""Dict[str, str]: GreenLake Platform (GLP) API URLs and endpoints."""
 
 SCOPE_URLS = {
     "SITE": "sites",
@@ -63,7 +73,6 @@ SCOPE_URLS = {
     "HIERARCHY": "hierarchy",
     "SCOPE-MAPS": "scope-maps",
 }
-"""Dict[str, str]: Scope-related API URLs for site and device organization."""
 
 __all__ = [
     "CLUSTER_BASE_URLS",

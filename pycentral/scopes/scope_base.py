@@ -10,51 +10,47 @@ scope_maps = ScopeMaps()
 
 
 class ScopeBase:
-    """
-    Base class for all scope elements, such as Site, Site_Collection, and Device.
+    """Base class for all scope elements, such as Site, Site_Collection, and Device.
+
     Provides common functionality like:
       - Returning the object's ID or name.
       - Assigning and unassigning profiles.
     """
 
     def get_id(self):
-        """
-        Fetches the ID of the scope element.
+        """Fetches the ID of the scope element.
 
-        :return: ID of the scope element.
-        :rtype: int
+        Returns:
+            (int): ID of the scope element
         """
         return fetch_attribute(self, "id")
 
     def get_name(self):
-        """
-        Fetches the name of the scope element.
+        """Fetches the name of the scope element.
 
-        :return: Name of the scope element.
-        :rtype: str
+        Returns:
+            (str): Name of the scope element
         """
         return fetch_attribute(self, "name")
 
     def get_type(self):
-        """
-        Fetches the ID of the scope element.
+        """Fetches the type of the scope element.
 
-        :return: ID of the scope element.
-        :rtype: int
+        Returns:
+            (str): Type of the scope element (e.g., 'site', 'site_collection', 'device')
         """
         return fetch_attribute(self, "type")
 
     def assign_profile(self, profile_name, profile_persona=None):
-        """
-        Assigns a profile (with the provided name and persona) to the scope.
+        """Assigns a profile with the provided name and persona to the scope.
 
-        :param profile_name: Name of the profile to assign.
-        :type profile_name: str
-        :param profile_persona: Device Persona of the profile to assign. Optional if unassigning a profile from a device
-        :type profile_persona: str
+        Args:
+            profile_name (str): Name of the profile to assign
+            profile_persona (str, optional): Device Persona of the profile to assign.
+                Optional if assigning a profile to a device
 
-        :return: True if the profile assignment was successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if the profile assignment was successful, False otherwise
         """
         profile_persona = self._resolve_profile_persona(profile_persona)
         if profile_persona is None:
@@ -79,16 +75,15 @@ class ScopeBase:
             return False
 
     def unassign_profile(self, profile_name, profile_persona=None):
-        """
-        Unassigns a profile (with the provided name and persona) from the scope.
+        """Unassigns a profile with the provided name and persona from the scope.
 
-        :param profile_name: Name of the profile to unassign.
-        :type profile_name: str
-        :param profile_persona: Persona of the profile to unassign. Optional if unassigning a profile from a device
-        :type profile_persona: str
+        Args:
+            profile_name (str): Name of the profile to unassign
+            profile_persona (str, optional): Persona of the profile to unassign.
+                Optional if unassigning a profile from a device
 
-        :return: True if the profile unassignment was successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if the profile unassignment was successful, False otherwise
         """
         profile_persona = self._resolve_profile_persona(profile_persona)
         if profile_persona is None:
@@ -113,9 +108,13 @@ class ScopeBase:
             return False
 
     def _resolve_profile_persona(self, profile_persona):
-        """
-        Internal helper to validate and resolve the correct profile_persona for the scope.
-        Returns the resolved persona or None if invalid.
+        """Internal helper to validate and resolve the correct profile_persona for the scope.
+
+        Args:
+            profile_persona (str or None): Profile persona to validate and resolve
+
+        Returns:
+            (str or None): Resolved persona or None if invalid
         """
         if self.get_type() == "device":
             if not self.provisioned_status:
@@ -141,27 +140,23 @@ class ScopeBase:
             return profile_persona
 
     def add_profile(self, name, persona):
-        """
-        Helper function that adds a profile (with the provided name and persona) to the assigned profiles of the scope in the SDK.
+        """Helper function that adds a profile to the assigned profiles of the scope in the SDK.
 
-        :param name: Name of the profile to add.
-        :type name: str
-        :param persona: Device Persona of the profile to add.
-        :type persona: str
+        Args:
+            name (str): Name of the profile to add
+            persona (str): Device Persona of the profile to add
         """
         self.assigned_profiles.append({"persona": persona, "resource": name})
 
     def remove_profile(self, name, persona):
-        """
-        Helper function that removes a profile (with the provided name and persona) from the assigned profiles of the scope in the SDK.
+        """Helper function that removes a profile from the assigned profiles of the scope in the SDK.
 
-        :param name: Name of the profile to remove.
-        :type name: str
-        :param persona: Device Persona of the profile to remove.
-        :type persona: str
+        Args:
+            name (str): Name of the profile to remove
+            persona (str): Device Persona of the profile to remove
 
-        :return: True if the profile was successfully removed, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if the profile was successfully removed, False otherwise
         """
         remove_status = False
         index = None

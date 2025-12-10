@@ -5,8 +5,21 @@ from pycentral.exceptions.pycentral_error import PycentralError
 
 
 class VerificationError(PycentralError):
-    """
-    PYCENTRAL Verification Error Exception.
+    """Exception raised when verification checks fail during pycentral operations.
+
+    This exception is raised when verification checks of values fail prior to API execution.
+    It serves as a base class for more specific verification-related exceptions.
+
+    Attributes:
+        base_msg (str): The base error message for this exception type.
+        message (str): Detailed error message describing the verification failure.
+        module (str): The module or context where the verification error occurred.
+
+    Example:
+        ```python
+        >>> raise VerificationError(err_str, " get_resource_str() failed")
+        VerificationError: "VERIFICATION ERROR: Missing self.object_data['resource'] attribute DETAIL: get_resource_str() failed"
+        ```
     """
 
     base_msg = "VERIFICATION ERROR"

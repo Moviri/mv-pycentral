@@ -6,37 +6,29 @@ from ..utils import GLP_URLS, generate_url
 
 class UserMgmt(object):
     def get_users(self, conn, filter=None, limit=300, offset=0):
-        conn.logger.info("Getting users in GLP workspace")
-        """
-        Retrieve users that match given filters. All users are returned when no filters are provided.
+        """Retrieve users that match given filters.
 
-        :param filter: Filter data using a subset of OData 4.0 and return only the subset of resources that match the filter. The Get users API can be filtered by: id, username, userStatus, createdAt, updatedAt, lastLogin
-        :type filter: string (Example: 
-            Filter with id
-            Returns the user with a specific ID.
-            filter=id eq '7600415a-8876-5722-9f3c-b0fd11112283'
-            Filter with username
-            Returns the user with a specific username.
-            filter=username eq 'user@example.com'
-            Filter with userStatus
-            Returns users that are not unverified.
-            filter=userStatus neq 'UNVERIFIED'
-            Filter with createdAt
-            Returns users created after 2020-09-21T14:19:09.769747
-            filter=createdAt gt '2020-09-21T14:19:09.769747'
-            Filter with updatedAt
-            Returns users updated after 2020-09-21T14:19:09.769747
-            filter=updatedAt gt '2020-09-21T14:19:09.769747'
-            Filter with lastLogin
-            Returns users that logged in before 2020-09-21T14:19:09.769747
-            filter=lastLogin lt '2020-09-21T14:19:09.769747')
-        :param limit: Specify the maximum number of entries per page. NOTE: The maximum value accepted is 300.
-        :type limit: integer (Pagination limit) [ 1 .. 300 ]
-        :param offset: Specify pagination offset. An offset argument defines how many pages to skip before returning results.
-        :type offset: integer (Pagination offset) >= 0
-        :return: API response
-        :rtype: dict
+        All users are returned when no filters are provided. The Get users API can be filtered by:
+        id, username, userStatus, createdAt, updatedAt, lastLogin.
+
+        Args:
+            conn (NewCentralBase): pycentral base connection object.
+            filter (str, optional): Filter data using a subset of OData 4.0 and return only the subset of
+                resources that match the filter. Examples:
+
+                - Filter with id: filter=id eq '7600415a-8876-5722-9f3c-b0fd11112283'
+                - Filter with username: filter=username eq 'user@example.com'
+                - Filter with userStatus: filter=userStatus neq 'UNVERIFIED'
+                - Filter with createdAt: filter=createdAt gt '2020-09-21T14:19:09.769747'
+                - Filter with updatedAt: filter=updatedAt gt '2020-09-21T14:19:09.769747'
+                - Filter with lastLogin: filter=lastLogin lt '2020-09-21T14:19:09.769747'
+            limit (int, optional): Specify the maximum number of entries per page. Maximum value accepted is 300. Range: 1-300.
+            offset (int, optional): Specify pagination offset. Defines how many pages to skip before returning results. 
+
+        Returns:
+            (dict): API response containing users.
         """
+        conn.logger.info("Getting users in GLP workspace")
         path = generate_url(
             GLP_URLS["USER_MANAGEMENT"], category="user_management"
         )
@@ -54,23 +46,22 @@ class UserMgmt(object):
         return resp
 
     def get_user(self, conn, email=None, id=None):
-        conn.logger.info("Getting a user in GLP workspace")
-        """
-        Get a user from a workspace.
+        """Get a user from a workspace.
 
-        :param email: account username (email address)
-        :type email: string
-        :param id: target user id
-        :type id: string
-        :return: response object as provided by 'command' function in
-            class: `pycentral.NewCentralBase`
-        :rtype: dict
+        Args:
+            conn (NewCentralBase): pycentral base connection object.
+            email (str, optional): Account username (email address).
+            id (str, optional): Target user ID.
+
+        Returns:
+            (dict): Response as provided by 'command' function in NewCentralBase.
         """
+        conn.logger.info("Getting a user in GLP workspace")
         if email:
             id = self.get_user_id(conn, email)[1]
 
         path = generate_url(
-            f"{GLP_URLS["USER_MANAGEMENT"]}/{id}", category="user_management"
+            f"{GLP_URLS['USER_MANAGEMENT']}/{id}", category="user_management"
         )
 
         resp = conn.command("GET", path, "glp")
@@ -81,17 +72,15 @@ class UserMgmt(object):
         return resp
 
     def get_user_id(self, conn, email):
-        """
-        Get user ID in a GLP workspace by email
+        """Get user ID in a GLP workspace by email.
 
-        :param conn: new pycentral base object
-        :type conn: class: `pycentral.NewCentralBase`
-        :param email: account username (email address)
-        :type email: string
-        :return: Tuple of two elements. First element of the tuple returns True
-            if user id is found, else False. The second element is a GLP
-            user ID if found. Else, an error message from the response.
-        :rtype: (bool, str)
+        Args:
+            conn (NewCentralBase): pycentral base connection object.
+            email (str): Account username (email address).
+
+        Returns:
+            (tuple(bool, str)): Tuple of two elements. First element returns True if user ID is found,
+                else False. The second element is a GLP user ID if found, else an error message.
         """
 
         filter = f"username eq '{email}'"
@@ -104,40 +93,39 @@ class UserMgmt(object):
             return (True, resp["msg"]["items"][0]["id"])
 
     def delete_user(self, conn, email=None, user_id=None):
-        conn.logger.info("Deleting a user in GLP workspace")
-        """
-        Delete a user from a workspace.
+        """Delete a user from a workspace.
 
-        :param email: account username (email address)
-        :type email: string
-        :param id: target user id
-        :type id: string
-        :return: API response
-        :rtype: dict
+        Args:
+            conn (NewCentralBase): pycentral base connection object.
+            email (str, optional): Account username (email address).
+            user_id (str, optional): Target user ID.
+
+        Returns:
+            (dict): API response from the delete operation.
         """
+        conn.logger.info("Deleting a user in GLP workspace")
         if email:
             user_id = self.get_user_id(conn, email)[1]
 
         path = generate_url(
-            f"{GLP_URLS["USER_MANAGEMENT"]}/{user_id}",
+            f"{GLP_URLS['USER_MANAGEMENT']}/{user_id}",
             category="user_management",
         )
         resp = conn.command(api_method="DELETE", api_path=path, app_name="glp")
         return resp
 
     def inv_user(self, conn, email, send_link):
-        conn.logger.info("Inviting a user to GLP workspace")
-        """
-        Invite a user to a GLP workspace.
+        """Invite a user to a GLP workspace.
 
-        :param email: email address
-        :type email: string
-        :param send_link: set to send welcome email 
-        :type send_link: boolean (Example: true)
-        :return: response as provided by 'command' function in
-            class: `pycentral.NewCentralBase`
-        :rtype: dict
+        Args:
+            conn (NewCentralBase): pycentral base connection object.
+            email (str): Email address of the user to invite.
+            send_link (bool): Set to True to send welcome email.
+
+        Returns:
+            (dict): Response as provided by 'command' function in NewCentralBase.
         """
+        conn.logger.info("Inviting a user to GLP workspace")
 
         path = generate_url(
             GLP_URLS["USER_MANAGEMENT"], category="user_management"

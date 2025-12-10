@@ -22,26 +22,18 @@ class Clients:
         """
         Return all clients for a site, handling pagination.
 
-        :param central_conn: Central connection object
-        :type central_conn: object
-        :param site_id: Identifier of the site to query (required).
-        :type site_id: str or int
-        :param serial_number: Device serial number to filter clients (optional).
-        :type serial_number: str or None
-        :param filter_str: Optional filter expression applied to results.
-        :type filter_str: str or None
-        :param sort: Optional sort expression.
-        :type sort: str or None
-        :param duration: Optional duration (in seconds) for a relative time window.
-        :type duration: int or None
-        :param start_time: Optional start time (epoch seconds).
-        :type start_time: int or None
-        :param end_time: Optional end time (epoch seconds).
-        :type end_time: int or None
-        :returns: Flattened list of client records across all pages.
-        :rtype: list[dict]
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str|int): Identifier of the site to query.
+            serial_number (str, optional): Device serial number to filter clients.
+            filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
+            sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
+            duration (int, optional): Duration in seconds for a relative time window.
+            start_time (int, optional): Start time (epoch seconds).
+            end_time (int, optional): End time (epoch seconds).
 
-        :notes: This method repeatedly calls :meth:`get_site_clients` and combines pages until all clients of the site are retrieved.
+        Returns:
+            (list): All client details for the specified site.
         """
         Clients._validate_site_id(site_id)
         clients = []
@@ -81,27 +73,21 @@ class Clients:
         end_time=None,
     ):
         """
-        Fetch all wireless clients for a site.
+        Fetch wireless clients for a site.
 
-        :param central_conn: Central connection object
-        :type central_conn: object
-        :param site_id: Identifier of the site to query (required).
-        :type site_id: str or int
-        :param group_by: Dimension to group results by (e.g., 'mac', 'ap').
-        :type group_by: str or None
-        :param serial_number: Device serial number to filter the trend data.
-        :type serial_number: str or None
-        :param start_time: Optional start time (epoch seconds).
-        :type start_time: int or None
-        :param end_time: Optional end time (epoch seconds).
-        :type end_time: int or None
-        :param duration: Optional duration (in seconds) for a relative time window.
-        :type duration: int or None
-        :param return_raw_response: If True, return the raw API payload.
-        :type return_raw_response: bool
-        :returns: Processed list of timestamped samples or raw response if requested.
-        :rtype: list[dict] or dict
-        :raises: :class:`~pycentral.exceptions.ParameterError` if ``site_id`` is not provided.
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str|int): Identifier of the site to query.
+            sort (str, optional): Optional sort expression.
+            duration (int, optional): Duration in seconds for a relative time window.
+            start_time (int, optional): Start time (epoch seconds).
+            end_time (int, optional): End time (epoch seconds).
+
+        Returns:
+            (list): List of wireless client for the specified site.
+
+        Raises:
+            ParameterError: If site_id is not provided or invalid.
         """
         return Clients.get_all_site_clients(
             central_conn=central_conn,
@@ -123,27 +109,21 @@ class Clients:
         end_time=None,
     ):
         """
-        Fetch all wired clients for a site.
+        Fetch wired clients for a site.
 
-        :param central_conn: Central connection object
-        :type central_conn: object
-        :param site_id: Identifier of the site to query (required).
-        :type site_id: str or int
-        :param group_by: Dimension to group results by (e.g., 'mac', 'ap').
-        :type group_by: str or None
-        :param serial_number: Device serial number to filter the trend data.
-        :type serial_number: str or None
-        :param start_time: Optional start time (epoch seconds).
-        :type start_time: int or None
-        :param end_time: Optional end time (epoch seconds).
-        :type end_time: int or None
-        :param duration: Optional duration (in seconds) for a relative time window.
-        :type duration: int or None
-        :param return_raw_response: If True, return the raw API payload.
-        :type return_raw_response: bool
-        :returns: Processed list of timestamped samples or raw response if requested.
-        :rtype: list[dict] or dict
-        :raises: :class:`~pycentral.exceptions.ParameterError` if ``site_id`` is not provided.
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str|int): Identifier of the site to query.
+            sort (str, optional): Optional sort expression.
+            duration (int, optional): Duration in seconds for a relative time window.
+            start_time (int, optional): Start time (epoch seconds).
+            end_time (int, optional): End time (epoch seconds).
+
+        Returns:
+            (list): List of wired client for the specified site.
+
+        Raises:
+            ParameterError: If site_id is not provided or invalid.
         """
         return Clients.get_all_site_clients(
             central_conn=central_conn,
@@ -162,17 +142,18 @@ class Clients:
         serial_number,
     ):
         """
-        Retrieve clients associated with a specific device in a site.
+        Fetch clients associated with a specific device in a site.
 
-        :param central_conn: Central connection object
-        :type central_conn: object
-        :param site_id: Identifier of the site to query (required).
-        :type site_id: str or int
-        :param serial_number: Device serial number to filter clients (required).
-        :type serial_number: str
-        :returns: List of clients associated with the specified device.
-        :rtype: list[dict]
-        :raises: :class:`~pycentral.exceptions.ParameterError` if ``site_id`` or ``serial_number`` is not provided.
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str|int): Identifier of the site to query.
+            serial_number (str): Device serial number to filter clients.
+
+        Returns:
+            (list): Clients associated with the specified device.
+
+        Raises:
+            ParameterError: If site_id or serial_number is missing/invalid.
         """
         return Clients.get_all_site_clients(
             central_conn=central_conn,
@@ -186,12 +167,17 @@ class Clients:
         site_id,
     ):
         """
-        Retrieve connected clients to a site.
+        Fetch connected clients for a site.
 
-        :param central_conn: Central connection object
-        :type central_conn: object
-        :param site_id: Identifier of the site to query (required).
-        :type site_id: str or int
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str|int): Identifier of the site to query.
+
+        Returns:
+            (list[dict]): Connected clients for the site.
+
+        Raises:
+            ParameterError: If site_id is missing/invalid.
         """
         return Clients.get_all_site_clients(
             central_conn=central_conn,
@@ -205,15 +191,17 @@ class Clients:
         site_id,
     ):
         """
-        Retrieve disconnected clients from a site.
+        Fetch disconnected clients for a site.
 
-        :param central_conn: Central connection object
-        :type central_conn: object
-        :param site_id: Identifier of the site to query (required).
-        :type site_id: str or int
-        :returns: List of disconnected clients.
-        :rtype: list[dict]
-        :raises: :class:`~pycentral.exceptions.ParameterError` if ``site_id`` or ``serial_number`` is not provided.
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str|int): Identifier of the site to query.
+
+        Returns:
+            (list[dict]): Disconnected clients for the site.
+
+        Raises:
+            ParameterError: If site_id is missing/invalid.
         """
         return Clients.get_all_site_clients(
             central_conn=central_conn,
@@ -235,29 +223,27 @@ class Clients:
         end_time=None,
     ):
         """
-        Retrieve a single page of clients for a site.
+        Fetch clients for a site.
 
-        :param central_conn: Central connection object
-        :type central_conn: object
-        :param site_id: Identifier of the site to query (required).
-        :type site_id: str or int
-        :param filter_str: Optional filter expression applied to results.
-        :type filter_str: str or None
-        :param sort: Optional sort expression.
-        :type sort: str or None
-        :param next_page: Page token/index for pagination.
-        :type next_page: int
-        :param limit: Maximum number of items to return in this call.
-        :type limit: int
-        :param duration: Optional duration (in seconds) for a relative time window.
-        :type duration: int or None
-        :param start_time: Optional start time (epoch seconds).
-        :type start_time: int or None
-        :param end_time: Optional end time (epoch seconds).
-        :type end_time: int or None
-        :returns: Raw API response (typically contains 'items', 'total', and 'next').
-        :rtype: dict
-        :raises: :class:`~pycentral.exceptions.ParameterError` if ``site_id`` is not provided.
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/clients`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str|int): Identifier of the site to query.
+            serial_number (str, optional): Device serial number to filter clients.
+            filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
+            sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
+            next_page (int, optional): Page token/index for pagination.
+            limit (int, optional): Maximum number of items to return.
+            duration (int, optional): Duration (seconds) for relative time window.
+            start_time (int, optional): Start time (epoch seconds).
+            end_time (int, optional): End time (epoch seconds).
+
+        Returns:
+            (dict): Raw API response containing keys like 'items', 'total', and 'next'.
+
+        Raises:
+            ParameterError: If site_id is missing/invalid.
         """
         path = "clients"
 
@@ -297,27 +283,24 @@ class Clients:
         """
         Fetch client trend data for a site.
 
-        :param central_conn: Central connection object
-        :type central_conn: object
-        :param site_id: Identifier of the site to query (required).
-        :type site_id: str or int
-        :param group_by: Dimension to group results by (e.g., 'mac', 'ap').
-        :type group_by: str or None
-        :param client_type: Trend type passed as ``type`` in the request.
-        :type client_type: str or None
-        :param serial_number: Device serial number to filter the trend data.
-        :type serial_number: str or None
-        :param start_time: Optional start time (epoch seconds).
-        :type start_time: int or None
-        :param end_time: Optional end time (epoch seconds).
-        :type end_time: int or None
-        :param duration: Optional duration (in seconds) for a relative time window.
-        :type duration: int or None
-        :param return_raw_response: If True, return the raw API payload.
-        :type return_raw_response: bool
-        :returns: Processed list of timestamped samples or raw response if requested.
-        :rtype: list[dict] or dict
-        :raises: :class:`~pycentral.exceptions.ParameterError` if ``site_id`` is not provided.
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/clients/trends`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str|int): Identifier of the site to query.
+            group_by (str, optional): Dimension to group results by (e.g., 'mac', 'ap').
+            client_type (str, optional): Trend type (passed as 'type' in the request).
+            serial_number (str, optional): Device serial number to filter the trend data.
+            start_time (int, optional): Start time (epoch seconds).
+            end_time (int, optional): End time (epoch seconds).
+            duration (int, optional): Duration (seconds) for relative time window.
+            return_raw_response (bool, optional): If True, return the raw API payload.
+
+        Returns:
+            (list[dict] or dict): Processed list of timestamped samples, or raw response if requested.
+
+        Raises:
+            ParameterError: If site_id is missing/invalid.
         """
         path = "clients/trends"
 
@@ -356,26 +339,24 @@ class Clients:
         duration=None,
     ):
         """
-        Retrieve the top-N clients by usage for a specific site.
+        Fetch the top-N clients by usage for a site.
 
-        :param central_conn: Central connection object
-        :type central_conn: object
-        :param site_id: Identifier of the site to query (required).
-        :type site_id: str or int
-        :param serial_number: Optional device serial number to scope the query.
-        :type serial_number: str or None
-        :param count: Number of top clients to return (must be between 1 and 100). If None, API default is used.
-        :type count: int or None
-        :param start_time: Optional start time for time filtering (epoch seconds).
-        :type start_time: int or None
-        :param end_time: Optional end time for time filtering (epoch seconds).
-        :type end_time: int or None
-        :param duration: Optional duration (in seconds) for a relative time window.
-        :type duration: int or None
-        :returns: Raw API response containing top-N usage data. The response typically includes a list of clients sorted by usage.
-        :rtype: dict
-        :raises ParameterError: If site_id is not provided.
-        :raises ParameterError: If count is provided but not in the range 1..100.
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/clients/usage/topn`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str|int): Identifier of the site to query.
+            serial_number (str, optional): Device serial number to scope the query.
+            count (int, optional): Number of top clients to return (1..100).
+            start_time (int, optional): Start time (epoch seconds).
+            end_time (int, optional): End time (epoch seconds).
+            duration (int, optional): Duration (seconds) for relative time window.
+
+        Returns:
+            (dict): Raw API response containing top-N usage data.
+
+        Raises:
+            ParameterError: If site_id is missing/invalid or if count is provided but not in the range 1..100.
         """
         path = "clients/usage/topn"
         Clients._validate_site_id(site_id)
@@ -402,6 +383,21 @@ class Clients:
         return execute_get(central_conn, endpoint=path, params=params)
 
     def _time_filter(params, start_time, end_time, duration):
+        """
+        Apply a time filter to params using unix timestamps.
+
+        Args:
+            params (dict): Existing query params to augment.
+            start_time (int|None): Start time (epoch seconds).
+            end_time (int|None): End time (epoch seconds).
+            duration (int|None): Duration in seconds.
+
+        Returns:
+            (dict): Params augmented with 'start-query-time' and 'end-query-time'.
+
+        Note:
+            Internal SDK function
+        """
         start_unix, end_unix = build_timestamp_filter(
             start_time=start_time,
             end_time=end_time,
@@ -413,6 +409,18 @@ class Clients:
         return params
 
     def _process_client_trend_samples(payload):
+        """
+        Normalize client trend payload into a list of timestamped dicts.
+
+        Args:
+            payload (dict): Raw trend payload with 'categories' and 'samples'.
+
+        Returns:
+            (list[dict]): Normalized rows with 'timestamp' and category/value pairs.
+
+        Note:
+            Internal SDK function
+        """
         categories = payload.get("categories", [])
         samples = payload.get("samples", [])
         out = []
@@ -432,8 +440,16 @@ class Clients:
 
     def _validate_site_id(site_id):
         """
-        Utility to validate site_id.
-        Raises ParameterError if validation fails.
+        Validate site_id and raise if invalid.
+
+        Args:
+            site_id (str|int): Site identifier to validate.
+
+        Raises:
+            ParameterError: If site_id is missing or not a string/integer.
+
+        Note:
+            Internal SDK function
         """
         if not isinstance(site_id, (str, int)) or not site_id:
             raise ParameterError(

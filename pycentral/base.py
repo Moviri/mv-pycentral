@@ -1,7 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-import oauthlib
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 from requests_oauthlib import OAuth2Session
 from requests.auth import HTTPBasicAuth
 from oauthlib.oauth2 import BackendApplicationClient
@@ -24,23 +24,21 @@ class NewCentralBase:
     def __init__(
         self, token_info, logger=None, log_level="DEBUG", enable_scope=False
     ):
-        """
-        This constructor initializes the NewCentralBase class with token information, logging configuration,
-        and optional scope management. It validates and processes the provided token information, sets up
-        logging, and optionally initializes scope-related functionality.
+        """Constructor initializes the NewCentralBase class with token information and logging configuration.
 
-        :param token_info: Dictionary containing token information for supported applications - new_central, glp.
-                  Can also be a string path to a YAML or JSON file with token information.
-        :type token_info: dict or str
-        :param logger: Logger instance, defaults to None.
-        :type logger: logging.Logger, optional
-        :param log_level: Logging level, defaults to "DEBUG".
-        :type log_level: str, optional
-        :param enable_scope: Flag to enable scope management. If True, the SDK will automatically fetch data
-                             about existing scopes and associated profiles, simplifying scope and configuration
-                             management. If False, scope-related API calls are disabled, resulting in faster
-                             initialization. Defaults to False.
-        :type enable_scope: bool, optional
+        Validates and processes the provided token information, sets up logging,
+        and optionally initializes scope-related functionality.
+
+        Args:
+            token_info (dict or str): Dictionary containing token information for supported
+                applications (new_central, glp). Can also be a string path to a YAML or
+                JSON file with token information.
+            logger (logging.Logger, optional): Logger instance. Defaults to None.
+            log_level (str, optional): Logging level. Defaults to "DEBUG".
+            enable_scope (bool, optional): Flag to enable scope management. If True, the SDK
+                will automatically fetch data about existing scopes and associated profiles,
+                simplifying scope and configuration management. If False, scope-related API
+                calls are disabled, resulting in faster initialization. Defaults to False.
         """
         self.token_info = new_parse_input_args(token_info)
         self.token_file_path = None
@@ -59,15 +57,14 @@ class NewCentralBase:
             self.scopes = Scopes(central_conn=self)
 
     def set_logger(self, log_level, logger=None):
-        """
-        Set up the logger.
+        """Set up the logger.
 
-        :param log_level: Logging level.
-        :type log_level: str
-        :param logger: Logger instance, defaults to None.
-        :type logger: logging.Logger, optional
-        :return: Logger instance.
-        :rtype: logging.Logger
+        Args:
+            log_level (str): Logging level.
+            logger (logging.Logger, optional): Logger instance. Defaults to None.
+
+        Returns:
+            (logging.Logger): Logger instance.
         """
         if logger:
             return logger
@@ -75,20 +72,20 @@ class NewCentralBase:
             return console_logger("NEW CENTRAL BASE", log_level)
 
     def create_token(self, app_name):
-        """
-        Create a new access token for the specified application.
+        """Create a new access token for the specified application.
 
-        This function generates a new access token using the client credentials
-        for the specified application, updates the `self.token_info` dictionary
-        with the new token, and optionally saves it to a file. The token is also
-        returned.
+        Generates a new access token using the client credentials for the specified
+        application, updates the `self.token_info` dictionary with the new token,
+        and optionally saves it to a file.
 
-        :param app_name: Name of the application. Supported applications: "new_central", "glp".
-        :type app_name: str
-        :return: Access token.
-        :rtype: str
-        :raises LoginError: If there is an error during token creation.
-        :raises SystemExit: If invalid client credentials are provided.
+        Args:
+            app_name (str): Name of the application. Supported applications: "new_central", "glp".
+
+        Returns:
+            (str): Access token.
+
+        Raises:
+            LoginError: If there is an error during token creation.
         """
         client_id, client_secret = self._return_client_credentials(app_name)
         client = BackendApplicationClient(client_id)
@@ -117,33 +114,45 @@ class NewCentralBase:
                         self.logger,
                     )
                 return token["access_token"]
-        except oauthlib.oauth2.rfc6749.errors.InvalidClientError:
-            exitString = (
-                "Invalid client_id or client_secret provided for "
-                + app_name
-                + ". Please provide valid credentials to create an access token."
-            )
-            exit(exitString)
         except Exception as e:
-            raise LoginError(e)
+            # unified extraction of status code (from exception or its response)
+            status_code = getattr(e, "status_code", None)
+            resp = getattr(e, "response", None)
+            if resp is not None:
+                status_code = getattr(resp, "status_code", status_code)
+
+            # special-case invalid client credentials to provide a clearer, actionable message
+            if isinstance(e, InvalidClientError):
+                description = getattr(e, "description", None) or str(e)
+                msg = (
+                    f"{description} for {app_name}. "
+                    "Provide valid client_id and client_secret to create an access token."
+                )
+            else:
+                msg = str(e) or "Unexpected error while creating access token"
+
+            self.logger.error(msg)
+            raise LoginError(msg, status_code)
 
     def handle_expired_token(self, app_name):
-        """
-        Handle expired access token by creating a new one.
+        """Handle expired access token by creating a new one.
 
-        :param app_name: Name of the application.
-        :type app_name: str
+        Args:
+            app_name (str): Name of the application.
+
+        Raises:
+            LoginError: If client credentials are missing.
         """
         self.logger.info(
-            f"{app_name} access Token has expired. Handling Token Expiry..."
+            f"{app_name} access token has expired. Handling Token Expiry..."
         )
         client_id, client_secret = self._return_client_credentials(app_name)
         if any(
             credential is None for credential in [client_id, client_secret]
         ):
-            exit(
-                f"Please provide client_id and client_secret in {app_name} required to generate an access token"
-            )
+            msg = f"Please provide client_id and client_secret in {app_name} required to generate an access token"
+            self.logger.error(msg)
+            raise LoginError(msg)
         else:
             self.create_token(app_name)
 
@@ -157,26 +166,46 @@ class NewCentralBase:
         headers={},
         files={},
     ):
-        """
-        Execute an API command.
+        """Execute an API command to HPE Aruba Networking Central or GreenLake Platform.
 
-        :param api_method: HTTP method for the API call.
-        :type api_method: str
-        :param api_path: API endpoint path.
-        :type api_path: str
-        :param app_name: Name of the application, defaults to "new_central". If you need to make API call to GLP, set this attribute to glp
-        :type app_name: str, optional
-        :param api_data: Data to be sent in the API request, defaults to {}.
-        :type api_data: dict, optional
-        :param api_params: URL parameters for the API request, defaults to {}.
-        :type api_params: dict, optional
-        :param headers: HTTP headers for the API request, defaults to {}.
-        :type headers: dict, optional
-        :param files: Files to be sent in the API request, defaults to {}.
-        :type files: dict, optional
-        :return: Result of the API call.
-        :rtype: dict
-        :raises ResponseError: If there is an error during the API call.
+        This is the primary method for making API calls from the SDK. It handles
+        authentication, token refresh on expiry, request formatting, and response
+        parsing. All other SDK modules internally use this method to make API calls.
+
+        The method automatically:
+            - Validates the application name and HTTP method
+            - Constructs the full URL from self.base_url and api_path
+            - Adds appropriate headers (Content-Type, Accept) if not provided
+            - Serializes api_data to JSON when Content-Type is application/json
+            - Handles 401 errors by refreshing the access token and retrying if client credentials are available
+            - Parses JSON responses when possible
+
+        Args:
+            api_method (str): HTTP method for the API call. Supported methods:
+                POST, PATCH, DELETE, GET, PUT.
+            api_path (str): API endpoint path (e.g., "monitoring/v1/aps").
+                This is appended to the base_url configured in token_info.
+            app_name (str, optional): Target application for the API call.
+                Use "new_central" for HPE Aruba Networking Central APIs (default).
+                Use "glp" for GreenLake Platform APIs.
+            api_data (dict, optional): Request body/payload to be sent. Automatically
+                serialized to JSON if Content-Type is application/json. Defaults to {}.
+            api_params (dict, optional): URL query parameters for the API request.
+                Defaults to {}.
+            headers (dict, optional): Custom HTTP headers. If not provided and no files
+                are being uploaded, defaults to {"Content-Type": "application/json",
+                "Accept": "application/json"}.
+            files (dict, optional): Files to upload in multipart/form-data requests.
+                When provided, Content-Type header is not automatically set. Defaults to {}.
+
+        Returns:
+            (dict): API response containing:
+                - code (int): HTTP status code
+                - msg (dict or str): Parsed JSON response body, or raw text if not JSON
+                - headers (dict): Response headers
+
+        Raises:
+            ResponseError: If there is an error during the API call.
         """
         self._validate_request(app_name, api_method)
 
@@ -208,11 +237,11 @@ class NewCentralBase:
                     access_token=self.token_info[app_name]["access_token"],
                 )
                 if resp.status_code == 401:
-                    self.logger.error(
-                        "Received error 401 on requesting url "
-                        "%s with resp %s" % (str(url), str(resp.text))
-                    )
                     if retry >= 1:
+                        self.logger.error(
+                            "Received error 401 on requesting url "
+                            "%s with resp %s" % (str(url), str(resp.text))
+                        )
                         limit_reached = True
                         break
                     self.handle_expired_token(app_name)
@@ -248,26 +277,24 @@ class NewCentralBase:
         params={},
         files={},
     ):
-        """
-        Make an API call to application(New Central or GLP) via the requests library.
+        """Make an API call to application (New Central or GLP) via the requests library.
 
-        :param url: HTTP Request URL string.
-        :type url: str
-        :param access_token: Access token for authentication.
-        :type access_token: str
-        :param data: HTTP Request payload, defaults to {}.
-        :type data: dict, optional
-        :param method: HTTP Request Method supported by GLP/New Central, defaults to "GET".
-        :type method: str, optional
-        :param headers: HTTP Request headers, defaults to {}.
-        :type headers: dict, optional
-        :param params: HTTP URL query parameters, defaults to {}.
-        :type params: dict, optional
-        :param files: Files dictionary with file pointer depending on API endpoint as accepted by GLP/New Central, defaults to {}.
-        :type files: dict, optional
-        :return: HTTP response of API call using requests library.
-        :rtype: requests.models.Response
-        :raises ResponseError: If there is an error during the API call.
+        Args:
+            url (str): HTTP Request URL string.
+            access_token (str): Access token for authentication.
+            data (dict, optional): HTTP Request payload. Defaults to {}.
+            method (str, optional): HTTP Request Method supported by GLP/New Central.
+                Defaults to "GET".
+            headers (dict, optional): HTTP Request headers. Defaults to {}.
+            params (dict, optional): HTTP URL query parameters. Defaults to {}.
+            files (dict, optional): Files dictionary with file pointer depending on
+                API endpoint as accepted by GLP/New Central. Defaults to {}.
+
+        Returns:
+            (requests.models.Response): HTTP response of API call using requests library.
+
+        Raises:
+            ResponseError: If there is an error during the API call.
         """
         resp = None
 
@@ -297,15 +324,15 @@ class NewCentralBase:
             raise ResponseError(err_str, err)
 
     def _validate_request(self, app_name, method):
-        """
-        Validate that provided app has access_token and a valid HTTP method.
+        """Validate that provided app has access_token and a valid HTTP method.
 
-        :param app_name: Name of the application.
-        :type app_name: str
-        :param method: HTTP method to be validated.
-        :type method: str
-        :raises ValueError: If app_name is not in token_info or access_token is missing for provided app_name.
-        :raises ValueError: If the method is not supported.
+        Args:
+            app_name (str): Name of the application.
+            method (str): HTTP method to be validated.
+
+        Raises:
+            ValueError: If app_name is not in token_info or access_token is missing.
+            ValueError: If the method is not supported.
         """
         if app_name not in self.token_info:
             error_string = (
@@ -324,13 +351,13 @@ class NewCentralBase:
             raise ValueError(error_string)
 
     def _return_client_credentials(self, app_name):
-        """
-        Return client credentials for the specified application.
+        """Return client credentials for the specified application.
 
-        :param app_name: Name of the application.
-        :type app_name: str
-        :return: Client ID and client secret.
-        :rtype: tuple
+        Args:
+            app_name (str): Name of the application.
+
+        Returns:
+            (tuple): Client ID and client secret as a tuple (client_id, client_secret).
         """
         app_token_info = self.token_info[app_name]
         if all(
@@ -342,15 +369,14 @@ class NewCentralBase:
             return client_id, client_secret
 
     def get_scopes(self):
-        """
-        Sets up the scopes for the current instance by creating a Scopes object.
+        """Set up the scopes for the current instance by creating a Scopes object.
 
-        This method initializes the `scopes` attribute using the `Scopes` class,
-        passing the current instance (`self`) as the `central_conn` parameter.
-        If the `scopes` attribute is already initialized, it simply returns the existing object.
+        Initializes the `scopes` attribute using the `Scopes` class, passing the
+        current instance as the `central_conn` parameter. If the `scopes` attribute
+        is already initialized, it simply returns the existing object.
 
         Returns:
-            Scopes: The initialized or existing Scopes object.
+            (Scopes): The initialized or existing Scopes object.
         """
         if self.scopes is None:
             self.scopes = Scopes(central_conn=self)
@@ -358,30 +384,28 @@ class NewCentralBase:
 
 
 class BearerAuth(requests.auth.AuthBase):
-    """This class uses Bearer Auth method to generate the authorization header
-    from New Central or GLP Access Token.
+    """Uses Bearer Auth method to generate the authorization header from New Central or GLP Access Token.
 
-    :param token: New Central or GLP Access Token
-    :type token: str
+    Args:
+        token (str): New Central or GLP Access Token.
     """
 
     def __init__(self, token):
-        """
-        Constructor Method.
+        """Constructor Method.
 
-        :param token: New Central or GLP Access Token
-        :type token: str
+        Args:
+            token (str): New Central or GLP Access Token.
         """
         self.token = token
 
     def __call__(self, r):
-        """
-        Internal method returning auth.
+        """Internal method returning auth.
 
-        :param r: Request object.
-        :type r: requests.models.PreparedRequest
-        :return: Modified request object with authorization header.
-        :rtype: requests.models.PreparedRequest
+        Args:
+            r (requests.models.PreparedRequest): Request object.
+
+        Returns:
+            (requests.models.PreparedRequest): Modified request object with authorization header.
         """
         r.headers["authorization"] = "Bearer " + self.token
         return r

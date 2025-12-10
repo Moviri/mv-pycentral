@@ -57,20 +57,20 @@ OPTIONAL_ATTRIBUTES = {
 
 
 class Site(ScopeBase):
-    """
-    This class holds site and all of its attributes & related methods.
-    """
+    """This class holds site and all of its attributes & related methods."""
 
     def __init__(self, site_attributes, central_conn=None, from_api=False):
-        """
-        Constructor for Site object
+        """Constructor for Site object.
 
-        :param site_attributes: Attributes of the site collection
-        :type site_attributes: dict
-        :param central_conn: Instance of class:`pycentral.NewCentralBase` to establish connection to Central.
-        :type central_conn: class:`NewCentralBase`, optional
-        :param from_api: Boolean indicates if the site_attributes is from the Central API response.
-        :type from_api: bool, optional
+        Args:
+            site_attributes (dict): Attributes of the site collection
+            central_conn (NewCentralBase, optional): Instance of NewCentralBase to establish
+                connection to Central.
+            from_api (bool, optional): Boolean indicates if the site_attributes is from
+                the Central API response.
+
+        Raises:
+            ValueError: If unexpected or missing attributes are provided
         """
         if from_api:
             site_attributes = rename_keys(
@@ -87,7 +87,7 @@ class Site(ScopeBase):
         ]
         if missing_required_attributes:
             raise ValueError(
-                f'Missing required attributes: {", ".join(missing_required_attributes)}'
+                f"Missing required attributes: {', '.join(missing_required_attributes)}"
             )
         valid_attributes = REQUIRED_ATTRIBUTES + list(
             OPTIONAL_ATTRIBUTES.keys()
@@ -97,7 +97,7 @@ class Site(ScopeBase):
         ]
         if unexpected_attributes:
             raise ValueError(
-                f'Unexpected attributes: {", ".join(unexpected_attributes)}.\n If site is being created based off api_response ensure that the from_api flag is set to True'
+                f"Unexpected attributes: {', '.join(unexpected_attributes)}.\n If site is being created based off api_response ensure that the from_api flag is set to True"
             )
         set_attributes(
             obj=self,
@@ -107,11 +107,13 @@ class Site(ScopeBase):
         )
 
     def create(self):
-        """
-        Perform a POST call to create a site on Central.
+        """Perform a POST call to create a site on Central.
 
-        :return: True if site was created, else False
-        :rtype: bool
+        Returns:
+            (bool): True if site was created, False otherwise
+
+        Raises:
+            Exception: If site already exists or central connection is missing
         """
         if self.materialized:
             raise Exception("Unable to create a site that already exists")
@@ -146,16 +148,18 @@ class Site(ScopeBase):
                 pass
         else:
             self.central_conn.logger.error(
-                f'Failed to create site {self.get_name()} in Central.\nError message - {resp["msg"]}'
+                f"Failed to create site {self.get_name()} in Central.\nError message - {resp['msg']}"
             )
         return site_creation_status
 
     def get(self):
-        """
-        Performs a GET call to retrieve data of a site then sets attributes of self based on API response.
+        """Performs a GET call to retrieve data of a site then sets attributes of self.
 
-        :return: Returns JSON Data of GET call if success, else None
-        :rtype: dict
+        Returns:
+            (dict): JSON Data of GET call if success, None otherwise
+
+        Raises:
+            Exception: If site doesn't exist or central connection is missing
         """
         if not self.materialized:
             raise Exception("Unable to get a site that does not exist")
@@ -187,11 +191,15 @@ class Site(ScopeBase):
         return site_data
 
     def update(self):
-        """
-        Performs a PUT call to update attributes of site on Central if any changes are detected. The source of truth is self
+        """Performs a PUT call to update attributes of site on Central if changes are detected.
 
-        :return: Returns JSON Data of GET call if success, else None
-        :rtype: dict
+        The source of truth is self.
+
+        Returns:
+            (bool): True if modifications were made, False otherwise
+
+        Raises:
+            Exception: If site doesn't exist on Central or central connection is missing
         """
         if not self.materialized:
             raise Exception(
@@ -240,11 +248,13 @@ class Site(ScopeBase):
         return modified
 
     def delete(self):
-        """
-        Performs DELETE call to delete Site.
+        """Performs DELETE call to delete Site.
 
-        :return: True if DELETE was successful, else returns False if DELETE was unsuccessful
-        :rtype: bool
+        Returns:
+            (bool): True if DELETE was successful, False otherwise
+
+        Raises:
+            Exception: If site doesn't exist on Central or central connection is missing
         """
         if not self.materialized:
             raise Exception(
@@ -278,12 +288,11 @@ class Site(ScopeBase):
         return site_deletion_status
 
     def get_site_collection_attributes(self):
-        """
-        returns dictionary of site collection attributes of the site if site collection id
-            is defined or None if not
+        """Returns dictionary of site collection attributes of the site.
 
-        :return: dictionary of site collection attributes or None
-        :rtype: dict
+        Returns:
+            (dict or None): Dictionary of site collection attributes with 'id' and 'name' keys,
+                or None if site collection id is not defined
         """
         if fetch_attribute(self, "site_collection_id"):
             return {
@@ -293,13 +302,11 @@ class Site(ScopeBase):
         return None
 
     def add_site_collection(self, site_collection_id, site_collection_name):
-        """
-        This function sets the attributes site collection id and name of this site object
+        """Sets the attributes site collection id and name of this site object.
 
-        :param site_collection_id: site collection id
-        :type site_collection_id: str
-        :param site_collection_name: site collection name
-        :type site_collection_name: str
+        Args:
+            site_collection_id (int or str): Site collection id
+            site_collection_name (str): Site collection name
         """
         update_attribute(
             self, attribute="site_collection_id", new_value=site_collection_id
@@ -312,30 +319,24 @@ class Site(ScopeBase):
         )
 
     def remove_site_collection(self):
-        """
-        sets the attributes of site collection id and name this site object
-            belongs to None
-        """
+        """Sets the attributes of site collection id and name to None."""
 
         update_attribute(self, attribute="site_collection_id", new_value=None)
-        update_attribute(
-            self, attribute="site_collection_name", new_value=None
-        )
+        update_attribute(self, attribute="site_collection_name", new_value=None)
 
     def __str__(self):
-        """
-        String containing the Site id and name
-        :return: This class' string representation.
-        :rtype: str
+        """Returns string containing the Site id and name.
+
+        Returns:
+            (str): String representation of this class
         """
         return f"Site ID - {self.get_id()}, Site Name - {self.get_name()}"
 
     def __generate_api_body(self):
-        """
-        This function returns the dictionary of site attributes are needed to making API calls
+        """Returns the dictionary of site attributes needed for making API calls.
 
-        :return: Dictionary of site attributes needed for making API calls to Central.
-        :rtype: dict
+        Returns:
+            (dict): Dictionary of site attributes needed for making API calls to Central
         """
         api_body = {
             "name": self.get_name(),
@@ -369,11 +370,11 @@ class Site(ScopeBase):
         return api_body
 
     def __get_timezone_attributes(self):
-        """
-        This function returns the dictionary of timezone attributes that are needed to making API calls
+        """Returns the dictionary of timezone attributes needed for making API calls.
 
-        :return: Dictionary of timezone attributes needed for making site management API calls to Central.
-        :rtype: dict
+        Returns:
+            (dict): Dictionary of timezone attributes with 'rawOffset', 'timezoneId',
+                and 'timezoneName' keys needed for site management API calls to Central
         """
         timezone = pytz.timezone(self.timezone)
         current_time = datetime.now(timezone)

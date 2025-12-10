@@ -5,8 +5,21 @@ from typing import Any
 
 
 class PycentralError(Exception):
-    """
-    Base class for other PYCENTRAL exceptions.
+    """Base exception class for all pycentral-specific errors.
+
+    This exception serves as the base class for all custom exceptions in the pycentral library.
+    It provides common functionality for error handling and message formatting.
+
+    Attributes:
+        base_msg (str): The base error message for this exception type.
+        message (str): The complete formatted error message.
+        response (dict): The API response associated with the error, if applicable.
+
+    Example:
+        ```python
+        >>> raise PycentralError("An unexpected error occurred")
+        PycentralError: 'PYCENTRAL ERROR, An unexpected error occurred'
+        ```
     """
 
     base_msg = "PYCENTRAL ERROR"

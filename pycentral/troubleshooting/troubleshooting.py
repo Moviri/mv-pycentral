@@ -18,18 +18,22 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a AAA test on the specified device and polls for test result,
-        supported device type includes APs.
+        """Initiates a AAA test on the specified AP device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param radius_server_ip: RADIUS server IP address or hostname
-        :param username: Username for authentication
-        :param password: Password for authentication
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            radius_server_ip (str): RADIUS server IP address or hostname.
+            username (str): Username for authentication.
+            password (str): Password for authentication.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If initiating the AAA test fails.
         """
         device_type = "aps"
 
@@ -79,21 +83,25 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a AAA test on the specified device and polls for test result,
-        supported device type includes CX.
+        """Initiates a AAA test on the specified CX device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param radius_server_ip: RADIUS server IP address or hostname
-        :param username: Username for authentication
-        :param password: Password for authentication
-        :param auth_method_type: Authentication method type, chap or pap
-        :param radius_server_port: RADIUS server port (optional)
-        :param vrf: VRF (optional)
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            radius_server_ip (str): RADIUS server IP address or hostname.
+            username (str): Username for authentication.
+            password (str): Password for authentication.
+            auth_method_type (str): Authentication method type, 'chap' or 'pap'.
+            radius_server_port (int, optional): RADIUS server port.
+            vrf (str, optional): VRF name.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If initiating the AAA test fails.
         """
         device_type = "cx"
 
@@ -141,16 +149,23 @@ class Troubleshooting:
         username,
         password,
     ):
-        """
-        Initiates a AAA test on the specified device,
-        supported device type includes APs.
+        """Initiates a AAA test on the specified AP device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param radius_server_ip: RADIUS server IP address or hostname
-        :param username: Username for authentication
-        :param password: Password for authentication
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            radius_server_ip (str): RADIUS server IP address or hostname.
+            username (str): Username for authentication.
+            password (str): Password for authentication.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If radius_server_ip is not a valid string.
+            ParameterError: If username is not a valid string.
+            ParameterError: If password is not a valid string.
+            Exception: If initiating the AAA test fails.
         """
         device_type = "aps"
 
@@ -207,19 +222,29 @@ class Troubleshooting:
         radius_server_port=None,
         vrf=None,
     ):
-        """
-        Initiates a AAA test on the specified device,
-        supported device type includes CX.
+        """Initiates a AAA test on the specified CX device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param radius_server_ip: RADIUS server IP address or hostname
-        :param username: Username for authentication
-        :param password: Password for authentication
-        :param auth_method_type: Authentication method type, chap or pap
-        :param radius_server_port: RADIUS server port (optional)
-        :param vrf: VRF (optional)
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            auth_method_type (str): Authentication method type, 'chap' or 'pap'.
+            radius_server_ip (str): RADIUS server IP address or hostname.
+            username (str): Username for authentication.
+            password (str): Password for authentication.
+            radius_server_port (int, optional): RADIUS server port.
+            vrf (str, optional): VRF name.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If auth_method_type is not 'chap' or 'pap'.
+            ParameterError: If radius_server_ip is not a valid string.
+            ParameterError: If username is not a valid string.
+            ParameterError: If password is not a valid string.
+            ParameterError: If radius_server_port is not a valid integer between 1-65535.
+            ParameterError: If vrf is not a valid string.
+            Exception: If initiating the AAA test fails.
         """
         device_type = "cx"
 
@@ -302,15 +327,21 @@ class Troubleshooting:
         device_type,
         serial_number,
     ):
-        """
-        Retrieves the results of an AAA test on the specified device with the
-        provided task ID, supported device type includes APs and CX.
+        """Retrieves the results of an AAA test on the specified device with the provided task ID.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AP and CX.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aps' or 'cx').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If retrieving the test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn, device_type, serial_number
@@ -347,17 +378,23 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a cable test on the specified device and polls for test
-        result, supported device types include cx and aos-s.
+        """Initiates a cable test on the specified device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param ports: List of the ports to test
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Supported device type includes AOS-S and CX.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s' or 'cx').
+            serial_number (str): Serial number of the device.
+            ports (list): List of the ports to test.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If initiating the cable test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -397,15 +434,22 @@ class Troubleshooting:
         serial_number,
         ports,
     ):
-        """
-        Initiates a cable test on the specified device, supported device types
-        include cx and aos-s.
+        """Initiates a cable test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param ports: List of the ports to test
-        :return: Response from the API containing task ID and other details
+        Supported device type includes AOS-S and CX.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s' or 'cx').
+            serial_number (str): Serial number of the device.
+            ports (list): List of the ports to test.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details
+
+        Raises:
+            ParameterError: If ports parameter is invalid.
+            Exception: If initiating the cable test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -445,15 +489,21 @@ class Troubleshooting:
     def get_cable_test_result(
         central_conn, task_id, device_type, serial_number
     ):
-        """
-        Retrieves the results of a cable test on the specified device,
-        supported device types include cx and aos-s.
+        """Retrieves the results of a cable test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AOS-S and CX.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aos-s' or 'cx').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API
+
+        Raises:
+            Exception: If retrieving the cable test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -488,13 +538,20 @@ class Troubleshooting:
 
     @staticmethod
     def disconnect_all_clients(central_conn, device_type, serial_number):
-        """
-        Disconnects all clients from the specified device, Gateways only.
+        """Disconnects all clients from the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the API
+        Supported device type includes GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the API.
+
+        Raises:
+            Exception: If initiating the disconnect fails.
         """
 
         device_type = Troubleshooting._validate_required_device_params(
@@ -526,13 +583,20 @@ class Troubleshooting:
 
     @staticmethod
     def disconnect_all_users(central_conn, device_type, serial_number):
-        """
-        Disconnects all users from the specified device, APs only.
+        """Disconnects all users from the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the API
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the API.
+
+        Raises:
+            Exception: If initiating the disconnect fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -565,15 +629,23 @@ class Troubleshooting:
     def disconnect_all_users_ssid(
         central_conn, device_type, serial_number, network
     ):
-        """
-        Disconnects all users from the specified device on the specified
-        network/SSID, APs only.
+        """Disconnects all users from the specified device on the specified
+        network/SSID.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param network: SSID of the network to disconnect users from
-        :return: Response from the API
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+            network (str): SSID of the network to disconnect users from.
+
+        Returns:
+            (dict): Response from the API.
+
+        Raises:
+            ParameterError: If network parameter is invalid.
+            Exception: If initiating the disconnect fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -613,15 +685,21 @@ class Troubleshooting:
     def disconnect_client_mac_addr(
         central_conn, device_type, serial_number, mac_address
     ):
-        """
-        Disconnects a client from the specified device by MAC address,
-        Gateways only.
+        """Disconnects a client from the specified device by MAC address.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param mac_address: MAC address of the client to disconnect
-        :return: Response from the API
+        Supported device type includes GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('gateways').
+            serial_number (str): Serial number of the device.
+            mac_address (str): MAC address of the client to disconnect.
+
+        Returns:
+            (dict): Response from the API.
+
+        Raises:
+            Exception: If initiating the disconnect fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -662,14 +740,22 @@ class Troubleshooting:
     def disconnect_user_mac_addr(
         central_conn, device_type, serial_number, mac_address
     ):
-        """
-        Disconnects a user from the specified device by MAC address, APs only.
+        """Disconnects a user from the specified device by MAC address.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param mac_address: MAC address of the user to disconnect
-        :return: Response from the API
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+            mac_address (str): MAC address of the user to disconnect.
+
+        Returns:
+            (dict): Response from the API.
+
+        Raises:
+            ParameterError: If MAC address parameter is invalid.
+            Exception: If initiating the disconnect fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -719,21 +805,27 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a HTTP test on the specified device and polls for test result,
-        supported device types include CX, APs, and GATEWAYS.
+        """Initiates a HTTP test on the specified device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param destination: Destination hostname or IP address
-        :param vrf: CX device_type only, VRF to use, if None provided default VRF will be used
-        :param source_interface: CX device_type only, Source interface for the test
-        :param source_port: CX device_type only, Source port for the test
-        :param name_server: CX device_type only, IPv4 address of the DNS server to use
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Supported device types include AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            destination (str): Destination hostname or IP address.
+            vrf (str, optional): CX only, VRF to use. If None, default VRF will be used.
+            source_interface (str, optional): CX only, source interface for the test.
+            source_port (int, optional): CX only, source port for the test (0-65535).
+            name_server (str, optional): CX only, IPv4 address of the DNS server to use.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If initiating the HTTP test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -782,19 +874,30 @@ class Troubleshooting:
         source_port=None,
         name_server=None,
     ):
-        """
-        Initiates a HTTP test on the specified device,
-        supported device types include CX, APs, and GATEWAYS.
+        """Initiates a HTTP test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param destination: Destination hostname or IP address
-        :param vrf: CX device_type only, VRF to use, if None provided default VRF will be used
-        :param source_interface: CX device_type only, Source interface for the test
-        :param source_port: CX device_type only, Source port for the test
-        :param name_server: CX device_type only, IPv4 address of the DNS server to use
-        :return: Response from the API containing task ID and other details
+        Supported device type includes AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            destination (str): Destination hostname or IP address.
+            vrf (str, optional): CX only, VRF to use. If None, default VRF will be used.
+            source_interface (str, optional): CX only, source interface for the test.
+            source_port (int, optional): CX only, source port for the test (0-65535).
+            name_server (str, optional): CX only, IPv4 address of the DNS server to use.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If destination is not a valid IP address or hostname.
+            ParameterError: If vrf is not a valid string.
+            ParameterError: If source_interface is not a valid string.
+            ParameterError: If source_port is not a valid integer between 0-65535.
+            ParameterError: If name_server is not a valid string.
+            Exception: If initiating the HTTP test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -869,15 +972,21 @@ class Troubleshooting:
         device_type,
         serial_number,
     ):
-        """
-        Retrieves the results of a HTTP test on the specified device,
-        supported device types include CX, APs, and GATEWAYS.
+        """Retrieves the results of a HTTP test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If retrieving the test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -920,17 +1029,21 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a HTTPs test on the specified AP device and polls for test
-        result.
+        """Initiates a HTTPS test on the specified AP device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination hostname or IP address
-        :param timeout: Timeout for the test in seconds, APs only
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination hostname or IP address.
+            timeout (int, optional): Timeout for the test in seconds.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If initiating the HTTPS test fails.
         """
         device_type = "aps"
         Troubleshooting._validate_required_device_params(
@@ -973,20 +1086,24 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a HTTPs test on the specified CX device and polls for test
-        result.
+        """Initiates a HTTPS test on the specified CX device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination hostname or IP address
-        :param vrf: VRF to use, if None provided default VRF will be used
-        :param source_interface: Source interface for the test
-        :param source_port: Source port for the test
-        :param name_server: IPv4 address of the DNS server to use
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination hostname or IP address.
+            vrf (str, optional): VRF to use. If None, default VRF will be used.
+            source_interface (str, optional): Source interface for the test.
+            source_port (int, optional): Source port for the test (0-65535).
+            name_server (str, optional): IPv4 address of the DNS server to use.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If initiating the HTTPS test fails.
         """
         device_type = "cx"
 
@@ -1033,19 +1150,23 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a HTTPs test on the specified Gateway device and polls for
-        test result.
+        """Initiates a HTTPS test on the specified Gateway device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination hostname or IP address
-        :param count: Number of ping packets to send (1-10)
-        :param interval: Time between ping packets in seconds (1-10)
-        :param include_raw_output: Whether to include raw output in the response, true or false
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination hostname or IP address.
+            count (int, optional): Number of ping packets to send (1-10).
+            interval (int, optional): Time between ping packets in seconds (1-10).
+            include_raw_output (bool, optional): Whether to include raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If initiating the HTTPS test fails.
         """
         device_type = "gateways"
         Troubleshooting._validate_required_device_params(
@@ -1085,14 +1206,21 @@ class Troubleshooting:
         destination,
         timeout=None,
     ):
-        """
-        Initiates a HTTPs test on the specified AP device
+        """Initiates a HTTPS test on the specified AP device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination hostname or IP address
-        :param timeout: Timeout for the test in seconds, APs only
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination hostname or IP address.
+            timeout (int, optional): Timeout for the test in seconds.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If timeout is not a valid integer.
+            ParameterError: If destination is not a valid IP address or hostname.
+            Exception: If initiating the HTTPS test fails.
         """
         device_type = "aps"
 
@@ -1149,17 +1277,27 @@ class Troubleshooting:
         source_port=None,
         name_server=None,
     ):
-        """
-        Initiates a HTTPs test on the specified CX device
+        """Initiates a HTTPS test on the specified CX device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination hostname or IP address
-        :param vrf: VRF to use, if None provided default VRF will be used
-        :param source_interface: Source interface for the test
-        :param source_port: Source port for the test
-        :param name_server: IPv4 address of the DNS server to use
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination hostname or IP address.
+            vrf (str, optional): VRF to use. If None, default VRF will be used.
+            source_interface (str, optional): Source interface for the test.
+            source_port (int, optional): Source port for the test (0-65535).
+            name_server (str, optional): IPv4 address of the DNS server to use.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If vrf is not a valid string.
+            ParameterError: If source_interface is not a valid string.
+            ParameterError: If source_port is not a valid integer between 0-65535.
+            ParameterError: If name_server is not a valid string.
+            ParameterError: If destination is not a valid IP address or hostname.
+            Exception: If initiating the HTTPS test fails.
         """
         device_type = "cx"
 
@@ -1231,17 +1369,25 @@ class Troubleshooting:
         interval=None,
         include_raw_output=None,
     ):
-        """
-        Initiates a HTTPs test on the specified Gateway device
+        """Initiates a HTTPS test on the specified Gateway device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination hostname or IP address
-        :param count: Number of ping packets to send (1-10)
-        :param interval: Time between ping packets in seconds (1-10)
-        :param include_raw_output: Whether to include raw output in the
-        response, true or false
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination hostname or IP address.
+            count (int, optional): Number of ping packets to send (1-10).
+            interval (int, optional): Time between ping packets in seconds (1-10).
+            include_raw_output (bool, optional): Whether to include raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If count is not a valid integer between 1-10.
+            ParameterError: If interval is not a valid integer between 1-10.
+            ParameterError: If include_raw_output is not a boolean.
+            ParameterError: If destination is not a valid IP address or hostname.
+            Exception: If initiating the HTTPS test fails.
         """
         device_type = "gateways"
 
@@ -1305,14 +1451,21 @@ class Troubleshooting:
         device_type,
         serial_number,
     ):
-        """
-        Retrieves the results of a HTTPs test on the specified Gateway device
+        """Retrieves the results of a HTTPS test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If retrieving the test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn, device_type, serial_number
@@ -1360,25 +1513,31 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates an iperf test on the specified device and polls for test
-        result, supported device type includes Gateways.
+        """Initiates an iPerf test on the specified device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param server_address: Server address for the iperf test
-        :param port: TCP Port (1-65535) (optional)
-        :param duration: Transmission time in seconds (10-120) (optional)
-        :param parallel: Number of parallel streams, (1-128) (optional)
-        :param omit: Omit the first n seconds of the test (optional)
-        :param include_reverse: Include reverse test, true or false (optional)
-        :param vlan_interface: VLAN interface for the test (optional)
-        :param protocol: Protocol to use, tcp or udp (optional)
-        :param include_raw_output: Include raw output in the response (optional)
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Supported device type includes GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('gateways').
+            serial_number (str): Serial number of the device.
+            server_address (str): Server address for the iPerf test.
+            port (int, optional): TCP port (1-65535).
+            duration (int, optional): Transmission time in seconds (10-120).
+            parallel (int, optional): Number of parallel streams (1-128).
+            omit (int, optional): Omit the first n seconds of the test.
+            include_reverse (bool, optional): Include reverse test.
+            vlan_interface (str, optional): VLAN interface for the test.
+            protocol (str, optional): Protocol to use, 'tcp' or 'udp'.
+            include_raw_output (bool, optional): Include raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If initiating the iPerf test fails.
         """
 
         device_type = Troubleshooting._validate_required_device_params(
@@ -1437,23 +1596,38 @@ class Troubleshooting:
         protocol=None,
         include_raw_output=None,
     ):
-        """
-        Initiates an iperf test on the specified device,
-        supported device type includes Gateways.
+        """Initiates an iPerf test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param server_address: Server address for the iperf test
-        :param port: TCP Port (1-65535) (optional)
-        :param duration: Transmission time in seconds (10-120) (optional)
-        :param parallel: Number of parallel streams, (1-128) (optional)
-        :param omit: Omit the first n seconds of the test (optional)
-        :param include_reverse: Include reverse test, true or false (optional)
-        :param vlan_interface: VLAN interface for the test (optional)
-        :param protocol: Protocol to use, tcp or udp (optional)
-        :param include_raw_output: Include raw output in the response (optional)
-        :return: Response from the API containing task ID and other details
+        Supported device type includes GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('gateways').
+            serial_number (str): Serial number of the device.
+            server_address (str): Server address for the iPerf test.
+            port (int, optional): TCP port (1-65535).
+            duration (int, optional): Transmission time in seconds (10-120).
+            parallel (int, optional): Number of parallel streams (1-128).
+            omit (int, optional): Omit the first n seconds of the test.
+            include_reverse (bool, optional): Include reverse test.
+            vlan_interface (str, optional): VLAN interface for the test.
+            protocol (str, optional): Protocol to use, 'tcp' or 'udp'.
+            include_raw_output (bool, optional): Include raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If server_address is not a valid IP address string.
+            ParameterError: If port is not a valid integer between 1-65535.
+            ParameterError: If duration is not a valid integer between 10-120.
+            ParameterError: If parallel is not a valid integer between 1-128.
+            ParameterError: If omit is not a valid integer greater than or equal to 0.
+            ParameterError: If include_reverse is not a boolean.
+            ParameterError: If vlan_interface is not a valid string.
+            ParameterError: If protocol is not 'tcp' or 'udp'.
+            ParameterError: If include_raw_output is not a boolean.
+            Exception: If initiating the iPerf test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -1549,15 +1723,21 @@ class Troubleshooting:
         device_type,
         serial_number,
     ):
-        """
-        Retrieves the results of an iperf test on the specified device,
-        supported device type includes Gateways.
+        """Retrieves the results of an iPerf test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If retrieving the test result fails.
         """
 
         device_type = Troubleshooting._validate_required_device_params(
@@ -1592,13 +1772,20 @@ class Troubleshooting:
 
     @staticmethod
     def locate_device(central_conn, device_type, serial_number):
-        """
-        Initiates a locate (e.g., blinking LED) operation on the specified
-        device.
+        """Initiates a locate (e.g., blinking LED) operation on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
+        Supported device type includes AOS-S, AP, and CX.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', or 'cx').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the API.
+
+        Raises:
+            Exception: If initiating the locate operation fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -1632,18 +1819,24 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates an nslookup test on the specified device and polls for test
-        result, supported device type includes APs.
+        """Initiates an nslookup test on the specified device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param host: Server address for the nslookup test
-        :param dns_server: DNS server address (optional)
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+            host (str): Hostname or domain name for the nslookup test.
+            dns_server (str, optional): DNS server address to use.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If initiating the nslookup test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -1686,16 +1879,22 @@ class Troubleshooting:
         serial_number,
         dns_server=None,
     ):
-        """
-        Initiates an nslookup test on the specified device,
-        supported device type includes APs.
+        """Initiates an nslookup test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param host: Server address for the nslookup test
-        :param dns_server: DNS server address (optional)
-        :return: Response from the API containing task ID and other details
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            host (str): Hostname or domain name for the nslookup test.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+            dns_server (str, optional): DNS server address to use.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            Exception: If initiating the nslookup test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -1734,15 +1933,21 @@ class Troubleshooting:
     def get_nslookup_test_result(
         central_conn, task_id, device_type, serial_number
     ):
-        """
-        Retrieves the results of a nslookup test on the specified device,
-        supported device type includes APs.
+        """Retrieves the results of a nslookup test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If retrieving the test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn, device_type, serial_number
@@ -1784,23 +1989,29 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a ping test on the specified AOS-S device and polls for test
-        result.
+        """Initiates a ping test on the specified AOS-S device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the ping test
-        :param use_ipv6: Boolean indicating whether to use IPv6
-        :param packet_size: Packet size in bytes (10-2000)
-        :param count: Number of ping packets to send
-        :param source_loopback_port: Port to use as source for ping
-        :param source_vlan: VLAN ID to use as source for ping
-        :param source_ip_address: Source IP address to use for ping
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the ping test.
+            use_ipv6 (bool, optional): Boolean indicating whether to use IPv6.
+            packet_size (int, optional): Packet size in bytes (10-2000).
+            count (int, optional): Number of ping packets to send.
+            source_loopback_port (int, optional): Port to use as source for ping.
+            source_vlan (int, optional): VLAN ID to use as source for ping.
+            source_ip_address (str, optional): Source IP address to use for ping.
+            include_raw_output (str, optional): Boolean indicating whether to include
+                raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If there is an error initiating the ping test.
+
         """
         device_type = "aos-s"
 
@@ -1852,22 +2063,27 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a ping test on the specified AP device and polls for test
-        result
+        """Initiates a ping test on the specified AP device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the ping test
-        :param packet_size: Packet size in bytes (10-2000)
-        :param count: Number of ping packets to send
-        :param source_interface: Port to use as source for ping
-        :param source_vlan: VLAN ID to use as source for ping
-        :param source_role: Role to use for ping
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the ping test.
+            packet_size (int, optional): Packet size in bytes (10-2000).
+            count (int, optional): Number of ping packets to send.
+            source_interface (str, optional): Port to use as source for ping.
+            source_vlan (int, optional): VLAN ID to use as source for ping.
+            source_role (str, optional): Role to use for ping.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If there is an error initiating the ping test.
         """
         device_type = "aps"
 
@@ -1918,22 +2134,28 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a ping test on the specified CX device and polls for test
-        result
+        """Initiates a ping test on the specified CX device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the ping test
-        :param use_ipv6: Boolean indicating whether to use IPv6
-        :param packet_size: Packet size in bytes (10-2000)
-        :param count: Number of ping packets to send
-        :param use_management_interface: Boolean indicating whether to use management interface
-        :param vrf_name: Name of the VRF to use for the ping test
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the ping test.
+            use_ipv6 (bool, optional): Boolean indicating whether to use IPv6.
+            packet_size (int, optional): Packet size in bytes (10-2000).
+            count (int, optional): Number of ping packets to send.
+            use_management_interface (bool, optional): Boolean indicating whether to
+                use management interface.
+            vrf_name (str, optional): Name of the VRF to use for the ping test.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If there is an error initiating the ping test.
         """
         device_type = "cx"
 
@@ -1987,25 +2209,30 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a ping test on the specified Gateway device and polls for test
-        result
+        """Initiates a ping test on the specified Gateway device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the ping test
-        :param packet_size: Packet size in bytes (10-2000)
-        :param count: Number of ping packets to send
-        :param use_ipv6: Boolean indicating whether to use IPv6
-        :param ttl: Time To Live for IP datagram (1-255)
-        :param dscp: DSCP packet header value between 0 and 63(0-63)
-        :param dont_fragment: Boolean indicating whether to fragment or not
-        :param source_interface: Port to use as source for ping
-        :param source_vlan: VLAN ID to use as source for ping
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the ping test.
+            packet_size (int, optional): Packet size in bytes (10-2000).
+            count (int, optional): Number of ping packets to send.
+            use_ipv6 (bool, optional): Boolean indicating whether to use IPv6.
+            ttl (int, optional): Time To Live for IP datagram (1-255).
+            dscp (int, optional): DSCP packet header value between 0 and 63(0-63).
+            dont_fragment (bool, optional): Boolean indicating whether to fragment or not.
+            source_interface (str, optional): Port to use as source for ping.
+            source_vlan (int, optional): VLAN ID to use as source for ping.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If there is an error initiating the ping test.
         """
         device_type = "gateways"
 
@@ -2058,20 +2285,34 @@ class Troubleshooting:
         source_ip_address=None,
         include_raw_output=None,
     ):
-        """
-        Initiates a ping test on the specified AOS-S device.
+        """Initiates a ping test on the specified AOS-S device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the ping test
-        :param use_ipv6: Boolean indicating whether to use IPv6
-        :param packet_size: Size of the ping packets
-        :param count: Number of ping packets to send
-        :param source_loopback_port: Port to use as source for ping
-        :param source_vlan: VLAN ID to use as source for ping
-        :param source_ip_address: Source IP address to use for ping
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the ping test.
+            use_ipv6 (bool, optional): Boolean indicating whether to use IPv6.
+            packet_size (int, optional): Size of the ping packets.
+            count (int, optional): Number of ping packets to send.
+            source_loopback_port (int, optional): Port to use as source for ping.
+            source_vlan (int, optional): VLAN ID to use as source for ping.
+            source_ip_address (str, optional): Source IP address to use for ping.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If destination is not a valid IP address or hostname.
+            ParameterError: If use_ipv6 is not a boolean.
+            ParameterError: If packet_size is not an integer.
+            ParameterError: If count is not an integer between 1-100.
+            ParameterError: If source_loopback_port is not an integer.
+            ParameterError: If source_ip_address is not a string.
+            ParameterError: If source_vlan is not an integer.
+            ParameterError: If include_raw_output is not a boolean.
+            Exception: If there is an error initiating the ping test.
         """
         device_type = "aos-s"
 
@@ -2157,19 +2398,32 @@ class Troubleshooting:
         source_role=None,
         include_raw_output=None,
     ):
-        """
-        Initiates a ping test on the specified AP device.
+        """Initiates a ping test on the specified AP device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the ping test
-        :param packet_size: Size of the ping packets
-        :param count: Number of ping packets to send
-        :param source_interface: Port to use as source for ping
-        :param source_vlan: VLAN ID to use as source for ping
-        :param source_role: Role to use for ping
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            destination (str): Destination IP or hostname for the ping test.
+            serial_number (str): Serial number of the device.
+            packet_size (int, optional): Size of the ping packets.
+            count (int, optional): Number of ping packets to send.
+            source_interface (str, optional): Port to use as source for ping.
+            source_vlan (int, optional): VLAN ID to use as source for ping.
+            source_role (str, optional): Role to use for ping.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If destination is not a valid IP address or hostname.
+            ParameterError: If packet_size is not an integer between 10-2000.
+            ParameterError: If count is not an integer between 1-100.
+            ParameterError: If source_interface is not a string.
+            ParameterError: If source_vlan is not an integer between 1-4094.
+            ParameterError: If source_role is not a string.
+            ParameterError: If include_raw_output is not a boolean.
+            Exception: If there is an error initiating the ping test.
         """
         device_type = "aps"
 
@@ -2261,19 +2515,33 @@ class Troubleshooting:
         vrf_name=None,
         include_raw_output=None,
     ):
-        """
-        Initiates a ping test on the specified CX device.
+        """Initiates a ping test on the specified CX device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the ping test
-        :param use_ipv6: Boolean indicating whether to use IPv6
-        :param packet_size: Size of the ping packets
-        :param count: Number of ping packets to send
-        :param use_management_interface: Boolean indicating whether to use management interface
-        :param vrf_name: Name of the VRF to use for the ping test
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            destination (str): Destination IP or hostname for the ping test.
+            serial_number (str): Serial number of the device.
+            use_ipv6 (bool, optional): Boolean indicating whether to use IPv6.
+            packet_size (int, optional): Size of the ping packets.
+            count (int, optional): Number of ping packets to send.
+            use_management_interface (bool, optional): Boolean indicating whether to
+                use management interface.
+            vrf_name (str, optional): Name of the VRF to use for the ping test.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If destination is not a valid IP address or hostname.
+            ParameterError: If use_ipv6 is not a boolean.
+            ParameterError: If packet_size is not an integer.
+            ParameterError: If count is not an integer between 1-100.
+            ParameterError: If use_management_interface is not a boolean.
+            ParameterError: If vrf_name is not a string.
+            ParameterError: If include_raw_output is not a boolean.
+            Exception: If there is an error initiating the ping test.
         """
         device_type = "cx"
 
@@ -2359,22 +2627,38 @@ class Troubleshooting:
         source_vlan=None,
         include_raw_output=None,
     ):
-        """
-        Initiates a ping test on the specified Gateway device.
+        """Initiates a ping test on the specified Gateway device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the ping test
-        :param packet_size: Size of the ping packets
-        :param count: Number of ping packets to send
-        :param use_ipv6: Boolean indicating whether to use IPv6
-        :param ttl: Time To Live for IP datagram (1-255)
-        :param dscp: DSCP packet header value between 0 and 63(0-63)
-        :param dont_fragment: Boolean indicating whether to fragment or not
-        :param source_interface: Port to use as source for ping
-        :param source_vlan: VLAN ID to use as source for ping
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the ping test.
+            packet_size (int, optional): Size of the ping packets.
+            count (int, optional): Number of ping packets to send.
+            use_ipv6 (bool, optional): Boolean indicating whether to use IPv6.
+            ttl (int, optional): Time To Live for IP datagram (1-255).
+            dscp (int, optional): DSCP packet header value between 0 and 63(0-63).
+            dont_fragment (bool, optional): Boolean indicating whether to fragment or not.
+            source_interface (str, optional): Port to use as source for ping.
+            source_vlan (int, optional): VLAN ID to use as source for ping.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If destination is not a valid IP address or hostname.
+            ParameterError: If packet_size is not an integer between 10-2000.
+            ParameterError: If count is not an integer between 1-100.
+            ParameterError: If ttl is not an integer between 1-255.
+            ParameterError: If dscp is not an integer between 0-63.
+            ParameterError: If source_interface is not a string.
+            ParameterError: If source_vlan is not an integer between 1-4094.
+            ParameterError: If use_ipv6 is not a boolean.
+            ParameterError: If dont_fragment is not a boolean.
+            ParameterError: If include_raw_output is not a boolean.
+            Exception: If there is an error initiating the ping test.
         """
         device_type = "gateways"
 
@@ -2473,14 +2757,21 @@ class Troubleshooting:
     def get_ping_test_result(
         central_conn, task_id, device_type, serial_number
     ):
-        """
-        Retrieves the results of a ping test on the specified device.
+        """Retrieves the results of a ping test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If retrieving the ping test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn, device_type, serial_number
@@ -2516,17 +2807,23 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a PoE test on the specified device and polls for test results,
-        supported device types include CX, AOS-S and GATEWAYS.
+        """Initiates a PoE test on the specified device and polls for test results.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param ports: List of the ports to test
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Supported device type includes AOS-S, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            ports (list): List of the ports to test.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If there is an error initiating the PoE bounce test.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -2567,15 +2864,22 @@ class Troubleshooting:
         serial_number,
         ports,
     ):
-        """
-        Initiates a PoE test on the specified device,
-        supported device types include CX, AOS-S and GATEWAYS.
+        """Initiates a PoE test on the specified device,
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param ports: List of the ports to test
-        :return: Response from the API containing task ID and other details
+        Supported device type includes AOS-S, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            ports (list): List of the ports to test.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If the ports parameter is invalid.
+            Exception: If there is an error initiating the PoE bounce test.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -2616,15 +2920,21 @@ class Troubleshooting:
     def get_poe_bounce_test_result(
         central_conn, task_id, device_type, serial_number
     ):
-        """
-        Retrieves the results of a PoE test on the specified device,
-        supported device types include CX, AOS-S and GATEWAYS.
+        """Retrieves the results of a PoE test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AOS-S, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aos-s', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If retrieving the PoE bounce test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -2666,17 +2976,24 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a port bounce test (disable/enable) on the specified device,
-        supported device types include CX, AOS-S and GATEWAYS.
+        """Initiates a port bounce test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param ports: List of the ports to test
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Supported device type includes AOS-S, CX, and GATEWAY.
+        Port bounce test disable/enables port(s).
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            ports (list): List of the ports to test.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If there is an error initiating the port bounce test.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -2718,15 +3035,23 @@ class Troubleshooting:
         serial_number,
         ports,
     ):
-        """
-        Initiates a port bounce test (disable/enable) on the specified device,
-        supported device types include CX, AOS-S and GATEWAYS.
+        """Initiates a port bounce test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param ports: List of the ports to test
-        :return: Response from the API containing task ID and other details
+        Supported device type includes AOS-S, CX, and GATEWAY.
+        Port bounce test disable/enables port(s).
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            ports (list): List of the ports to test.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If the ports parameter is invalid.
+            Exception: If initiating the port bounce test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -2768,15 +3093,21 @@ class Troubleshooting:
     def get_port_bounce_test_result(
         central_conn, task_id, device_type, serial_number
     ):
-        """
-        Retrieves the results of a port bounce test (disable/enable) on the
-        specified device, supported device types include CX, AOS-S and GATEWAYS.
+        """Retrieves the results of a port bounce test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AOS-S, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aos-s', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If retrieving the port bounce test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -2815,13 +3146,20 @@ class Troubleshooting:
 
     @staticmethod
     def reboot_device(central_conn, device_type, serial_number):
-        """
-        Reboots the specified device.
+        """Reboots the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the API
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the API.
+
+        Raises:
+            Exception: If initiating the reboot fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn, device_type, serial_number
@@ -2850,16 +3188,22 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a ARP table retrieval test on the specified device,
-        supported device types include APs, AOS-S and GATEWAYS.
+        """Initiates a ARP table retrieval test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Supported device type includes AOS-S, AP, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', or 'gateways').
+            serial_number (str): Serial number of the device.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If there is an error initiating the ARP table retrieval test.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -2899,14 +3243,20 @@ class Troubleshooting:
         device_type,
         serial_number,
     ):
-        """
-        Initiates a ARP table retrieval test on the specified device,
-        supported device types include APs, AOS-S and GATEWAYS.
+        """Initiates a ARP table retrieval test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the API containing task ID and other details
+        Supported device type includes AOS-S, AP, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            Exception: If initiating the ARP table retrieval fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -2942,15 +3292,22 @@ class Troubleshooting:
     def get_retrieve_arp_table_test_result(
         central_conn, task_id, device_type, serial_number
     ):
-        """
-        Retrieves the results of an ARP table retrieval test on the specified
-        device, supported device types include APs, AOS-S and GATEWAYS.
+        """Retrieves the results of an ARP table retrieval test on the specified
+        device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AOS-S, AP, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aos-s', 'aps', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If retrieving the ARP table test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -3004,25 +3361,31 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a speed test on the specified device,
-        supported device type includes APs.
+        """Initiates a speed test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param iperf_server_address: Iperf server address
-        :param protocol: Protocol to use (tcp/udp) (optional)
-        :param server_port: Server port (0-65535) (optional)
-        :param bandwidth: Bandwidth in kbps (optional)
-        :param include_reverse: Include reverse test, true or false (optional)
-        :param seconds_to_measure: Duration to measure speed in seconds (1-20) (optional)
-        :param parallel: Number of parallel streams (1-30) (optional)
-        :param omit: Omit the first n seconds of the test (1-5) (optional)
-        :param window_size: TCP window size in KB (65-16384) (optional)
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the test results API
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+            iperf_server_address (str): iPerf server address.
+            protocol (str, optional): Protocol to use ('tcp' or 'udp').
+            server_port (int, optional): Server port (0-65535).
+            bandwidth (int, optional): Bandwidth in kbps.
+            include_reverse (bool, optional): Include reverse test.
+            seconds_to_measure (int, optional): Duration to measure speed in seconds (1-20).
+            parallel (int, optional): Number of parallel streams (1-30).
+            omit (int, optional): Omit the first n seconds of the test (1-5).
+            window_size (int, optional): TCP window size in KB (65-16384).
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing test results.
+
+        Raises:
+            Exception: If initiating the speedtest test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -3080,23 +3443,38 @@ class Troubleshooting:
         omit=None,
         window_size=None,
     ):
-        """
-        Initiates a speed test on the specified device,
-        supported device type includes APs.
+        """Initiates a speed test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param iperf_server_address: Iperf server address
-        :param protocol: Protocol to use (tcp/udp) (optional)
-        :param server_port: Server port (0-65535) (optional)
-        :param bandwidth: Bandwidth in kbps (optional)
-        :param include_reverse: Include reverse test, true or false (optional)
-        :param seconds_to_measure: Duration to measure speed in seconds (1-20) (optional)
-        :param parallel: Number of parallel streams (1-30) (optional)
-        :param omit: Omit the first n seconds of the test (1-5) (optional)
-        :param window_size: TCP window size in KB (65-16384) (optional)
-        :return: Response from the API containing task ID and other details
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+            iperf_server_address (str): iPerf server address.
+            protocol (str, optional): Protocol to use ('tcp' or 'udp').
+            server_port (int, optional): Server port (0-65535).
+            bandwidth (int, optional): Bandwidth in kbps.
+            include_reverse (bool, optional): Include reverse test.
+            seconds_to_measure (int, optional): Duration to measure speed in seconds (1-20).
+            parallel (int, optional): Number of parallel streams (1-30).
+            omit (int, optional): Omit the first n seconds of the test (1-5).
+            window_size (int, optional): TCP window size in KB (65-16384).
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If iperf_server_address is not a valid IP address or hostname.
+            ParameterError: If protocol is not 'tcp' or 'udp'.
+            ParameterError: If server_port is not a valid integer between 0-65535.
+            ParameterError: If bandwidth is not a valid integer.
+            ParameterError: If include_reverse is not a boolean.
+            ParameterError: If seconds_to_measure is not a valid integer between 1-20.
+            ParameterError: If parallel is not a valid integer between 1-30.
+            ParameterError: If omit is not a valid integer between 1-5.
+            ParameterError: If window_size is not a valid integer.
+            Exception: If initiating the speedtest fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -3219,15 +3597,21 @@ class Troubleshooting:
         device_type,
         serial_number,
     ):
-        """
-        Retrieves the results of a speed test on the specified device,
-        supported device type includes APs.
+        """Retrieves the results of a speed test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API containing test results.
+
+        Raises:
+            Exception: If retrieving the speedtest result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn, device_type, serial_number
@@ -3269,19 +3653,25 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a TCP test on the specified device and polls for test result,
-        supported device type includes APs.
+        """Initiates a TCP test on the specified device and polls for test result.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param host: Hostname/IP Address
-        :param port: TCP Port (1-65535)
-        :param timeout: Timeout for the test in seconds (1-10) (optional)
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the API
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+            host (str): Hostname or IP address.
+            port (int): TCP port (1-65535).
+            timeout (int, optional): Timeout for the test in seconds (1-10).
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If initiating the TCP test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -3327,17 +3717,26 @@ class Troubleshooting:
         port,
         timeout=None,
     ):
-        """
-        Initiates a TCP test on the specified device,
-        supported device type includes APs.
+        """Initiates a TCP test on the specified device.
 
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :param host: Hostname/IP Address
-        :param port: TCP Port (1-65535)
-        :param timeout: Timeout for the test in seconds (1-10) (optional)
-        :return: Response from the API containing task ID and other details
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+            host (str): Hostname or IP address.
+            port (int): TCP port (1-65535).
+            timeout (int, optional): Timeout for the test in seconds (1-10).
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If host is not a valid IP address or hostname.
+            ParameterError: If port is not a valid integer.
+            ParameterError: If timeout is not a valid integer.
+            Exception: If initiating the TCP test fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -3391,15 +3790,21 @@ class Troubleshooting:
         device_type,
         serial_number,
     ):
-        """
-        Retrieves the results of a TCP test on the specified device,
-        supported device type includes APs.
+        """Retrieves the results of a TCP test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AP.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aps').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API containing test status and output.
+
+        Raises:
+            Exception: If retrieving the TCP test result fails.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn, device_type, serial_number
@@ -3443,21 +3848,31 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a traceroute test on the specified AOS-S device and polls for test
+        """Initiates a traceroute test on the specified AOS-S device and polls for test
         result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the traceroute test
-        :param source_interface: Source for traceroute test, options are loopback , vlan-interface , or ip-address
-        :param source_loopback_port: Port to use as source for ping, source_interface must be set to loopback
-        :param source_vlan: VLAN ID to use as source for ping, source_interface must be set to vlan-interface
-        :param source_ip_address: Source IP address to use for ping, source_interface must be set to ip-address
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the traceroute test.
+            source_interface (str, optional): Source for traceroute test, options are
+                loopback , vlan-interface , or ip-address.
+            source_loopback_port (str, optional): Port to use as source for ping,
+                source_interface must be set to loopback.
+            source_vlan (int, optional): VLAN ID to use as source for ping,
+                source_interface must be set to vlan-interface.
+            source_ip_address (str, optional): Source IP address to use for ping,
+                source_interface must be set to ip-address.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            Exception: If there is an error initiating the traceroute test.
         """
         device_type = "aos-s"
 
@@ -3504,18 +3919,24 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a traceroute test on the specified AP device and polls for test
+        """Initiates a traceroute test on the specified AP device and polls for test
         result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the traceroute test
-        :param source_interface: Port to use as source for traceroute test
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the traceroute test.
+            source_interface (str, optional): Port to use as source for traceroute test.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            Exception: If there is an error initiating the traceroute test.
         """
         device_type = "aps"
 
@@ -3561,20 +3982,27 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a traceroute test on the specified CX device and polls for
-        test result.
+        """Initiates a traceroute test on the specified CX device and polls for test
+        result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the traceroute test
-        :param use_ipv6: Boolean indicating whether to use IPv6
-        :param use_management_interface: Boolean indicating whether to use management interface
-        :param vrf_name: Name of the VRF to use for the traceroute test
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the traceroute test.
+            use_ipv6 (bool, optional): Boolean indicating whether to use IPv6.
+            use_management_interface (bool, optional): Boolean indicating whether to
+                use management interface.
+            vrf_name (str, optional): Name of the VRF to use for the traceroute test.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            Exception: If there is an error initiating the traceroute test.
         """
         device_type = "cx"
 
@@ -3620,18 +4048,25 @@ class Troubleshooting:
         max_attempts=5,
         poll_interval=5,
     ):
-        """
-        Initiates a traceroute test on the specified Gateway device and polls
+        """Initiates a traceroute test on the specified Gateway device and polls
         for test result.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the traceroute test
-        :param source_vlan_ip: VLAN IP address to use as source for traceroute test
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the traceroute test.
+            source_vlan_ip (str, optional): VLAN IP address to use as source for
+                traceroute test.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            Exception: If there is an error initiating the traceroute test.
         """
         device_type = "gateways"
 
@@ -3676,18 +4111,34 @@ class Troubleshooting:
         source_ip_address=None,
         include_raw_output=None,
     ):
-        """
-        Initiates a traceroute test on the specified AOS-S device.
+        """Initiates a traceroute test on the specified AOS-S device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the traceroute test
-        :param source_interface: Source for traceroute test, options are loopback , vlan-interface , or ip-address
-        :param source_loopback_port: Port to use as source for ping, source_interface must be set to loopback
-        :param source_vlan: VLAN ID to use as source for ping, source_interface must be set to vlan-interface
-        :param source_ip_address: Source IP address to use for ping, source_interface must be set to ip-address
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the traceroute test.
+            source_interface (str, optional): Source for traceroute test, options are
+                loopback , vlan-interface , or ip-address.
+            source_loopback_port (int, optional): Port to use as source for ping,
+                source_interface must be set to loopback.
+            source_vlan (int, optional): VLAN ID to use as source for ping,
+                source_interface must be set to vlan-interface.
+            source_ip_address (str, optional): Source IP address to use for ping,
+                source_interface must be set to ip-address.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If destination is not a valid IP address or hostname.
+            ParameterError: If source_interface is not 'loopback', 'vlan-interface', or 'ip-address'.
+            ParameterError: If source_loopback_port is not a valid integer.
+            ParameterError: If source_vlan is not a valid integer.
+            ParameterError: If source_ip_address is not a valid string.
+            ParameterError: If include_raw_output is not a boolean.
+            Exception: If there is an error initiating the traceroute test.
         """
         device_type = "aos-s"
 
@@ -3765,15 +4216,25 @@ class Troubleshooting:
         source_interface=None,
         include_raw_output=None,
     ):
-        """
-        Initiates a traceroute test on the specified AP device.
+        """Initiates a traceroute test on the specified AP device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the traceroute test
-        :param source_interface: Source interface to use for the traceroute test
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the traceroute test.
+            source_interface (str, optional): Source interface to use for the
+                traceroute test.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If destination is not a valid IP address or hostname.
+            ParameterError: If source_interface is not a valid string.
+            ParameterError: If include_raw_output is not a boolean.
+            Exception: If there is an error initiating the traceroute test.
         """
         device_type = "aps"
 
@@ -3829,17 +4290,29 @@ class Troubleshooting:
         vrf_name=None,
         include_raw_output=None,
     ):
-        """
-        Initiates a traceroute test on the specified CX device.
+        """Initiates a traceroute test on the specified CX device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the traceroute test
-        :param use_ipv6: Boolean indicating whether to use IPv6
-        :param use_management_interface: Boolean indicating whether to use management interface
-        :param vrf_name: Name of the VRF to use for the traceroute test
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the traceroute test.
+            use_ipv6 (bool, optional): Boolean indicating whether to use IPv6.
+            use_management_interface (bool, optional): Boolean indicating whether to use
+                management interface.
+            vrf_name (str, optional): Name of the VRF to use for the traceroute test.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If destination is not a valid IP address or hostname.
+            ParameterError: If use_ipv6 is not a boolean.
+            ParameterError: If use_management_interface is not a boolean.
+            ParameterError: If vrf_name is not a valid string.
+            ParameterError: If include_raw_output is not a boolean.
+            Exception: If there is an error initiating the traceroute test.
         """
         device_type = "cx"
         Troubleshooting._validate_required_device_params(
@@ -3906,15 +4379,25 @@ class Troubleshooting:
         source_vlan_ip=None,
         include_raw_output=None,
     ):
-        """
-        Initiates a traceroute test on the specified Gateway device.
+        """Initiates a traceroute test on the specified Gateway device.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :param destination: Destination IP or hostname for the traceroute test
-        :param source_vlan_ip: VLAN IP address to use as source for traceroute test
-        :param include_raw_output: Boolean indicating whether to include raw output in the response
-        :return: Response from the API containing task ID and other details
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the device.
+            destination (str): Destination IP or hostname for the traceroute test.
+            source_vlan_ip (str, optional): VLAN IP address to use as source for
+                traceroute test.
+            include_raw_output (bool, optional): Boolean indicating whether to include
+                raw output in the response.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If destination is not a valid IP address or hostname.
+            ParameterError: If source_vlan_ip is not a valid string.
+            ParameterError: If include_raw_output is not a boolean.
+            Exception: If there is an error initiating the traceroute test.
         """
         device_type = "gateways"
 
@@ -3965,14 +4448,21 @@ class Troubleshooting:
     def get_traceroute_test_result(
         central_conn, task_id, device_type, serial_number
     ):
-        """
-        Retrieves the result of a traceroute test on the specified device.
+        """Retrieves the result of a traceroute test on the specified device.
 
-        :param central_conn: Central connection object
-        :param task_id: Task ID to poll for
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: Response from the test results API
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API.
+
+        Raises:
+            Exception: If there is an error retrieving the traceroute test result.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -4006,6 +4496,250 @@ class Troubleshooting:
         return resp["msg"]
 
     @staticmethod
+    def list_active_tasks(central_conn, device_type, serial_number):
+        """Retrieves a list of all active or recently completed asynchronous operations for the specified device, grouped by test name.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+        Results are sorted by startTime in descending order (most recently started first).
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response dictionary containing code (int), msg (list of task groups),
+                and other metadata. Each task group contains testName (str) and locations (list).
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/list-tasks", "troubleshooting"
+        )
+        resp = central_conn.command(api_method="GET", api_path=api_path)
+
+        if resp["code"] != 200:
+            raise Exception(
+                f"Failed to list active tasks for {device_type} {serial_number}: {resp['code']} - {resp['msg']}"
+            )
+
+        return resp
+
+    @staticmethod
+    def list_show_commands(central_conn, device_type, serial_number):
+        """Returns most used/top 'show' commands supported on given device.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (list or dict): List of show commands organized by category if successful (code 200),
+                otherwise full response dict containing error information.
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/show-commands", "troubleshooting"
+        )
+        resp = central_conn.command(api_method="GET", api_path=api_path)
+
+        if resp["code"] != 200:
+            raise Exception(
+                f"Failed to list show commands for {device_type} {serial_number}: {resp['code']} - {resp['msg']}"
+            )
+
+        return resp["msg"]
+
+    @staticmethod
+    def run_show_command(
+        central_conn,
+        device_type,
+        serial_number,
+        command,
+        max_attempts=5,
+        poll_interval=5,
+    ):
+        """Runs a 'show' command on a device and polls for test result.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+        The command must start with 'show '.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            command (str): Show command to execute (must start with 'show ').
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+
+        Returns:
+            (dict): Response from the test results API containing command output and status.
+
+        Raises:
+            Exception: If initiating the show command fails.
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+
+        try:
+            response = Troubleshooting.initiate_show_command(
+                central_conn=central_conn,
+                device_type=device_type,
+                serial_number=serial_number,
+                command=command,
+            )
+
+            task_id = Troubleshooting._get_task_id(response)
+
+            return Troubleshooting._poll_task_completion(
+                Troubleshooting.get_show_command_result,
+                task_id,
+                central_conn,
+                max_attempts=max_attempts,
+                poll_interval=poll_interval,
+                device_type=device_type,
+                serial_number=serial_number,
+            )
+        except Exception as e:
+            central_conn.logger.error(
+                f"Error running show command on {device_type} {serial_number}: {str(e)}"
+            )
+            raise
+
+    @staticmethod
+    def initiate_show_command(
+        central_conn, device_type, serial_number, command
+    ):
+        """Initiates an asynchronous execution of a 'show' command on a device.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+        The command must start with 'show '.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            command (str): Show command to execute (must start with 'show ').
+
+        Returns:
+            (dict): Response from the API containing task ID and other details.
+
+        Raises:
+            ParameterError: If command is not a valid string.
+            ParameterError: If command doesn't start with 'show '.
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+
+        if not command or not isinstance(command, str):
+            raise ParameterError(
+                "command must be a valid string and is required"
+            )
+
+        if not command.strip().lower().startswith("show "):
+            raise ParameterError(
+                "command must start with 'show '. Example: 'show ap debug system-status'"
+            )
+
+        api_data = {"command": command}
+
+        api_path = generate_url(
+            f"{device_type}/{serial_number}/showCommand", "troubleshooting"
+        )
+        resp = central_conn.command(
+            api_method="POST", api_path=api_path, api_data=api_data
+        )
+
+        if resp["code"] != 202:
+            raise Exception(
+                f"Failed to initiate show command for {device_type} {serial_number}: {resp['code']} - {resp['msg']}"
+            )
+
+        response = resp["msg"]
+        task_id = Troubleshooting._get_task_id(response)
+        central_conn.logger.info(
+            f"Show command initiated successfully for {device_type} {serial_number}. Task ID: {task_id}"
+        )
+        return response
+
+    @staticmethod
+    def get_show_command_result(
+        central_conn,
+        task_id,
+        device_type,
+        serial_number,
+    ):
+        """Retrieves the results of a show command execution on a device with the provided task ID.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            task_id (str): Task ID to poll for.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+
+        Returns:
+            (dict): Response from the test results API containing command output and status.
+
+        Raises:
+            Exception: If retrieving the command result fails.
+        """
+        device_type = Troubleshooting._validate_required_device_params(
+            central_conn,
+            device_type,
+            serial_number,
+            subset=["aps", "gateways", "cx", "aos-s"],
+        )
+        resp = central_conn.command(
+            api_method="GET",
+            api_path=generate_url(
+                f"{device_type}/{serial_number}/showCommand/async-operations/{task_id}",
+                "troubleshooting",
+            ),
+        )
+
+        if resp["code"] != 200:
+            raise Exception(
+                f"Failed to get show command result: {resp['code']} - {resp['msg']}"
+            )
+
+        if resp["msg"].get("status") in ["RUNNING", "INITIATED"]:
+            central_conn.logger.info(
+                f"Show command for {device_type} {serial_number} with task ID {task_id} "
+                f"is not yet completed. Current status: {resp['msg'].get('status')}"
+            )
+        else:
+            central_conn.logger.info(
+                f"Show command for {device_type} {serial_number} with task ID {task_id} "
+                f"has successfully completed."
+            )
+
+        return resp["msg"]
+
+    @staticmethod
     def _poll_task_completion(
         get_result_func,
         task_id,
@@ -4015,17 +4749,19 @@ class Troubleshooting:
         *args,
         **kwargs,
     ):
-        """
-        Generic polling method for task completion with configurable timeout.
+        """Generic polling method for task completion with configurable timeout.
 
-        :param get_result_func: Function to call for getting task result
-        :param task_id: Task ID to poll for
-        :param conn: Central connection object
-        :param max_attempts: Maximum number of polling attempts
-        :param poll_interval: Time to wait between polls in seconds
-        :param args: Additional positional arguments for get_result_func
-        :param kwargs: Additional keyword arguments for get_result_func
-        :return: Final result from get_result_func
+        Args:
+            get_result_func (callable): Function to call for getting task result.
+            task_id (str): Task ID to poll for.
+            conn (NewCentralBase): Central connection object.
+            max_attempts (int, optional): Maximum number of polling attempts.
+            poll_interval (int, optional): Time to wait between polls in seconds.
+            args: Additional positional arguments for get_result_func.
+            kwargs: Additional keyword arguments for get_result_func.
+
+        Returns:
+            (dict): Final result from get_result_func.
         """
         for attempt in range(max_attempts):
             result = get_result_func(conn, task_id, *args, **kwargs)
@@ -4041,11 +4777,13 @@ class Troubleshooting:
 
     @staticmethod
     def _get_task_id(api_response):
-        """
-        Extracts the task ID from the API response.
+        """Extracts the task ID from the API response.
 
-        :param api_response: The API response containing the task information
-        :return: The extracted task ID
+        Args:
+        api_response (dict): The API response containing the task information.
+
+        Returns:
+            (str): The extracted task ID.
         """
         return api_response.get("location", "").split("/")[-1]
 
@@ -4053,13 +4791,22 @@ class Troubleshooting:
     def _validate_required_device_params(
         central_conn, device_type, serial_number, subset=None
     ):
-        """
-        Validates required parameters are set
-        :param central_conn: Central connection object
-        :param device_type: Type of the device
-        :param serial_number: Serial number of the device
-        :return: verified device_type in lower case format
-        :raises ParameterError: If any required parameter is missing
+        """Validates required parameters are set.
+
+        Supported device type includes AOS-S, AP, CX, and GATEWAY.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
+            serial_number (str): Serial number of the device.
+            subset (list, optional): Subset of supported device types.
+
+        Returns:
+            (str): Verified device_type in lower case format.
+
+        Raises:
+            ParameterError: If any required parameter is missing.
+            ParameterError: If device type is unsupported.
         """
         if not central_conn or not device_type or not serial_number:
             raise ParameterError(

@@ -26,16 +26,16 @@ scope_maps = ScopeMaps()
 
 
 class Scopes(ScopeBase):
-    """
-    This class holds the Scopes(Global heirarchy) class & methods that can be used to manage sites & site collections within the Global Heirarchy
-    """
+    """This class holds the Scopes (Global hierarchy) class & methods for managing sites & site collections."""
 
     def __init__(self, central_conn):
-        """
-        Constructor for Scopes object. This represents
+        """Constructor for Scopes object.
 
-        :param central_conn: Instance of class:`pycentral.NewCentralBase` to establish connection to Central.
-        :type central_conn: class:`NewCentralBase`
+        Args:
+            central_conn (NewCentralBase): Instance of NewCentralBase to establish connection to Central.
+
+        Raises:
+            ParameterError: If central_conn is None
         """
         if central_conn is None:
             raise ParameterError(
@@ -57,11 +57,12 @@ class Scopes(ScopeBase):
         self.get()
 
     def get(self):
-        """
-        Performs GET calls to Central to retrieve latest data of all scope elements(Global, Site Collections, Sites, Devices, & Device Groups).
+        """Performs GET calls to Central to retrieve latest data of all scope elements.
 
-        :return: Returns True if all scope elements are successfully fetched, else False
-        :rtype: bool
+        Fetches Global, Site Collections, Sites, Devices, & Device Groups from Central.
+
+        Returns:
+            (bool): True if all scope elements are successfully fetched, False otherwise
         """
         try:
             self.central_conn.logger.info(
@@ -105,11 +106,13 @@ class Scopes(ScopeBase):
             return False
 
     def get_all_sites(self):
-        """
-        Performs GET calls to retrieve all the sites from Central.
+        """Performs GET calls to retrieve all the sites from Central.
 
-        :return: Returns list of sites. Each element of this list is of type class:`Site`
-        :rtype: list
+        Returns:
+            (list): List of Site objects
+
+        Raises:
+            Exception: If sites cannot be fetched from Central
         """
         sites_response = get_all_scope_elements(obj=self, scope="site")
         if not sites_response:
@@ -127,11 +130,10 @@ class Scopes(ScopeBase):
         return self.sites
 
     def get_all_site_collections(self):
-        """
-        Performs GET calls to retrieve all the site collections from Central.
+        """Performs GET calls to retrieve all the site collections from Central.
 
-        :return: Returns list of site collections. Each element of this list is of type class:`Site_Collection`
-        :rtype: list
+        Returns:
+            (list): List of Site_Collection objects
         """
         site_collections_response = get_all_scope_elements(
             obj=self, scope="site_collection"
@@ -148,16 +150,12 @@ class Scopes(ScopeBase):
         return self.site_collections
 
     def get_all_devices(self):
-        """
-        Performs GET calls to retrieve all the devices from Central.
+        """Performs GET calls to retrieve all the devices from Central.
 
-        :return: Returns list of devices. Each element of this list is a dictionary with device details.
-        :rtype: list
+        Returns:
+            (list): List of Device objects
         """
-
-        device_list = Device.get_all_devices(
-            central_conn=self.central_conn,
-        )
+        device_list = Device.get_all_devices(central_conn=self.central_conn)
         self.devices = [
             Device(
                 central_conn=self.central_conn,
@@ -166,14 +164,16 @@ class Scopes(ScopeBase):
             )
             for device in device_list
         ]
+        self.central_conn.logger.info(
+            f"Total devices fetched from account: {len(self.devices)}"
+        )
         return self.devices
 
     def get_all_device_groups(self):
-        """
-        Performs GET calls to retrieve all the device groups from Central.
+        """Performs GET calls to retrieve all the device groups from Central.
 
-        :return: Returns list of device groups. Each element of this list is a dictionary with device group details.
-        :rtype: list
+        Returns:
+            (list): List of device group dictionaries
         """
         device_groups_list = get_all_scope_elements(
             obj=self, scope="device_group"
@@ -189,11 +189,12 @@ class Scopes(ScopeBase):
         return device_groups_list
 
     def get_id(self):
-        """
-        Returns the ID of the Global scope. If the ID hasn't been set, the function will fetch the ID.
+        """Returns the ID of the Global scope.
 
-        :return: ID of global scope
-        :rtype: int
+        If the ID hasn't been set, the function will fetch the ID from Central.
+
+        Returns:
+            (int or None): ID of global scope, or None if unable to fetch
         """
         global_scope_id = None
         if self.id is not None:
@@ -231,20 +232,19 @@ class Scopes(ScopeBase):
     def get_sites(
         self, limit=DEFAULT_LIMIT, offset=0, filter_field="", sort=""
     ):
-        """
-        Fetches the list of sites from Central based on the provided attributes.
+        """Fetches the list of sites from Central based on the provided attributes.
 
-        :param limit: Number of sites to be fetched, defaults to 100
-        :type limit: int
-        :param offset: Pagination start index, defaults to 1
-        :type offset: int
-        :param filter_field: Field that needs to be used for sorting the list of sites. Accepted values for this argument is scope-name, address, state, country, city, device-count, collection-name, zipcode, timezone
-        :type filter_field: str, optional
-        :param sort: Direction of sorting for the field. ASC or DESC are accepted values for this argument
-        :type sort: str, optional
+        Args:
+            limit (int): Number of sites to be fetched, defaults to 100
+            offset (int): Pagination start index, defaults to 0
+            filter_field (str): Field for sorting. Accepted values: scopeName,
+                address, city, state, country, zipcode, collectionName
+            sort (str): Direction of sorting. Accepted values: scopeName,
+                address, state, country, city, deviceCount, collectionName,
+                zipcode, timezone, longitude, latitude
 
-        :return: List of sites based on the provided arguments. If there are errors it will return None.
-        :rtype: list
+        Returns:
+            (list or None): List of sites based on the provided arguments, None if errors occur
         """
         return get_scope_elements(
             obj=self,
@@ -262,20 +262,20 @@ class Scopes(ScopeBase):
         filter_field="",
         sort="",
     ):
-        """
-        Fetches the list of site collections from Central based on the provided attributes.
+        """Fetches the list of site collections from Central based on the provided attributes.
 
-        :param limit: Number of site collections to be fetched, defaults to 100
-        :type limit: int
-        :param offset: Pagination start index, defaults to 1
-        :type offset: int
-        :param filter_field: Field that needs to be used for sorting the list of sites. Accepted values for this argument is site-count, device-count, scope-name
-        :type filter_field: str, optional
-        :param sort: Direction of sorting for the field. ASC or DESC are accepted values for this argument
-        :type sort: str, optional
+        Args:
+            limit (int): Number of site collections to be fetched, defaults to 100
+            offset (int): Pagination start index, defaults to 0
+            filter_field (str): Field for sorting. Accepted values: scopeName,
+                description
+            sort (str): Direction of sorting. Accepted values: scopeName,
+                description, deviceCount, siteCount
 
-        :return: List of site collections based on the provided arguments. If there are errors it will return None.
-        :rtype: list
+
+
+        Returns:
+            (list or None): List of site collections based on the provided arguments, None if errors occur
         """
         return get_scope_elements(
             obj=self,
@@ -287,9 +287,7 @@ class Scopes(ScopeBase):
         )
 
     def _correlate_scopes(self):
-        """
-        Correlates sites with site collections and devices with sites using internal maps.
-        """
+        """Correlates sites with site collections and devices with sites using internal maps."""
         self._update_lookup_map()
 
         for site in self.sites:
@@ -314,16 +312,16 @@ class Scopes(ScopeBase):
     def find_site_collection(
         self, site_collection_ids=None, site_collection_names=None
     ):
-        """
-        This function returns the site collection(of type class:`Site_Collection`) based on the provided parameters. Only one of collection_name or collection_id is required to find the site collection(s).
+        """Returns the site collection based on the provided parameters.
 
-        :param site_collection_ids: ID(s) of site collections to find, optional
-        :type site_collection_ids: int or list
-        :param site_collection_names: Name(s) of site collections to find, optional
-        :type site_collection_names: str or list
+        Only one of site_collection_ids or site_collection_names is required.
 
-        :return: Found site collection(s) or None if not found.
-        :rtype: list or None
+        Args:
+            site_collection_ids (int or list, optional): ID(s) of site collections to find
+            site_collection_names (str or list, optional): Name(s) of site collections to find
+
+        Returns:
+            (Site_Collection or list or None): Found site collection(s) or None if not found
         """
         site_collections = self._find_scope_element(
             ids=site_collection_ids,
@@ -340,16 +338,16 @@ class Scopes(ScopeBase):
         return site_collections
 
     def find_site(self, site_ids=None, site_names=None):
-        """
-        This function returns the site(of type class:`Site`) based on the provided parameters. Only one of site_ids or site_names is required to find the site(s).
+        """Returns the site based on the provided parameters.
 
-        :param site_ids: ID of site or list of site IDs
-        :type site_ids: str or list
-        :param site_names: Name of site or list of site names
-        :type site_names: str or list
+        Only one of site_ids or site_names is required.
 
-        :return: If the site(s) are found, the site(s) are returned, else None is returned.
-        :rtype: dict
+        Args:
+            site_ids (int or list, optional): ID(s) of site to find
+            site_names (str or list, optional): Name(s) of site to find
+
+        Returns:
+            (Site or list or None): Found site(s) or None if not found
         """
         sites = self._find_scope_element(
             ids=site_ids, names=site_names, scope="site"
@@ -364,20 +362,17 @@ class Scopes(ScopeBase):
     def find_device(
         self, device_ids=None, device_names=None, device_serials=None
     ):
-        """
-        This function returns the device(of type class:`Device`) based on the
-            provided parameters. Only one of device_ids or device_names or
-            device_serials is required to find the device(s).
+        """Returns the device based on the provided parameters.
 
-        :param device_ids: ID(s) of devices to find, optional
-        :type device_ids: int or list
-        :param device_names: Name(s) of devices to find, optional
-        :type device_names: str or list
-        :param device_serials: Serial number(s) of devices to find, optional
-        :type device_serials: str or list
+        Only one of device_ids, device_names, or device_serials is required.
 
-        :return: Found device(s) or None if not found.
-        :rtype: list or None
+        Args:
+            device_ids (int or list, optional): ID(s) of devices to find
+            device_names (str or list, optional): Name(s) of devices to find
+            device_serials (str or list, optional): Serial number(s) of devices to find
+
+        Returns:
+            (Device or list or None): Found device(s) or None if not found
         """
         devices = self._find_scope_element(
             ids=device_ids,
@@ -400,17 +395,16 @@ class Scopes(ScopeBase):
         device_group_ids=None,
         device_group_names=None,
     ):
-        """
-        This function returns the device group(of type class:`DeviceGroup`) based on the
-            provided parameters. Only one of device_group_ids or device_group_names is required to find the device group(s).
+        """Returns the device group based on the provided parameters.
 
-        :param device_group_ids: ID(s) of device groups to find, optional
-        :type device_group_ids: int or list
-        :param device_group_names: Name(s) of device groups to find, optional
-        :type device_group_names: str or list
+        Only one of device_group_ids or device_group_names is required.
 
-        :return: Found device group(s) or None if not found.
-        :rtype: list or None
+        Args:
+            device_group_ids (int or list, optional): ID(s) of device groups to find
+            device_group_names (str or list, optional): Name(s) of device groups to find
+
+        Returns:
+            (Device_Group or list or None): Found device group(s) or None if not found
         """
         device_groups = self._find_scope_element(
             ids=device_group_ids,
@@ -426,23 +420,17 @@ class Scopes(ScopeBase):
             )
         return device_groups
 
-    def _find_scope_element(
-        self, ids=None, names=None, serials=None, scope=""
-    ):
-        """
-        Helper function to find scope elements based on provided parameters.
+    def _find_scope_element(self, ids=None, names=None, serials=None, scope=""):
+        """Helper function to find scope elements based on provided parameters.
 
-        :param ids: ID(s) of the element(s), optional
-        :type ids: str or list
-        :param names: Name(s) of the element(s), optional
-        :type names: str or list
-        :param serials: Serial number(s) of the element(s) (only for devices), optional
-        :type serials: str or list
-        :param scope: Specific scope to search in (e.g., "site", "device"), optional
-        :type scope: str, optional
+        Args:
+            ids (int or list, optional): ID(s) of the element(s)
+            names (str or list, optional): Name(s) of the element(s)
+            serials (str or list, optional): Serial number(s) of the element(s) (only for devices)
+            scope (str, optional): Specific scope to search in (e.g., "site", "device")
 
-        :return: Found element(s) or None if not found
-        :rtype: list, or None
+        Returns:
+            (list or None): Found element(s) or None if not found
         """
         # Validate input parameters
         validate_find_scope_elements(
@@ -467,28 +455,22 @@ class Scopes(ScopeBase):
     def _search_scope_elements(
         self, ids=None, names=None, serials=None, scope=""
     ):
-        """
-        Searches for scope elements using the lookup maps.
+        """Searches for scope elements using the lookup maps.
 
-        :param ids: ID(s) of the element(s), optional
-        :type ids: str or list
-        :param names: Name(s) of the element(s), optional
-        :type names: str or list
-        :param serials: Serial number(s) of the element(s) (only for devices)
-        :type serials: str or list
-        :param scope: Specific scope to search in (e.g., "site", "device"), optional
-        :type scope: str, optional
+        Args:
+            ids (int or list, optional): ID(s) of the element(s)
+            names (str or list, optional): Name(s) of the element(s)
+            serials (str or list, optional): Serial number(s) of the element(s) (only for devices)
+            scope (str, optional): Specific scope to search in (e.g., "site", "device")
 
-        :return: Found element(s) or None if not found.
-        :rtype: list or None
+        Returns:
+            (list or None): Found element(s) or None if not found
         """
         found_elements = None
         if ids:
             found_elements = lookup_in_map(ids, self._lookup_maps["id"])
         elif serials:
-            found_elements = lookup_in_map(
-                serials, self._lookup_maps["serial"]
-            )
+            found_elements = lookup_in_map(serials, self._lookup_maps["serial"])
         elif names:
             self._update_name_lookup_map()
             if scope:
@@ -507,9 +489,7 @@ class Scopes(ScopeBase):
         return found_elements
 
     def _update_name_lookup_map(self):
-        """
-        Updates the name lookup map for all supported scopes.
-        """
+        """Updates the name lookup map for all supported scopes."""
         for scope in SUPPORTED_SCOPES:
             self._lookup_maps["name"][scope + "s"] = {
                 element.get_name(): element
@@ -517,9 +497,7 @@ class Scopes(ScopeBase):
             }
 
     def _update_lookup_map(self):
-        """
-        Updates the lookup maps for IDs and serials.
-        """
+        """Updates the lookup maps for IDs and serials."""
         # if key is None:
         for element_list in [
             self.sites,
@@ -541,20 +519,20 @@ class Scopes(ScopeBase):
         site_ids=None,
         site_names=None,
     ):
-        """
-        Adds site(s) to a site collection.
+        """Adds site(s) to a site collection.
 
-        :param site_collection_id: ID of the site collection. Either site_collection_name or site_collection_id is required.
-        :type site_collection_id: int, optional
-        :param site_collection_name: Name of the site collection. Either site_collection_name or site_collection_id is required.
-        :type site_collection_name: str, optional
-        :param site_ids: ID of the site that needs to be associated with the site collection. If multiple sites need to be associated, a list of site IDs can be provided. Either site_ids or site_names is required.
-        :type site_ids: int or list, optional
-        :param site_names: Name of the site that needs to be associated with the site collection. If multiple sites need to be associated, a list of site names can be provided. Either site_ids or site_names is required.
-        :type site_names: str or list, optional
+        Args:
+            site_collection_id (int, optional): ID of the site collection.
+                Either site_collection_name or site_collection_id is required.
+            site_collection_name (str, optional): Name of the site collection.
+                Either site_collection_name or site_collection_id is required.
+            site_ids (int or list, optional): ID(s) of the site(s) to associate.
+                Either site_ids or site_names is required.
+            site_names (str or list, optional): Name(s) of the site(s) to associate.
+                Either site_ids or site_names is required.
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if successful, False otherwise
         """
         site_collection = self.find_site_collection(
             site_collection_ids=site_collection_id,
@@ -585,19 +563,17 @@ class Scopes(ScopeBase):
             )
             return False
 
-    def remove_sites_from_site_collection(
-        self, site_ids=None, site_names=None
-    ):
-        """
-        Removes site(s) from a site collection.
+    def remove_sites_from_site_collection(self, site_ids=None, site_names=None):
+        """Removes site(s) from a site collection.
 
-        :param site_ids: ID of the site that needs to be unassociated from site collection. If multiple sites need to be unassociated, a list of site IDs can be provided. Either site_ids or site_names is required.
-        :type site_ids: int or list, optional
-        :param site_names: Name of the site that needs to be unassociated from site collection. If multiple sites need to be unassociated, a list of site names can be provided. Either site_ids or site_names is required.
-        :type site_names: str or list, optional
+        Args:
+            site_ids (int or list, optional): ID(s) of the site(s) to unassociate.
+                Either site_ids or site_names is required.
+            site_names (str or list, optional): Name(s) of the site(s) to unassociate.
+                Either site_ids or site_names is required.
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if successful, False otherwise
         """
         sites = self.find_site(site_ids=site_ids, site_names=site_names)
         if not isinstance(sites, list):
@@ -632,11 +608,10 @@ class Scopes(ScopeBase):
         return False
 
     def _update_site_collection_attributes(self, sites):
-        """
-        Helper function to update site collection attributes after removing sites.
+        """Helper function to update site collection attributes after removing sites.
 
-        :param sites: List of sites to update.
-        :type sites: list
+        Args:
+            sites (list): List of Site objects to update
         """
         for site in sites:
             old_collection_attributes = site.get_site_collection_attributes()
@@ -654,18 +629,17 @@ class Scopes(ScopeBase):
         site_collection_id=None,
         site_collection_name=None,
     ):
-        """
-        Creates a new site in Central and optionally associates it with a site collection.
+        """Creates a new site in Central and optionally associates it with a site collection.
 
-        :param site_attributes: Attributes of the site to create.
-        :type site_attributes: dict
-        :param site_collection_id: ID of the site collection. Either site_collection_name or site_collection_id is required if the site has to be associated to a site collection.
-        :type site_collection_id: int, optional
-        :param site_collection_name: Name of the site collection. Either site_collection_name or site_collection_id is required if the site has to be associated to a site collection.
-        :type site_collection_name: str, optional
+        Args:
+            site_attributes (dict): Attributes of the site to create
+            site_collection_id (int, optional): ID of the site collection.
+                Either site_collection_name or site_collection_id is required if associating.
+            site_collection_name (str, optional): Name of the site collection.
+                Either site_collection_name or site_collection_id is required if associating.
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if successful, False otherwise
         """
         site_obj = Site(
             site_attributes=site_attributes, central_conn=self.central_conn
@@ -688,16 +662,16 @@ class Scopes(ScopeBase):
         return site_creation_status
 
     def delete_site(self, site_id=None, site_name=None):
-        """
-        Deletes a site in Central.
+        """Deletes a site in Central.
 
-        :param site_id: ID of the site that needs to be deleted. Either site_id or site_name is required.
-        :type site_id: int, optional
-        :param site_name: Name of the site that needs to be deleted. Either site_id or site_name is required.
-        :type site_name: str, optional
+        Args:
+            site_id (int, optional): ID of the site to delete.
+                Either site_id or site_name is required.
+            site_name (str, optional): Name of the site to delete.
+                Either site_id or site_name is required.
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if successful, False otherwise
         """
         site_deletion_status = False
         site = self.find_site(site_ids=site_id, site_names=site_name)
@@ -728,16 +702,14 @@ class Scopes(ScopeBase):
         return site_deletion_status
 
     def _remove_scope_element(self, scope, element_id):
-        """
-        Removes a scope element from the internal list.
+        """Removes a scope element from the internal list.
 
-        :param scope: Type of the element (e.g., site, site_collection).
-        :type scope: str
-        :param element_id: ID of the element to remove.
-        :type element_id: int
+        Args:
+            scope (str): Type of the element (e.g., site, site_collection)
+            element_id (int): ID of the element to remove
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if successful, False otherwise
         """
         if scope not in SUPPORTED_SCOPES:
             self.central_conn.logger.error(
@@ -763,18 +735,17 @@ class Scopes(ScopeBase):
     def create_site_collection(
         self, collection_attributes, site_ids=None, site_names=None
     ):
-        """
-        Creates a new site collection in Central and optionally associates sites with it.
+        """Creates a new site collection in Central and optionally associates sites with it.
 
-        :param collection_attributes: Attributes of the site collection to create.
-        :type collection_attributes: dict
-        :param site_ids: ID of the site(s). If multiple sites need to be associated with the site collection, a list of site ids can be provided. Either site_ids or site_names is required if the site collection has to be associated with site(s)
-        :type site_ids: int or list, optional
-        :param site_names: Name of the site(s). If multiple sites need to be associated with the site collection, a list of site names can be provided. Either site_ids or site_names is required if the site collection has to be associated with site(s)
-        :type site_names: str or list, optional
+        Args:
+            collection_attributes (dict): Attributes of the site collection to create
+            site_ids (int or list, optional): ID(s) of the site(s) to associate.
+                Either site_ids or site_names is required if associating.
+            site_names (str or list, optional): Name(s) of the site(s) to associate.
+                Either site_ids or site_names is required if associating.
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if successful, False otherwise
         """
         site_collection_obj = Site_Collection(
             collection_attributes=collection_attributes,
@@ -809,18 +780,20 @@ class Scopes(ScopeBase):
         site_collection_name=None,
         remove_sites=False,
     ):
-        """
-        Deletes a site collection in Central. Optionally removes associated sites first.
+        """Deletes a site collection in Central.
 
-        :param site_collection_id: ID of the site collection that needs to be deleted. Either site_collection_id or site_collection_name is required.
-        :type site_collection_id: int, optional
-        :param site_collection_name: Name of the site that needs to be deleted. Either site_collection_id or site_collection_name is required.
-        :type site_collection_name: str, optional
-        :param remove_sites: Boolean indicates if the method should remove sites associated with the site collection before deleting it. If set to true, it will first delete site(s) associated with the site collection & then delete it. If set to False & the site collection has site(s) associated with it, the method will not allow you to delete the site collection.
-        :type remove_sites: bool, optional
+        Optionally removes associated sites first.
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Args:
+            site_collection_id (int, optional): ID of the site collection to delete.
+                Either site_collection_id or site_collection_name is required.
+            site_collection_name (str, optional): Name of the site collection to delete.
+                Either site_collection_id or site_collection_name is required.
+            remove_sites (bool): If True, removes sites associated with the site collection
+                before deleting it. If False and sites are associated, deletion will fail.
+
+        Returns:
+            (bool): True if successful, False otherwise
         """
         site_collection_deletion_status = False
         site_collection = self.find_site_collection(
@@ -872,18 +845,15 @@ class Scopes(ScopeBase):
         return site_collection_deletion_status
 
     def get_hierarchy(self, scope, id=None, name=None):
-        """
-        Fetches the hierarchy of the specified scope element in the global hierarchy.
+        """Fetches the hierarchy of the specified scope element in the global hierarchy.
 
-        :param scope: Type of the element (e.g., site, site_collection).
-        :type scope: str
-        :param id: ID of the element, optional
-        :type id: int
-        :param name: Name of the element, optional
-        :type name: str
+        Args:
+            scope (str): Type of the element (e.g., site, site_collection, device, device_group)
+            id (int, optional): ID of the element
+            name (str, optional): Name of the element
 
-        :return: Hierarchy of the specified element.
-        :rtype: dict
+        Returns:
+            (dict or None): Hierarchy of the specified element, None if unable to fetch
         """
         if scope not in SUPPORTED_SCOPES:
             self.central_conn.logger.error(
@@ -920,8 +890,7 @@ class Scopes(ScopeBase):
         )
         if resp["code"] == 200:
             self.central_conn.logger.info(
-                f"Successfully fetched scope heirarchy of "
-                f"{scope} with id {id}"
+                f"Successfully fetched scope heirarchy of {scope} with id {id}"
             )
             return resp["msg"]["items"]
         else:
@@ -931,18 +900,15 @@ class Scopes(ScopeBase):
             return None
 
     def __str__(self):
-        """
-        Returns a string representation of the Global scope.
+        """Returns a string representation of the Global scope.
 
-        :return: String representation of the Global scope.
-        :rtype: str
+        Returns:
+            (str): String representation of the Global scope
         """
         return f"Global ID - {self.id}"
 
     def get_scope_profiles(self):
-        """
-        Fetches all configuration profiles associated with different scope elements.
-        """
+        """Fetches all configuration profiles associated with different scope elements."""
         scope_map_list = scope_maps.get(central_conn=self.central_conn)
         self.central_conn.logger.info(
             f"Total scope mappings fetched from account: {len(scope_map_list)}"
@@ -969,22 +935,20 @@ class Scopes(ScopeBase):
         scope_name=None,
         scope_id=None,
     ):
-        """
-        Assigns a configuration profile to the specified scope.
+        """Assigns a configuration profile to the specified scope.
 
-        :param profile_name: Name of the configuration profile.
-        :type profile_name: str
-        :param profile_persona: Device Persona of the profile to assign. Optional if assigning a profile to a device
-        :type profile_persona: str
-        :param scope: Type of the scope (e.g., global, site, site_collection, device), optional
-        :type scope: str
-        :param scope_name: Name of the scope element. Either scope_name or scope_id is required
-        :type scope_name: str
-        :param scope_id: ID of the scope element. Either scope_name or scope_id is required
-        :type scope_id: int
+        Args:
+            profile_name (str): Name of the configuration profile
+            profile_persona (str, optional): Device Persona of the profile.
+                Optional if assigning to a device.
+            scope (str, optional): Type of the scope (e.g., global, site, site_collection, device)
+            scope_name (str, optional): Name of the scope element.
+                Either scope_name or scope_id is required.
+            scope_id (int, optional): ID of the scope element.
+                Either scope_name or scope_id is required.
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if successful, False otherwise
         """
         return self._profile_to_scope_helper(
             "assign",
@@ -1003,22 +967,20 @@ class Scopes(ScopeBase):
         scope_name=None,
         scope_id=None,
     ):
-        """
-        Unassigns a configuration profile from the specified scope.
+        """Unassigns a configuration profile from the specified scope.
 
-        :param profile_name: Name of the configuration profile.
-        :type profile_name: str
-        :param profile_persona: Device Persona of the profile to unassign. Optional if unassigning a profile from a device
-        :type profile_persona: str
-        :param scope: Type of the scope (e.g., global, site, site_collection, device), optional
-        :type scope: str
-        :param scope_name: Name of the scope element. Either scope_name or scope_id is required
-        :type scope_name: str
-        :param scope_id: ID of the scope element. Either scope_name or scope_id is required
-        :type scope_id: int
+        Args:
+            profile_name (str): Name of the configuration profile
+            profile_persona (str, optional): Device Persona of the profile.
+                Optional if unassigning from a device.
+            scope (str, optional): Type of the scope (e.g., global, site, site_collection, device)
+            scope_name (str, optional): Name of the scope element.
+                Either scope_name or scope_id is required.
+            scope_id (int, optional): ID of the scope element.
+                Either scope_name or scope_id is required.
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if successful, False otherwise
         """
         return self._profile_to_scope_helper(
             "unassign",
@@ -1038,24 +1000,20 @@ class Scopes(ScopeBase):
         scope_name=None,
         scope_id=None,
     ):
-        """
-        Helper method for assigning or unassigning profiles to/from scopes.
+        """Helper method for assigning or unassigning profiles to/from scopes.
 
-        :param operation: Operation type (assign or unassign).
-        :type operation: str
-        :param profile_name: Name of the configuration profile.
-        :type profile_name: str
-        :param profile_persona: Persona of the profile.
-        :type profile_persona: str
-        :param scope: Type of the scope (e.g., global, site, site_collection), optional
-        :type scope: str
-        :param scope_name: Name of the scope element. Either scope_name or scope_id is required
-        :type scope_name: str
-        :param scope_id: ID of the scope element. Either scope_name or scope_id is required
-        :type scope_id: int
+        Args:
+            operation (str): Operation type (assign or unassign)
+            profile_name (str): Name of the configuration profile
+            profile_persona (str, optional): Persona of the profile
+            scope (str, optional): Type of the scope (e.g., global, site, site_collection, device)
+            scope_name (str, optional): Name of the scope element.
+                Either scope_name or scope_id is required.
+            scope_id (int, optional): ID of the scope element.
+                Either scope_name or scope_id is required.
 
-        :return: True if successful, else False.
-        :rtype: bool
+        Returns:
+            (bool): True if successful, False otherwise
         """
         required_scope_element = None
         if scope == "global":
@@ -1093,24 +1051,20 @@ class Scopes(ScopeBase):
         device_identifier=None,
         deployment_mode=None,
     ):
-        """
-        This is a method that is used to move devices between sites.
+        """Moves devices between sites.
 
-        :param current_site: ID or name or Site instance of the the current site of the device
-        :type current_site: int or str or class:`Site`
-        :param new_site: ID or name or Site instance of the the site to which the device has to be moved
-        :type new_site: int or str class:`Site`
-        :param device_serial: Serial number of device that has to be moved
-        :type device_serial: str
-        :param device_type: Type of device that will be moved. For eg. AP, SWITCH, GATEWAY
-        :type device_type: str, optional
-        :param device_identifier: Name of the scope element. Either scope_name or scope_id is required
-        :type device_identifier: str, optional
-        :param deployment_mode: Deployment type of device. For eg. Standalone, Virtual Controller
-        :type deployment_mode: str, optional
+        Note: Moving devices between sites via NBAPI is not currently supported.
 
-        :return: True if the device was successfully moved to the new site
-        :rtype: bool
+        Args:
+            current_site (int or str or Site): ID, name, or Site instance of the current site
+            new_site (int or str or Site): ID, name, or Site instance of the destination site
+            device_serial (str): Serial number of device to move
+            device_type (str, optional): Type of device. For example: AP, SWITCH, GATEWAY
+            device_identifier (str, optional): Additional device identifier
+            deployment_mode (str, optional): Deployment type. For example: Standalone, Virtual Controller
+
+        Returns:
+            (bool): True if successful, False otherwise
         """
         print(
             "Moving devices between sites via NBAPI is not currently supported"

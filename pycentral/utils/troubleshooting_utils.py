@@ -1,6 +1,21 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
+"""Utilities for troubleshooting operations
+
+This module provides constants related to supported device types and mappings
+for troubleshooting methods to supported devices.
+
+Attributes:
+    SUPPORTED_DEVICE_TYPES (list[str]): List of supported device types for
+        troubleshooting operations.
+
+    TROUBLESHOOTING_METHOD_DEVICE_MAPPING (dict[str, list[str]]): Mapping of
+        troubleshooting method names to lists of compatible device types.
+        Each key represents a supported troubleshooting test, and the value is a list of
+        device types that support it.
+"""
+
 SUPPORTED_DEVICE_TYPES = ["aos-s", "cx", "aps", "gateways"]
 
 TROUBLESHOOTING_METHOD_DEVICE_MAPPING = {

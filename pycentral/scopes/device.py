@@ -1,6 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
+from pycentral.new_monitoring.devices import MonitoringDevices
 from .scope_base import ScopeBase
 from .scope_maps import ScopeMaps
 from ..utils.scope_utils import fetch_attribute
@@ -60,9 +61,7 @@ REQUIRED_ATTRIBUTES = ["name", "serial"]
 
 
 class Device(ScopeBase):
-    """
-    This class holds device and all of its attributes & related methods.
-    """
+    """This class holds device and all of its attributes & related methods."""
 
     def __init__(
         self,
@@ -71,20 +70,19 @@ class Device(ScopeBase):
         serial=None,
         from_api=False,
     ):
-        """
-        Constructor for Device object
+        """Constructor for Device object.
 
-        :param serial: Serial number of the device (required if device_attributes is not provided).
-        :type serial: str
-        :param device_attributes: Attributes of the Device.
-        :type device_attributes: dict
-        :param central_conn: Instance of class:`pycentral.NewCentralBase`
-        to establish connection to Central.
-        :type central_conn: class:`NewCentralBase`, optional
-        :param from_api: Boolean indicates if the device_attributes is from the
-        Central API response.
-        :type from_api: bool, optional
-        :raises ValueError: If neither serial nor device_attributes is provided.
+        Args:
+            device_attributes (dict, optional): Attributes of the Device
+            central_conn (NewCentralBase, optional): Instance of NewCentralBase
+                to establish connection to Central
+            serial (str, optional): Serial number of the device (required if device_attributes
+                is not provided)
+            from_api (bool, optional): Boolean indicates if the device_attributes is from the
+                Central API response
+
+        Raises:
+            ValueError: If neither serial nor device_attributes is provided
         """
 
         # If device_attributes is provided, use it to set attributes
@@ -119,28 +117,29 @@ class Device(ScopeBase):
             )
 
     def get_serial(self):
-        """
-        Returns the serial number of the device.
+        """Returns the serial number of the device.
 
-        :return: value of self.serial
-        :rtype: str
+        Returns:
+            (str): Value of self.serial
         """
         return fetch_attribute(self, "serial")
 
     def get(self):
-        """
-        Fetches the device details from the Central API using the serial number.
+        """Fetches the device details from the Central API using the serial number.
 
-        :return: Device attributes as a dictionary.
-        :rtype: dict
-        :raises Exception: If central_conn is not set.
+        Returns:
+            (dict): Device attributes as a dictionary
+
+        Raises:
+            Exception: If central_conn is not set
         """
         if self.central_conn is None:
             raise Exception(
                 "Unable to get device without Central connection. Please provide the central connection with the central_conn variable."
             )
-        device_data = Device.get_devices(
-            self.central_conn,
+
+        device_data = MonitoringDevices.get_device_inventory(
+            central_conn=self.central_conn,
             search=str(self.get_serial()),
             limit=1,
         )
@@ -164,115 +163,43 @@ class Device(ScopeBase):
 
     @staticmethod
     def get_all_devices(central_conn, new_central_provisioned=False):
-        """
-        Fetches all devices from Central, optionally filtering for new Central configured devices.
+        """Fetches all devices from Central, optionally filtering for new Central configured devices.
 
-        :param central_conn: Instance of class:`pycentral.NewCentralBase` to establish connection to Central.
-        :type central_conn: class:`NewCentralBase`
-        :param new_central_provisioned: If True, only devices that are provisioned via New Central are returned.
-        :type new_central_provisioned: bool, optional
-        :return: List of device dictionaries fetched from Central.
-        :rtype: list
-        """
-        limit = 100
-        next_cursor = 1
-        device_list = []
+        Args:
+            central_conn (NewCentralBase): Instance of NewCentralBase to establish connection to Central
+            new_central_provisioned (bool, optional): If True, only devices that are provisioned
+                via New Central are returned
 
-        while True:
-            device_resp = Device.get_devices(
-                central_conn, limit=limit, next_cursor=next_cursor
+        Returns:
+            (list): List of device dictionaries fetched from Central
+        """
+        device_list = MonitoringDevices.get_all_device_inventory(
+            central_conn=central_conn
+        )
+
+        if device_list is None:
+            central_conn.logger.error(
+                "Failed to fetch device inventory from Central API."
             )
-            if device_resp is None:
-                central_conn.logger.error("Error fetching list of devices")
-                device_list = []
-                break
-            device_list.extend(device_resp["items"])
-            if len(device_list) == device_resp["total"]:
-                central_conn.logger.info(
-                    f"Total devices fetched from account: {len(device_list)}"
-                )
-                break
-            next_cursor += 1
+            return []
 
         if new_central_provisioned:
-            new_central_device_list = [
+            return [
                 device
                 for device in device_list
                 if device.get("isProvisioned") == "Yes"
             ]
-            return new_central_device_list
         return device_list
 
-    @staticmethod
-    def get_devices(
-        central_conn,
-        filter_string=None,
-        sort=None,
-        search=None,
-        site_assigned=None,
-        limit=20,
-        next_cursor=1,
-    ):
-        """
-        Fetch device inventory from New Central with optional filtering, sorting, and pagination.
-
-        :param central_conn: Instance of class:`pycentral.NewCentralBase` to establish connection to Central.
-        :type central_conn: class:`NewCentralBase`
-        :param filter_string: Dictionary of attributes to filter devices by.
-        :type filter_string: dict, optional
-        :param sort: Sorting criteria for the device list.
-        :type sort: str, optional
-        :param search: Search term to filter devices. Supported fields are: "deviceName", "persona", "model", "serialNumber", "macAddress", "ipv4", "softwareVersion"
-        :type search: str, optional
-        :param site_assigned: Specifies the site assignment status of the devices. Can be either "ASSIGNED" or "UNASSIGNED".
-        :type site_assigned: str, optional
-        :param limit: Maximum number of devices to return.
-        :type limit: int, optional
-        :param next_cursor: Pagination cursor for fetching the next set of devices. Minimum is 1
-        :type next_cursor: int, optional
-        :return: List of devices matching the criteria.
-        :rtype: dict
-        """
-        # Construct API parameters with only non-None values
-        api_params = {}
-        if filter_string is not None:
-            api_params["filter"] = filter_string
-        if sort is not None:
-            api_params["sort"] = sort
-        if search is not None:
-            api_params["search"] = search
-        if site_assigned is not None:
-            api_params["site-assigned"] = site_assigned
-        if limit is not None:
-            api_params["limit"] = limit
-        if next_cursor is not None:
-            api_params["next"] = next_cursor
-
-        # Call the Central API
-        resp = central_conn.command(
-            api_method="GET",
-            api_path="network-monitoring/v1alpha1/device-inventory",
-            api_params=api_params,
-        )
-
-        if resp["code"] != 200:
-            central_conn.logger.error(
-                f"Error fetching devices: {resp['code']} - {resp['msg']}"
-            )
-            return []
-
-        return resp["msg"]
-
     def __rename_keys(self, api_dict, api_attribute_mapping):
-        """
-        Renames the keys of the attributes from the API response.
+        """Renames the keys of the attributes from the API response.
 
-        :param api_dict: dict from Central API Response
-        :type api_dict: dict
-        :param api_attribute_mapping: Dict mapping API keys to object attributes
-        :type api_attribute_mapping: dict
-        :return: Renamed dictionary of object attributes
-        :rtype: dict
+        Args:
+            api_dict (dict): Dict from Central API Response
+            api_attribute_mapping (dict): Dict mapping API keys to object attributes
+
+        Returns:
+            (dict): Renamed dictionary of object attributes
         """
         integer_attributes = {"scopeId"}
         renamed_dict = {}
@@ -288,16 +215,21 @@ class Device(ScopeBase):
         return renamed_dict
 
     def ping_test(self, destination, **kwargs):
-        """
-        Initiates a ping test to the specified destination from the device.
+        """Initiates a ping test to the specified destination from the device.
 
-        :param destination: The IP address or hostname to ping.
-        :type destination: str
-        :param kwargs: Optional arguments specific to device type.
-                      See Troubleshooting.ping_test() for detailed parameter information.
-        :return: Result of the ping test.
-        :rtype: dict
-        :raises ValueError: If device type is unsupported.
+        Args:
+            destination (str): The IP address or hostname to ping
+            **kwargs (dict, Optional): Optional arguments specific to device type. See below for details:
+
+                - CX switches - [Troubleshooting.ping_cx_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.ping_cx_test) parameters.
+                - AOS-S switches - [Troubleshooting.ping_aoss_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.ping_aoss_test) parameters.
+                - Access Points - [Troubleshooting.ping_aps_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.ping_aps_test) parameters.
+                - Gateways - [Troubleshooting.ping_gateways_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.ping_gateways_test) parameters.
+        Returns:
+            (dict): Result of the ping test
+
+        Raises:
+            ValueError: If device type is unsupported
         """
         if (
             self.device_type == "SWITCH"
@@ -339,18 +271,23 @@ class Device(ScopeBase):
             )
 
     def traceroute_test(self, destination, **kwargs):
-        """
-        Initiates a traceroute test to the specified destination from the device.
+        """Initiates a traceroute test to the specified destination from the device.
 
         Supported device types: All (aps, cx, aos-s, gateways)
 
-        :param destination: The IP address or hostname to traceroute.
-        :type destination: str
-        :param kwargs: Optional arguments specific to device type.
-                      See Troubleshooting.traceroute_test() for detailed parameter information.
-        :return: Result of the traceroute test.
-        :rtype: dict
-        :raises ValueError: If device type is unsupported.
+        Args:
+            destination (str): The IP address or hostname to traceroute
+            **kwargs (dict, Optional): Optional arguments specific to device type. See below for details:
+
+                - CX switches - [Troubleshooting.traceroute_cx_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.traceroute_cx_test) parameters.
+                - AOS-S switches - [Troubleshooting.traceroute_aoss_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.traceroute_aoss_test) parameters.
+                - Access Points - [Troubleshooting.traceroute_aps_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.traceroute_aps_test) parameters.
+                - Gateways - [Troubleshooting.traceroute_gateways_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.traceroute_gateways_test) parameters.
+        Returns:
+            (dict): Result of the traceroute test
+
+        Raises:
+            ValueError: If device type is unsupported
         """
         if (
             self.device_type == "SWITCH"
@@ -392,67 +329,63 @@ class Device(ScopeBase):
             )
 
     def reboot(self):
-        """
-        Reboots the device.
+        """Reboots the device.
 
         Supported device types: All (aps, cx, aos-s, gateways)
 
-        :return: Result of the reboot operation.
-        :rtype: dict
+        Returns:
+            (dict): Result of the reboot operation
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.reboot_device
         )
 
     def locate_test(self):
-        """
-        Initiates a locate test (LED blinking) on the device.
+        """Initiates a locate test (LED blinking) on the device.
 
         Supported device types: cx, aps, aos-s (gateways not supported)
 
-        :return: Result of the locate test.
-        :rtype: dict
+        Returns:
+            (dict): Result of the locate test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.locate_device
         )
 
     def disconnect_all_clients(self):
-        """
-        Disconnects all clients from the specified device.
+        """Disconnects all clients from the specified device.
 
         Supported device types: gateways (other devices not supported)
 
-        :return: Result of the disconnect all clients operation.
-        :rtype: dict
+        Returns:
+            (dict): Result of the disconnect all clients operation
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.disconnect_all_clients
         )
 
     def disconnect_all_users(self):
-        """
-        Disconnects all users from the specified device.
+        """Disconnects all users from the specified device.
 
         Supported device types: aps (other devices not supported)
 
-        :return: Result of the disconnect all users operation.
-        :rtype: dict
+        Returns:
+            (dict): Result of the disconnect all users operation
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.disconnect_all_users
         )
 
     def disconnect_client_mac_addr(self, mac_address):
-        """
-        Disconnects client with the specified MAC address on the device.
+        """Disconnects client with the specified MAC address on the device.
 
         Supported device types: gateways (other devices not supported)
 
-        :param mac_address: The MAC address from which to disconnect client.
-        :type mac_address: str
-        :return: Result of the disconnect client operation.
-        :rtype: dict
+        Args:
+            mac_address (str): The MAC address from which to disconnect client
+
+        Returns:
+            (dict): Result of the disconnect client operation
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.disconnect_client_mac_addr,
@@ -460,15 +393,15 @@ class Device(ScopeBase):
         )
 
     def disconnect_user_mac_addr(self, mac_address):
-        """
-        Disconnects user with the specified MAC address on the device.
+        """Disconnects user with the specified MAC address on the device.
 
         Supported device types: aps (other devices not supported)
 
-        :param mac_address: The MAC address from which to disconnect user.
-        :type mac_address: str
-        :return: Result of the disconnect user operation.
-        :rtype: dict
+        Args:
+            mac_address (str): The MAC address from which to disconnect user
+
+        Returns:
+            (dict): Result of the disconnect user operation
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.disconnect_user_mac_addr,
@@ -476,50 +409,56 @@ class Device(ScopeBase):
         )
 
     def disconnect_all_users_ssid(self, network):
-        """
-        Disconnects all users from the specified SSID on the device.
+        """Disconnects all users from the specified SSID on the device.
 
         Supported device types: aps (other devices not supported)
 
-        :param network: The SSID from which to disconnect users.
-        :type network: str
-        :return: Result of the disconnect all users operation.
-        :rtype: dict
+        Args:
+            network (str): The SSID from which to disconnect users
+
+        Returns:
+            (dict): Result of the disconnect all users operation
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.disconnect_all_users_ssid, network=network
         )
 
     def http_test(self, destination, **kwargs):
-        """
-        Initiates an HTTP test to the specified destination from the device.
+        """Initiates an HTTP test to the specified destination from the device.
 
         Supported device types: cx, aps, gateways
 
-        :param destination: The IP address or hostname to test.
-        :type destination: str
-        :param kwargs: Optional arguments specific to device type.
-                      See Troubleshooting.http_test() for detailed parameter information.
-        :return: Result of the HTTP test.
-        :rtype: dict
+        Args:
+            destination (str): The IP address or hostname to test
+            **kwargs (dict, Optional): Optional arguments specific to device
+                type, see [Troubleshooting.http_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.http_test)
+                for detailed parameter information.
+
+        Returns:
+            (dict): Result of the HTTP test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.http_test, destination=destination, **kwargs
         )
 
     def https_test(self, destination, **kwargs):
-        """
-        Initiates an HTTPS test to the specified destination from the device.
+        """Initiates an HTTPS test to the specified destination from the device.
 
         Supported device types: aps, gateways, cx (uses HTTP endpoint with HTTPS protocol)
 
-        :param destination: The IP address or hostname to test.
-        :type destination: str
-        :param kwargs: Optional arguments specific to device type.
-                      See https_cx_test(), https_aps_test(), or https_gateways_test() for detailed parameter information.
-        :return: Result of the HTTPS test.
-        :rtype: dict
-        :raises ValueError: If device type is unsupported.
+        Args:
+            destination (str): The IP address or hostname to test
+            **kwargs (dict, Optional): Optional arguments specific to device type. See below for details:
+
+                - CX switches - [Troubleshooting.https_cx_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.https_cx_test) parameters.
+                - Access Points - [Troubleshooting.https_aps_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.https_aps_test) parameters.
+                - Gateways - [Troubleshooting.https_gateways_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.https_gateways_test) parameters.
+
+        Returns:
+            (dict): Result of the HTTPS test
+
+        Raises:
+            ValueError: If device type is unsupported
         """
         self._ensure_materialized()
 
@@ -553,75 +492,80 @@ class Device(ScopeBase):
             )
 
     def port_bounce_test(self, ports, **kwargs):
-        """
-        Initiates a port bounce test on the specified ports.
+        """Initiates a port bounce test on the specified ports.
 
         Supported device types: cx, aos-s, gateways
 
-        :param ports: List of ports to test.
-        :type ports: list
-        :return: Result of the port bounce test.
-        :rtype: dict
+        Args:
+            ports (list): List of ports to test
+            **kwargs (dict, Optional): Optional arguments for the port bounce test.
+                See [Troubleshooting.port_bounce_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.port_bounce_test) for detailed parameter information.
+
+        Returns:
+            (dict): Result of the port bounce test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.port_bounce_test, ports=ports, **kwargs
         )
 
     def poe_bounce_test(self, ports, **kwargs):
-        """
-        Initiates a PoE bounce test on the specified ports.
+        """Initiates a PoE bounce test on the specified ports.
 
         Supported device types: cx, aos-s, gateways
 
-        :param ports: List of ports to test.
-        :type ports: list
-        :return: Result of the PoE bounce test.
-        :rtype: dict
+        Args:
+            ports (list): List of ports to test
+            **kwargs (dict, Optional): Optional arguments for the PoE bounce test.
+                See [Troubleshooting.poe_bounce_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.poe_bounce_test) for detailed parameter information.
+
+        Returns:
+            (dict): Result of the PoE bounce test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.poe_bounce_test, ports=ports, **kwargs
         )
 
     def arp_test(self):
-        """
-        Initiates an ARP table retrieval test on the device.
+        """Initiates an ARP table retrieval test on the device.
 
         Supported device types: aos-s, aps, gateways
 
-        :return: Result of the ARP test.
-        :rtype: dict
+        Returns:
+            (dict): Result of the ARP test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.retrieve_arp_table_test
         )
 
     def nslookup_test(self, host, **kwargs):
-        """
-        Initiates an NSLOOKUP test on the device.
+        """Initiates an NSLOOKUP test on the device.
 
         Supported device types: aps
 
-        :param host: The hostname or IP address to resolve.
-        :type host: str
-        :return: Result of the NSLOOKUP test.
-        :rtype: dict
+        Args:
+            host (str): The hostname or IP address to resolve
+            **kwargs (dict, Optional): Optional arguments for the NSLOOKUP test.
+                See [Troubleshooting.nslookup_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.nslookup_test) for detailed parameter information.
+
+        Returns:
+            (dict): Result of the NSLOOKUP test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.nslookup_test, host=host, **kwargs
         )
 
     def speedtest_test(self, iperf_server_address, **kwargs):
-        """
-        Initiates a speed test using the specified iPerf server address.
+        """Initiates a speed test using the specified iPerf server address.
 
         Supported device types: aps only
 
-        :param iperf_server_address: The IP address or hostname of the iPerf server.
-        :type iperf_server_address: str
-        :param kwargs: Optional arguments for the speed test.
-                      See Troubleshooting.speedtest_test() for detailed parameter information.
-        :return: Result of the speed test.
-        :rtype: dict
+        Args:
+            iperf_server_address (str): The IP address or hostname of the iPerf server
+            **kwargs (dict, Optional): Optional arguments for the speed test.
+                See [Troubleshooting.speedtest_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.speedtest_test) for detailed parameter information.
+
+        Returns:
+            (dict): Result of the speed test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.speedtest_test,
@@ -630,48 +574,45 @@ class Device(ScopeBase):
         )
 
     def tcp_test(self, host, port, **kwargs):
-        """
-        Initiates a TCP test to the specified host and port from the device.
+        """Initiates a TCP test to the specified host and port from the device.
 
         Supported device types: aps only
 
-        :param host: The IP address or hostname to test.
-        :type host: str
-        :param port: The port number to test.
-        :type port: int
-        :param kwargs: Optional arguments for the TCP test.
-                      See Troubleshooting.tcp_test() for detailed parameter information.
-        :return: Result of the TCP test.
-        :rtype: dict
+        Args:
+            host (str): The IP address or hostname to test
+            port (int): The port number to test
+            **kwargs (dict, Optional): Optional arguments for the TCP test.
+                See [Troubleshooting.tcp_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.tcp_test) for detailed parameter information.
+
+        Returns:
+            (dict): Result of the TCP test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.tcp_test, host=host, port=port, **kwargs
         )
 
     def aaa_test(self, radius_server_ip, username, password, **kwargs):
-        """
-        Initiates an AAA test with the specified parameters, cx devices
-        require auth_method_type as a parameter.
+        """Initiates an AAA test with the specified parameters.
 
+        CX devices require auth_method_type as a parameter.
         Supported device types: aps and cx only
 
-        :param radius_server_ip: RADIUS server IP address, hostname is valid
-        for APs only
-        :type radius_server_ip: str
-        :param username: Username for authentication
-        :type username: str
-        :param password: Password for authentication
-        :type password: str
-        :param auth_method_type: Required for cx device type, Authentication
-        method type, chap or pap, See Troubleshooting.aaa_cx_test() for detailed parameter information.
-        :param kwargs: Optional arguments for the AAA test.
-                      See Troubleshooting.aaa_test() for detailed parameter information.
-        :type auth_method_type: str
-        :return: Result of the AAA test.
-        :rtype: dict
-        :raises ValueError: If device type is unsupported.
-        """
+        Args:
+            radius_server_ip (str): RADIUS server IP address, hostname is valid for APs only
+            username (str): Username for authentication
+            password (str): Password for authentication
+            **kwargs (dict, Optional): Optional arguments specific to device type. See below for details:
 
+                - CX switches - `auth_method_type` (str) is required (`chap` or `pap`), [Troubleshooting.aaa_cx_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.aaa_cx_test)
+                  parameters.
+                - Access Points - [Troubleshooting.aaa_aps_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.aaa_aps_test) parameters.
+
+        Returns:
+            (dict): Result of the AAA test
+
+        Raises:
+            ValueError: If device type is unsupported
+        """
         self._ensure_materialized()
 
         if (
@@ -701,32 +642,34 @@ class Device(ScopeBase):
             )
 
     def cable_test(self, ports, **kwargs):
-        """
-        Initiates a Cable test on the specified ports.
+        """Initiates a Cable test on the specified ports.
 
         Supported device types: cx, aos-s
 
-        :param ports: List of ports to test.
-        :type ports: list
-        :return: Result of the Cable test.
-        :rtype: dict
+        Args:
+            ports (list): List of ports to test
+            **kwargs (dict, Optional): Optional arguments for the cable test.
+                See [Troubleshooting.cable_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.cable_test) for detailed parameter information.
+
+        Returns:
+            (dict): Result of the Cable test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.cable_test, ports=ports, **kwargs
         )
 
     def iperf_test(self, server_address, **kwargs):
-        """
-        Initiates an iPerf test using the specified server address.
+        """Initiates an iPerf test using the specified server address.
 
         Supported device types: gateways only
 
-        :param server_address: The IP address or hostname of the iPerf server.
-        :type server_address: str
-        :param kwargs: Optional arguments for the iPerf test.
-                      See Troubleshooting.iperf_test() for detailed parameter information.
-        :return: Result of the iPerf test.
-        :rtype: dict
+        Args:
+            server_address (str): The IP address or hostname of the iPerf server
+            **kwargs (dict, Optional): Optional arguments for the iPerf test.
+                See [Troubleshooting.iperf_test()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.iperf_test) for detailed parameter information.
+
+        Returns:
+            (dict): Result of the iPerf test
         """
         return self._execute_troubleshooting_command(
             Troubleshooting.iperf_test,
@@ -734,16 +677,63 @@ class Device(ScopeBase):
             **kwargs,
         )
 
-    def _execute_troubleshooting_command(self, command_method, **kwargs):
-        """
-        Executes a troubleshooting command with common setup.
+    def list_show_commands(self):
+        """Returns most used/top 'show' commands supported on this device.
 
-        :param command_method: The troubleshooting method to call.
-        :type command_method: callable
-        :param kwargs: Additional arguments to pass to the command.
-        :return: Result of the troubleshooting command.
-        :rtype: dict
-        :raises ValueError: If method is not supported for device type.
+        Supported device types: aps, gateways, cx, aos-s
+
+        Returns:
+            (list or dict): List of show commands organized by category if successful, otherwise full response dict
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.list_show_commands
+        )
+
+    def run_show_command(self, command, **kwargs):
+        """Runs a 'show' command on the device and polls for test result.
+
+        The command must start with 'show '.
+
+        Supported device types: aps, gateways, cx, aos-s
+
+        Args:
+            command (str): Show command to execute (must start with 'show ')
+            **kwargs (dict, Optional): Optional arguments for the show command test.
+                See [Troubleshooting.run_show_command()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.run_show_command) for detailed parameter information.
+
+        Returns:
+            (dict): Response from the test results API
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.run_show_command, command=command, **kwargs
+        )
+
+    def list_active_tasks(self):
+        """Retrieves a list of all active or recently completed asynchronous operations for this device, grouped by test name.
+
+        Results are sorted by startTime in descending order (most recently started first).
+
+        Supported device types: aps, gateways, cx, aos-s
+
+        Returns:
+            (dict): Response containing list of active tasks grouped by test name
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.list_active_tasks
+        )
+
+    def _execute_troubleshooting_command(self, command_method, **kwargs):
+        """Executes a troubleshooting command with common setup.
+
+        Args:
+            command_method (callable): The troubleshooting method to call
+            **kwargs: Additional arguments to pass to the command
+
+        Returns:
+            (dict): Result of the troubleshooting command
+
+        Raises:
+            ValueError: If method is not supported for device type
         """
         self._ensure_materialized()
         device_type = self._get_effective_device_type()
@@ -765,10 +755,10 @@ class Device(ScopeBase):
         )
 
     def _ensure_materialized(self):
-        """
-        Ensures the device is materialized before performing operations.
+        """Ensures the device is materialized before performing operations.
 
-        :raises Exception: If device is not materialized.
+        Raises:
+            Exception: If device is not materialized
         """
         if not self.materialized:
             raise Exception(
@@ -776,12 +766,13 @@ class Device(ScopeBase):
             )
 
     def _get_effective_device_type(self):
-        """
-        Gets the effective device type, resolving switch OS if needed.
+        """Gets the effective device type, resolving switch OS if needed.
 
-        :return: The effective device type for troubleshooting operations.
-        :rtype: str
-        :raises ValueError: If device type is unsupported.
+        Returns:
+            (str): The effective device type for troubleshooting operations
+
+        Raises:
+            ValueError: If device type is unsupported
         """
         device_type = self.device_type
 
@@ -801,12 +792,13 @@ class Device(ScopeBase):
         )
 
     def _identify_switch_os(self):
-        """
-        Identifies the switch OS based on device model.
+        """Identifies the switch OS based on device model.
 
-        :return: Switch OS endpoint ("cx" or "aos-s").
-        :rtype: str
-        :raises ValueError: If device type is not SWITCH or model is missing/unsupported.
+        Returns:
+            (str): Switch OS endpoint ("cx" or "aos-s")
+
+        Raises:
+            ValueError: If device type is not SWITCH or model is missing/unsupported
         """
         if self.device_type != "SWITCH":
             raise ValueError(

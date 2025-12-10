@@ -21,11 +21,3 @@ Custom exception classes for error handling.
 ## Verification Error
 
 ::: pycentral.exceptions.verification_error
-
-## Generic Operation Error
-
-::: pycentral.exceptions.generic_op_error
-
-## Unsupported Capability Error
-
-::: pycentral.exceptions.unsupported_capability_error

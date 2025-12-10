@@ -12,16 +12,14 @@ DEFAULT_LIMIT = 100
 
 
 def fetch_attribute(obj, attribute):
-    """
-    This function fetches the value associated with the provided attribute in the object, if it exists.
+    """Fetch the value associated with the provided attribute in the object.
 
-    :param obj: Object whose attribute has to be returned
-    :type obj: class
-    :param attribute: Attribute within the object that has to be returned
-    :type attribute: str
+    Args:
+        obj (object): Object whose attribute has to be returned.
+        attribute (str): Attribute within the object that has to be returned.
 
-    :return: Value of the required attribute, if it exists in the object. If the attribute doesn't exist, it will return None.
-    :rtype: string
+    Returns:
+        (any): Value of the required attribute if it exists, None otherwise.
     """
     if hasattr(obj, attribute):
         return getattr(obj, attribute)
@@ -29,16 +27,15 @@ def fetch_attribute(obj, attribute):
 
 
 def update_attribute(obj, attribute, new_value):
-    """
-    This function updates the value of the provided attribute in the object, if it exists.
+    """Update the value of the provided attribute in the object.
 
-    :param obj: Object whose attribute has to be updated
-    :type obj: class
-    :param attribute: Attribute within the object that has to be updated
-    :type attribute: str
+    Args:
+        obj (object): Object whose attribute has to be updated.
+        attribute (str): Attribute within the object that has to be updated.
+        new_value (any): New value to set for the attribute.
 
-    :return: True if the attribute was successfully updated, else False.
-    :rtype: bool
+    Returns:
+        (bool): True if the attribute was successfully updated, False otherwise.
     """
     if hasattr(obj, attribute):
         setattr(obj, attribute, new_value)
@@ -47,29 +44,29 @@ def update_attribute(obj, attribute, new_value):
 
 
 def get_attributes(obj):
-    """
-    This function returns all attributes of the provided class
+    """Return all attributes of the provided object.
 
-    :param obj: Object whose attribute has to be returned
-    :type obj: class
+    Args:
+        obj (object): Object whose attributes have to be returned.
 
-    :return: Returns attributes defined in the Site Collection object
-    :rtype: dict
+    Returns:
+        (dict): Dictionary of attributes defined in the object.
     """
     return {k: v for k, v in obj.__dict__.items() if not callable(v)}
 
 
 def get_all_scope_elements(obj, scope):
-    """
-    This function makes GET API calls to Central to get all the elements of the specified scope. This method is supported for site, site collection, device & device groups scopes.
+    """Make GET API calls to Central to get all elements of the specified scope.
 
-    :param obj: Class instance that will be used to make API calls to Central
-    :type obj: class
-    :param scope: The type of the element. SITE_COLLECTION, SITE, DEVICE, DEVICE_GROUP are valid parameters for this argument
-    :type scope: str
+    This method is supported for site, site collection, and device groups scopes.
 
-    :return: List of all scope elements. If there are errors it will return None.
-    :rtype: list
+    Args:
+        obj (object): Class instance that will be used to make API calls to Central.
+        scope (str): The type of the element. Valid values: "site", "site_collection",
+            "device_group".
+
+    Returns:
+        (list or None): List of all scope elements, or None if there are errors.
     """
     if scope not in SUPPORTED_SCOPES:
         obj.central_conn.logger.error(
@@ -106,24 +103,23 @@ def get_all_scope_elements(obj, scope):
 def get_scope_elements(
     obj, scope, limit=50, offset=0, filter_field="", sort=""
 ):
-    """
-    This function makes GET APIs to Central to get the list of scope elements based on the provided attributes. This method is supported for site, site collection, device & device groups scopes.
+    """Make GET API calls to Central to get scope elements based on provided attributes.
 
-    :param obj: Class instance that will be used to make API calls to Central
-    :type obj: class
-    :param scope: The type of the element. SITE_COLLECTION, SITE, DEVICE, DEVICE_GROUP are valid parameters for this argument
-    :type scope: str
-    :param limit: Number of scope elements to be fetched, defaults to 50
-    :type limit: int
-    :param offset: Pagination start index, defaults to 1
-    :type offset: int
-    :param filter_field: Field that needs to be used for sorting the list of sites or site collections. Accepted values for sites is scopeName, address, state, country, city, deviceCount, collectionName, zipcode, timezone. Accepted values for this argument for site_collection is scopeName, description, deviceCount, siteCount
-    :type filter_field: str, optional
-    :param sort: Direction of sorting for the field. ASC or DESC are accepted values for this argument
-    :type sort: str, optional
+    This method is supported for site, site collection, and device groups scopes.
 
-    :return: List of scope elements based on the provided arguments. If there are errors it will return None.
-    :rtype: list
+    Args:
+        obj (object): Class instance that will be used to make API calls to Central.
+        scope (str): The type of the element. Valid values: "site", "site_collection",
+            "device_group".
+        limit (int, optional): Number of scope elements to be fetched.
+        offset (int, optional): Pagination start index.
+        filter_field (str, optional): Field for sorting. For sites: scopeName, address,
+            state, country, city, deviceCount, collectionName, zipcode, timezone.
+            For site_collection: scopeName, description, deviceCount, siteCount.
+        sort (str, optional): Direction of sorting. Accepted values: ASC or DESC.
+
+    Returns:
+        (dict or None): API response with scope elements, or None if there are errors.
     """
     if scope not in SUPPORTED_SCOPES:
         obj.central_conn.logger.error(
@@ -154,13 +150,16 @@ def set_attributes(
     optional_attributes=None,
     object_attributes=None,
 ):
-    """
-    This sets the attributes of the given object based on the attributes_dict
+    """Set attributes of the given object based on the attributes dictionary.
 
-    :param obj: Class instance that will be used to make API calls to Central
-    :type obj: class
-    :param attributes_dict: Attributes that will be updated to self
-    :type attributes_dict: dict
+    Args:
+        obj (object): Class instance whose attributes will be set.
+        attributes_dict (dict): Dictionary of attributes to set on the object.
+        required_attributes (list): List of required attribute names.
+        optional_attributes (dict, optional): Dictionary of optional attributes with
+            their default values.
+        object_attributes (dict, optional): Dictionary of object-type attributes with
+            their default values.
     """
     for attr in required_attributes:
         value = attributes_dict[attr]
@@ -184,20 +183,19 @@ def set_attributes(
 
 
 def get_scope_element(obj, scope, scope_id=None, serial=None):
-    """
-    This function makes GET APIs to Central to find the specified scope element & return that data. This method is supported for site, site collection, device & device groups scopes.
+    """Make GET API calls to Central to find the specified scope element.
 
-    :param obj: Class instance that will be used to make API calls to Central
-    :type obj: class
-    :param scope: The type of the element. SITE_COLLECTION, SITE, DEVICE, DEVICE_GROUP are valid parameters for this argument
-    :type scope: str
-    :param scope_id: ID of the scope element to be returned (optional)
-    :type scope_id: int, optional
-    :param serial: Serial number of the device to be returned (only for DEVICE scope, optional)
-    :type serial: str, optional
+    This method is supported for site, site collection, and device groups scopes.
 
-    :return: If the site collection or device is found, the attributes associated with it are returned from Central, else None is returned
-    :rtype: dict
+    Args:
+        obj (object): Class instance that will be used to make API calls to Central.
+        scope (str): The type of the element. Valid values: "site", "site_collection",
+            "device_group".
+        scope_id (int, optional): ID of the scope element to be returned.
+        serial (str, optional): Serial number of the device (only for device scope).
+
+    Returns:
+        (dict or None): Attributes of the scope element if found, None otherwise.
     """
     if scope not in SUPPORTED_SCOPES:
         obj.central_conn.logger.error(
@@ -220,21 +218,18 @@ def get_scope_element(obj, scope, scope_id=None, serial=None):
 
 
 def rename_keys(api_dict, api_attribute_mapping):
+    """Rename the keys of attributes from the API response.
+
+    Args:
+        api_dict (dict): Dictionary of information from Central API Response.
+        api_attribute_mapping (dict): Dictionary mapping API keys to object attributes.
+
+    Returns:
+        (dict): Renamed dictionary with keys mapped to object attributes.
+
+    Raises:
+        ValueError: If an unknown attribute is found in the API response.
     """
-    This function renames the keys of the site attributes from the API
-    response
-
-    :param api_dict: dict of information from Central API Response
-    :type api_dict: dict
-    :param api_attribute_mapping: Dict of Object attributes mapped to keys
-    from Central API Response
-    :type api_attribute_mapping: dict
-
-    :return: Renamed dictionary of Object attributes. The renamed keys maps
-    to attributes that will be defined in the Object
-    :rtype: dict
-    """
-
     # ️ Removing reduntant keys
     extra_keys = ["type", "scopeId"]
     for key in extra_keys:
@@ -256,19 +251,16 @@ def rename_keys(api_dict, api_attribute_mapping):
 
 
 def validate_find_scope_elements(ids=None, names=None, serials=None, scope=""):
-    """
-    Validates the input parameters for the _find_scope_elements method.
+    """Validate the input parameters for finding scope elements.
 
-    :param ids: ID(s) of the element(s)
-    :type ids: str or list
-    :param names: Name(s) of the element(s)
-    :type names: str or list
-    :param serials: Serial number(s) of the element(s) (only for devices)
-    :type serials: str or list
-    :param scope: Specific scope to search in (e.g., "site", "device")
-    :type scope: str, optional
+    Args:
+        ids (str or list, optional): ID(s) of the element(s).
+        names (str or list, optional): Name(s) of the element(s).
+        serials (str or list, optional): Serial number(s) of the element(s) (only for devices).
+        scope (str, optional): Specific scope to search in (e.g., "site", "device").
 
-    :raises ValueError: If validation fails
+    Raises:
+        ValueError: If validation fails due to multiple parameters or invalid scope for serials.
     """
     # Ensure only one of ids, names, or serials is provided
     provided_params = [ids, names, serials]
@@ -283,18 +275,15 @@ def validate_find_scope_elements(ids=None, names=None, serials=None, scope=""):
 
 
 def lookup_in_map(keys, lookup_map):
+    """Perform lookup in a map for the given key(s).
+
+    Args:
+        keys (str, int, or list): Key(s) to look up.
+        lookup_map (dict): Map to search in.
+
+    Returns:
+        (any or list or None): Found value(s) or None if not found.
     """
-    Helper method to perform lookup in a nested map.
-
-    :param keys: Key(s) to look up
-    :type keys: str or list
-    :param lookup_map: Map to search in
-    :type lookup_map: dict
-
-    :return: Found value(s) or None if not found
-    :rtype: dict, list, or None
-    """
-
     if isinstance(keys, (str, int)):
         return lookup_map.get(keys)
     return [lookup_map.get(key) for key in keys if key in lookup_map]

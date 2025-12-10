@@ -12,9 +12,19 @@ MONITOR_TYPE = "aps"
 
 
 class MonitoringAPs:
-    # Wrapper for network-monitoring/v1alpha1/aps to loop and get all devices
     @staticmethod
     def get_all_aps(central_conn, filter_str=None, sort=None):
+        """
+        Retrieve all access points (APs), handling pagination.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
+            sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
+
+        Returns:
+            (list[dict]): List of AP items.
+        """
         aps = []
         total_aps = None
         next_page = 1
@@ -46,6 +56,24 @@ class MonitoringAPs:
     def get_aps(
         central_conn, filter_str=None, sort=None, limit=AP_LIMIT, next_page=1
     ):
+        """
+        Retrieve a single page of APs.
+
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
+            sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
+            limit (int, optional): Number of entries to return (default is 100).
+            next_page (int, optional): Pagination cursor/index for next page (default is 1).
+
+        Returns:
+            (dict): API response for the aps endpoint (contains 'items', 'total', etc.).
+
+        Raises:
+            ParameterError: If limit or next_page values are invalid.
+        """
         path = MONITOR_TYPE
         if limit > AP_LIMIT:
             raise ParameterError(f"limit cannot exceed {AP_LIMIT}")
@@ -62,12 +90,19 @@ class MonitoringAPs:
     @staticmethod
     def get_ap_details(central_conn, serial_number):
         """
-        Retrieves a details of the specified Access Point (AP), details include serial
-        number, name, MAC address, siteId, status and more
+        Get details for a specific AP.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :return: List response from the API
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps/{serial_number}`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the AP.
+
+        Returns:
+            (dict): API response with AP details.
+
+        Raises:
+            ParameterError: If serial_number is missing/invalid.
         """
         MonitoringAPs._validate_device_serial(serial_number=serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}"
@@ -83,12 +118,22 @@ class MonitoringAPs:
         return_raw_response=False,
     ):
         """
-        Retrieves a details of the specified Access Point (AP), details include serial
-        number, name, MAC address, siteId, status and more
+        Collect multiple statistics (CPU, memory, power consumption) for an AP for the specified time range. Default is to return sorted trend statistics for last 3 hours.
 
-        :param central_conn: Central connection object
-        :param serial_number: Serial number of the device
-        :return: List response from the API
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the AP.
+            start_time (int, optional): Start time (epoch seconds) for range queries.
+            end_time (int, optional): End time (epoch seconds) for range queries.
+            duration (str|int, optional): Duration string (e.g. '5m') or seconds for relative queries.
+            return_raw_response (bool, optional): If True, return raw per-metric responses.
+
+        Returns:
+            (list|dict): If return_raw_response is True returns raw list of responses; otherwise returns merged, sorted trend statistics for the AP.
+
+        Raises:
+            ParameterError: If serial_number is missing/invalid.
+            RuntimeError: If any of the parallel metric requests fail.
         """
         MonitoringAPs._validate_device_serial(serial_number)
 
@@ -138,6 +183,19 @@ class MonitoringAPs:
         central_conn,
         serial_number,
     ):
+        """
+        Get the latest AP statistics (like CPU, memory, power consumption).
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the AP.
+
+        Returns:
+            (dict): Latest statistics for the AP, or empty dict if none exist.
+
+        Raises:
+            ParameterError: If serial_number is missing/invalid.
+        """
         MonitoringAPs._validate_device_serial(serial_number)
         stats = MonitoringAPs.get_ap_stats(
             central_conn, serial_number, duration="5m"
@@ -155,6 +213,24 @@ class MonitoringAPs:
         end_time=None,
         duration=None,
     ):
+        """
+        Retrieve CPU utilization trends for an AP.
+
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps/{serial_number}/cpu-utilization-trends`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the AP.
+            start_time (int, optional): Start time (epoch seconds) for range queries.
+            end_time (int, optional): End time (epoch seconds) for range queries.
+            duration (str|int, optional): Duration string or seconds for relative queries.
+
+        Returns:
+            (dict|list): API response for cpu-utilization-trends.
+
+        Raises:
+            ParameterError: If serial_number is missing/invalid.
+        """
         MonitoringAPs._validate_device_serial(serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}/cpu-utilization-trends"
         if start_time is None and end_time is None and duration is None:
@@ -178,6 +254,24 @@ class MonitoringAPs:
         end_time=None,
         duration=None,
     ):
+        """
+        Retrieve memory utilization trends for an AP.
+
+        This method makes an API call to the following endpoint -  `GET network-monitoring/v1alpha1/aps/{serial_number}/memory-utilization-trends`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the AP.
+            start_time (int, optional): Start time (epoch seconds) for range queries.
+            end_time (int, optional): End time (epoch seconds) for range queries.
+            duration (str|int, optional): Duration string or seconds for relative queries.
+
+        Returns:
+            (dict|list): API response for memory-utilization-trends.
+
+        Raises:
+            ParameterError: If serial_number is missing/invalid.
+        """
         MonitoringAPs._validate_device_serial(serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}/memory-utilization-trends"
         if start_time is None and end_time is None and duration is None:
@@ -204,6 +298,24 @@ class MonitoringAPs:
         end_time=None,
         duration=None,
     ):
+        """
+        Retrieve power consumption trends for an AP.
+
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps/{serial_number}/power-consumption-trends`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the AP.
+            start_time (int, optional): Start time (epoch seconds) for range queries.
+            end_time (int, optional): End time (epoch seconds) for range queries.
+            duration (str|int, optional): Duration string or seconds for relative queries.
+
+        Returns:
+            (dict|list): API response for power-consumption-trends.
+
+        Raises:
+            ParameterError: If serial_number is missing/invalid.
+        """
         MonitoringAPs._validate_device_serial(serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}/power-consumption-trends"
         if start_time is None and end_time is None and duration is None:
@@ -224,8 +336,16 @@ class MonitoringAPs:
 
     def _validate_device_serial(serial_number):
         """
-        Utility to validate device serial_number.
-        Raises ParameterError if validation fails.
+        Validate AP device serial_number.
+
+        Args:
+            serial_number (str): Device serial number to validate.
+
+        Raises:
+            ParameterError: If serial_number is missing or not a string.
+
+        Note:
+            Internal SDK function
         """
         if not isinstance(serial_number, str) or not serial_number:
             raise ParameterError(
