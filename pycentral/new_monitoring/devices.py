@@ -66,6 +66,48 @@ class MonitoringDevices:
         return execute_get(central_conn, endpoint=path, params=params)
 
     @staticmethod
+    def get_all_device_inventory(
+        central_conn,
+        filter_str=None,
+        sort=None,
+        search=None,
+        site_assigned=None,
+    ):
+        """
+        Retrieve all devices from the account, including devices that are not yet onboarded to new Central.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
+            sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
+            search (str, optional): Search string to filter results.
+            site_assigned (str|None, optional): Filter by site-assigned status.
+        Returns:
+            (list[dict]): Processed list of all devices from inventory.
+        """
+        devices = []
+        total_devices = None
+        next_int = 1
+        while True:
+            response = MonitoringDevices.get_device_inventory(
+                central_conn,
+                filter_str=filter_str,
+                sort=sort,
+                search=search,
+                site_assigned=site_assigned,
+                limit=DEVICE_LIMIT,
+                next=next_int,
+            )
+            if total_devices is None:
+                total_devices = response.get("total", 0)
+            devices.extend(response.get("items", []))
+            if len(devices) == total_devices:
+                break
+            next_int += 1
+
+        return devices
+
+    @staticmethod
     def get_device_inventory(
         central_conn,
         filter_str=None,
