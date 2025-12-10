@@ -237,11 +237,11 @@ class NewCentralBase:
                     access_token=self.token_info[app_name]["access_token"],
                 )
                 if resp.status_code == 401:
-                    self.logger.error(
-                        "Received error 401 on requesting url "
-                        "%s with resp %s" % (str(url), str(resp.text))
-                    )
                     if retry >= 1:
+                        self.logger.error(
+                            "Received error 401 on requesting url "
+                            "%s with resp %s" % (str(url), str(resp.text))
+                        )
                         limit_reached = True
                         break
                     self.handle_expired_token(app_name)
