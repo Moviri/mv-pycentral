@@ -51,6 +51,7 @@ nav:
       - New Monitoring: modules/new_monitoring.md
       - Scopes: modules/scopes.md
       - Troubleshooting: modules/troubleshooting.md
+      - Streaming: modules/streaming.md
       - Utils: modules/utils.md
       - Classic Modules: modules/classic.md
 
