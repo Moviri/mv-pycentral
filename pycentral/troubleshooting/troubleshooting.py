@@ -4740,6 +4740,175 @@ class Troubleshooting:
         return resp["msg"]
 
     @staticmethod
+    def list_events(
+        central_conn,
+        context_type,
+        context_id,
+        start_at,
+        end_at,
+        site_id,
+        search=None,
+        filter_str=None,
+        sort=None,
+        next_cursor=1,
+        limit=100,
+    ):
+        """Retrieves a list of Network Events based on the query parameters provided.
+
+        Each Event in the returned list includes details like event name, category,
+        source type, severity, etc. The query parameters allow you to narrow down
+        the results that meet specific criteria.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            context_type (str): Type of context ('SITE', 'ACCESS_POINT', 'SWITCH',
+                'GATEWAY', 'WIRELESS_CLIENT', 'WIRED_CLIENT', or 'BRIDGE').
+            context_id (str): Context Id (site id, device serial number or client
+                mac address). Max length 128.
+            start_at (str): Data is required starting from this timestamp, provided
+                in RFC 3339 (and ISO 8601) format in the UTC+0 timezone. The difference
+                between end_at and start_at should be less than 30 days. Max length 30.
+            end_at (str): Data is required up to this timestamp, provided in RFC 3339
+                (and ISO 8601) format in the UTC+0 timezone. Must be earlier than the
+                current time and later than start_at. Max length 30.
+            site_id (str): Site ID to filter the event details for a specific site.
+                Max length 128.
+            search (str, optional): Search events by name, serial number, host name,
+                client mac address or device mac address. Full text search is not
+                supported. Search is restricted to meta-data. Max length 256.
+            filter_str (str, optional): OData Version 4.0 filter string (limited
+                functionality). Supports only 'and' conjunction ('or' and 'not' are
+                NOT supported). Supported fields: eventId, category, sourceType with
+                operators 'eq' and 'in'. Max length 512.
+            sort (str, optional): Sort expressions. Sort expression is a property
+                name optionally followed by a direction indicator 'asc' (ascending)
+                or 'desc' (descending). If direction is omitted, default is descending.
+                Supported field: timestamp. Max length 128.
+            next_cursor (int, optional): Specifies the pagination cursor for the next
+                page of resources. Minimum value is 1. Defaults to 1.
+            limit (int, optional): Maximum number of events to be retrieved. Allowed
+                range is 1 to 1000. Defaults to 100.
+
+        Returns:
+            (dict): Response containing:
+                - events (list): List of event dictionaries with fields like eventId,
+                    uuid, serialNumber, timestamp, eventName, category, sourceType,
+                    sourceName, description, severity, etc.
+                - count (int): Number of events in current response.
+                - total (int): Total number of events matching the criteria.
+                - next (int): Pagination cursor for the next page.
+
+        Raises:
+            ParameterError: If context_type is not a valid value.
+            ParameterError: If context_id exceeds 128 characters.
+            ParameterError: If start_at or end_at are not valid strings.
+            ParameterError: If site_id exceeds 128 characters.
+            ParameterError: If search exceeds 256 characters.
+            ParameterError: If filter_str exceeds 512 characters.
+            ParameterError: If sort exceeds 128 characters.
+            ParameterError: If next_cursor is less than 1.
+            ParameterError: If limit is not between 1 and 1000.
+            Exception: If retrieving the events fails.
+        """
+        valid_context_types = [
+            "SITE",
+            "ACCESS_POINT",
+            "SWITCH",
+            "GATEWAY",
+            "WIRELESS_CLIENT",
+            "WIRED_CLIENT",
+            "BRIDGE",
+        ]
+
+        # Validate required parameters
+        if not context_type or context_type not in valid_context_types:
+            raise ParameterError(
+                f"context_type must be one of {', '.join(valid_context_types)}"
+            )
+
+        if not context_id or not isinstance(context_id, str):
+            raise ParameterError("context_id must be a non-empty string")
+        elif len(context_id) > 128:
+            raise ParameterError("context_id must not exceed 128 characters")
+
+        if not start_at or not isinstance(start_at, str):
+            raise ParameterError(
+                "start_at must be a valid RFC 3339 timestamp string"
+            )
+
+        if not end_at or not isinstance(end_at, str):
+            raise ParameterError(
+                "end_at must be a valid RFC 3339 timestamp string"
+            )
+
+        if not site_id or not isinstance(site_id, str):
+            raise ParameterError("site_id must be a non-empty string")
+        elif len(site_id) > 128:
+            raise ParameterError("site_id must not exceed 128 characters")
+
+        # Validate optional parameters
+        if search is not None:
+            if not isinstance(search, str):
+                raise ParameterError("search must be a string")
+            elif len(search) > 256:
+                raise ParameterError("search must not exceed 256 characters")
+
+        if filter_str is not None:
+            if not isinstance(filter_str, str):
+                raise ParameterError("filter_str must be a string")
+            elif len(filter_str) > 512:
+                raise ParameterError("filter_str must not exceed 512 characters")
+
+        if sort is not None:
+            if not isinstance(sort, str):
+                raise ParameterError("sort must be a string")
+            elif len(sort) > 128:
+                raise ParameterError("sort must not exceed 128 characters")
+
+        if not isinstance(next_cursor, int) or next_cursor < 1:
+            raise ParameterError("next_cursor must be an integer >= 1")
+
+        if not isinstance(limit, int) or not (1 <= limit <= 1000):
+            raise ParameterError("limit must be an integer between 1 and 1000")
+
+        # Build query parameters
+        params = {
+            "context-type": context_type,
+            "context-id": context_id,
+            "start-at": start_at,
+            "end-at": end_at,
+            "site-id": site_id,
+            "next": next_cursor,
+            "limit": limit,
+        }
+
+        if search is not None:
+            params["search"] = search
+
+        if filter_str is not None:
+            params["filter"] = filter_str
+
+        if sort is not None:
+            params["sort"] = sort
+
+        api_path = generate_url("events", "troubleshooting")
+        resp = central_conn.command(
+            api_method="GET", api_path=api_path, api_params=params
+        )
+
+        if resp["code"] != 200:
+            raise Exception(
+                f"Failed to list events: {resp['code']} - {resp['msg']}"
+            )
+
+        central_conn.logger.info(
+            f"Successfully retrieved {resp['msg'].get('count', 0)} events "
+            f"for context {context_type} {context_id}"
+        )
+
+        return resp["msg"]
+
+    @staticmethod
     def _poll_task_completion(
         get_result_func,
         task_id,

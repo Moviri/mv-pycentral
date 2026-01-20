@@ -722,6 +722,27 @@ class Device(ScopeBase):
             Troubleshooting.list_active_tasks
         )
 
+    def list_events(self, **kwargs):
+        """Retrieves a list of Network Events for this device based on the query parameters provided.
+
+        Supported device types: All (aps, cx, aos-s, gateways)
+
+        Args:
+            **kwargs (dict, Optional): Arguments for event listing. See [Troubleshooting.list_events()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.list_events) for all parameters.
+                Required parameters: start_at, end_at, site_id
+
+        Returns:
+            (dict): Response containing events list, count, total, and pagination cursor
+        """
+        self._ensure_materialized()
+        
+        return Troubleshooting.list_events(
+            central_conn=self.central_conn,
+            context_type=self.device_type,
+            context_id=self.serial,
+            **kwargs,
+        )
+
     def _execute_troubleshooting_command(self, command_method, **kwargs):
         """Executes a troubleshooting command with common setup.
 

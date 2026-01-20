@@ -75,7 +75,7 @@ def get_all_scope_elements(obj, scope):
         )
         return None
     limit = DEFAULT_LIMIT
-    offset = 1
+    offset = 0
     scope_elements = []
     number_of_scope_elements = None
     while (
@@ -84,7 +84,7 @@ def get_all_scope_elements(obj, scope):
     ):
         resp = get_scope_elements(obj, scope, limit=limit, offset=offset)
         if resp["code"] == 200:
-            offset += 1
+            offset += limit
             resp_message = resp["msg"]
             if number_of_scope_elements is None:
                 number_of_scope_elements = resp_message["total"]
@@ -94,10 +94,11 @@ def get_all_scope_elements(obj, scope):
             )
         else:
             obj.central_conn.logger.error(resp["msg"]["message"])
-        obj.central_conn.logger.info(
-            f"Total {scope}s fetched from account: {len(scope_elements)}"
-        )
-        return scope_elements
+            break
+    obj.central_conn.logger.info(
+        f"Total {scope}s fetched from account: {len(scope_elements)}"
+    )
+    return scope_elements
 
 
 def get_scope_elements(
@@ -182,7 +183,7 @@ def set_attributes(
                 setattr(obj, attr, default_value)
 
 
-def get_scope_element(obj, scope, scope_id=None, serial=None):
+def get_scope_element(obj, scope, scope_id=None):
     """Make GET API calls to Central to find the specified scope element.
 
     This method is supported for site, site collection, and device groups scopes.
@@ -192,7 +193,6 @@ def get_scope_element(obj, scope, scope_id=None, serial=None):
         scope (str): The type of the element. Valid values: "site", "site_collection",
             "device_group".
         scope_id (int, optional): ID of the scope element to be returned.
-        serial (str, optional): Serial number of the device (only for device scope).
 
     Returns:
         (dict or None): Attributes of the scope element if found, None otherwise.
@@ -202,17 +202,17 @@ def get_scope_element(obj, scope, scope_id=None, serial=None):
             f"Unsupported scope '{scope}'. Supported scopes are: {', '.join(SUPPORTED_SCOPES)}"
         )
         return None
+    if scope_id is None:
+        obj.central_conn.logger.error("Scope ID must be provided.")
+        return None
 
-    if scope == "device" and serial:
-        scope_elements_list = get_all_scope_elements(obj=obj, scope=scope)
-        for element in scope_elements_list:
-            if element.get("scopeName") == serial:
-                return element
-    elif scope_id is not None:
-        scope_elements_list = get_all_scope_elements(obj=obj, scope=scope)
-        for element in scope_elements_list:
-            if element.get("scopeId") == str(scope_id):
-                return element
+    scope_elements_list = get_all_scope_elements(obj=obj, scope=scope)
+    if not scope_elements_list:
+        return None
+
+    for element in scope_elements_list:
+        if element.get("scopeId") == str(scope_id):
+            return element
 
     return None
 
@@ -230,10 +230,11 @@ def rename_keys(api_dict, api_attribute_mapping):
     Raises:
         ValueError: If an unknown attribute is found in the API response.
     """
-    # ️ Removing reduntant keys
+    api_dict = copy.deepcopy(api_dict)
+
     extra_keys = ["type", "scopeId"]
     for key in extra_keys:
-        if key in api_dict.keys():
+        if key in api_dict:
             del api_dict[key]
     integer_attributes = ["id", "collectionId", "deviceCount"]
     renamed_dict = {}
@@ -242,7 +243,11 @@ def rename_keys(api_dict, api_attribute_mapping):
         if new_key:
             if key in integer_attributes and value:
                 value = int(value)
-            elif key == "timezone" and "timezoneId" in value:
+            elif (
+                key == "timezone"
+                and isinstance(value, dict)
+                and "timezoneId" in value
+            ):
                 value = value["timezoneId"]
             renamed_dict[new_key] = value
         else:
