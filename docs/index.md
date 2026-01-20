@@ -26,7 +26,7 @@ Today, there are two versions of PyCentral, each designed for different versions
 | Version                                                        | Supports                                                                                       | Notes                        |
 | :------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- | :--------------------------- |
 | [v1](https://pypi.org/project/pycentral/)                      | HPE Aruba Networking Central (Classic Central)                                                 | Legacy Version               |
-| [v2(pre-release)](https://pypi.org/project/pycentral/2.0a12/) | HPE Aruba Networking Central(new Central), GLP, HPE Aruba Networking Central (Classic Central) | Backwards compatible with v1 |
+| [v2(pre-release)](https://pypi.org/project/pycentral/2.0a13/) | HPE Aruba Networking Central(new Central), GLP, HPE Aruba Networking Central (Classic Central) | Backwards compatible with v1 |
 
 ## Quick Example
 
@@ -75,6 +75,7 @@ Browse the complete module documentation:
 - [Profiles](modules/profiles.md) - Configuration profile management
 - [Scopes](modules/scopes.md) - Scope management modules
 - [Troubleshooting](modules/troubleshooting.md) - Troubleshooting Modules
+- [Streaming](modules/streaming.md) - Streaming API Modules
 - [Utils](modules/utils.md) - Utilities used throughout PyCentral
 - [Classic](modules/classic.md) - Legacy PyCentral module reference
 
