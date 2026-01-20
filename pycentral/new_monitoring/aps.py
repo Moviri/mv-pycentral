@@ -8,6 +8,7 @@ from ..exceptions import ParameterError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 AP_LIMIT = 100
+WLAN_LIMIT = 100
 MONITOR_TYPE = "aps"
 
 
@@ -333,6 +334,94 @@ class MonitoringAPs:
                 )
             },
         )
+
+    @staticmethod
+    def get_wlans(
+        central_conn,
+        site_id=None,
+        serial_number=None,
+        filter_str=None,
+        sort=None,
+        limit=WLAN_LIMIT,
+        next_page=1,
+    ):
+        """
+        Retrieve a list of WLANs associated to a customer.
+
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/wlans`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            site_id (str, optional): ID of the Site for which WLAN information is requested. Max length 128.
+            serial_number (str, optional): Serial number of an access point device. Max length 16.
+            filter_str (str, optional): OData Version 4.0 filter string (limited functionality). 
+                Supports only 'and' conjunction ('or' and 'not' are NOT supported). 
+                Supported field: band (operators: eq, in). Max length 256.
+            sort (str, optional): Comma separated list of sort expressions. Supported fields: 
+                wlanName, band, status, securityLevel, security, vlan, primaryUsage. Max length 256.
+            limit (int, optional): Maximum number of WLANs to return (0-100, default is 20).
+            next_page (int, optional): Pagination cursor for next page (default is 1).
+
+        Returns:
+            (dict): API response containing:
+                - items (list): List of WLAN dictionaries with fields like wlanName, primaryUsage,
+                    securityLevel, security, band, status, vlan, id, type.
+                - count (int): Number of WLANs in current response.
+                - total (int): Total number of WLANs matching the criteria.
+                - next (str|None): Pagination cursor for the next page.
+
+        Raises:
+            ParameterError: If limit exceeds 100 or next_page is less than 1.
+            ParameterError: If site_id exceeds 128 characters.
+            ParameterError: If serial_number exceeds 16 characters.
+            ParameterError: If filter_str exceeds 256 characters.
+            ParameterError: If sort exceeds 256 characters.
+        """
+        path = "wlans"
+        
+        if limit > WLAN_LIMIT:
+            raise ParameterError(f"limit cannot exceed {WLAN_LIMIT}")
+        if next_page < 1:
+            raise ParameterError("next_page must be 1 or greater")
+        
+        if site_id is not None and len(site_id) > 128:
+            raise ParameterError("site_id cannot exceed 128 characters")
+        if serial_number is not None and len(serial_number) > 16:
+            raise ParameterError("serial_number cannot exceed 16 characters")
+        if filter_str is not None and len(filter_str) > 256:
+            raise ParameterError("filter_str cannot exceed 256 characters")
+        if sort is not None and len(sort) > 256:
+            raise ParameterError("sort cannot exceed 256 characters")
+        
+        params = {
+            "site-id": site_id,
+            "serial-number": serial_number,
+            "filter": filter_str,
+            "sort": sort,
+            "limit": limit,
+            "next": next_page,
+        }
+        return execute_get(central_conn, endpoint=path, params=params)
+
+    def get_ap_wlans(central_conn, serial_number):
+        """
+        Retrieve WLANs associated with an AP.
+
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps/{serial_number}/wlans`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            serial_number (str): Serial number of the AP.
+
+        Returns:
+            (dict): API response of associated WLANs.
+
+        Raises:
+            ParameterError: If serial_number is missing/invalid.
+        """
+        MonitoringAPs._validate_device_serial(serial_number)
+        path = f"{MONITOR_TYPE}/{serial_number}/wlans"
+        return execute_get(central_conn, endpoint=path)
 
     def _validate_device_serial(serial_number):
         """
