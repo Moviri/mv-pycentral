@@ -15,7 +15,11 @@ setuptools.setup(
     description="HPE Aruba Networking Central Python Package",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/aruba/pycentral",
+    project_urls={
+        "Documentation": "https://pycentral.readthedocs.io/en/v2/",
+        "Repository": "https://github.com/aruba/pycentral/",
+        "Issues": "https://github.com/aruba/pycentral/issues",
+    },
     packages=setuptools.find_packages(exclude=["docs", "tests", "sample_scripts"]),
     classifiers=[
         "Programming Language :: Python :: 3 :: Only",
