@@ -789,7 +789,7 @@ class Profiles:
 
     @staticmethod
     def get_profile(path, central_conn, local=None):
-        """Get existing profile from Central.
+        """Get existing profile(s) from Central.
 
         Args:
             path (str): The API endpoint for request, omitting base_url - it's recommended
@@ -822,6 +822,7 @@ class Profiles:
             return result, response
         # URL was invalid and GET was unsuccessful
         else:
+            result = False
             response = resp
             return (result, response)
 
