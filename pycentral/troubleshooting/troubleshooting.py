@@ -4565,24 +4565,26 @@ class Troubleshooting:
         return resp["msg"]
 
     @staticmethod
-    def run_show_command(
+    def run_show_commands(
         central_conn,
         device_type,
         serial_number,
-        command,
+        commands,
         max_attempts=5,
         poll_interval=5,
     ):
-        """Runs a 'show' command on a device and polls for test result.
+        """Runs 'show' command(s) on a device and polls for test result.
 
         Supported device type includes AOS-S, AP, CX, and GATEWAY.
-        The command must start with 'show '.
+        All commands must start with 'show '.
 
         Args:
             central_conn (NewCentralBase): Central connection object.
             device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
             serial_number (str): Serial number of the device.
-            command (str): Show command to execute (must start with 'show ').
+            commands (str or list): Single show command as string (e.g., "show version") or
+                list of show commands (e.g., ["show version", "show ip route"]). Max 20 commands.
+                All commands must start with 'show '.
             max_attempts (int, optional): Maximum number of polling attempts.
             poll_interval (int, optional): Time to wait between polls in seconds.
 
@@ -4600,17 +4602,17 @@ class Troubleshooting:
         )
 
         try:
-            response = Troubleshooting.initiate_show_command(
+            response = Troubleshooting.initiate_show_commands(
                 central_conn=central_conn,
                 device_type=device_type,
                 serial_number=serial_number,
-                command=command,
+                commands=commands,
             )
 
             task_id = Troubleshooting._get_task_id(response)
 
             return Troubleshooting._poll_task_completion(
-                Troubleshooting.get_show_command_result,
+                Troubleshooting.get_show_commands_result,
                 task_id,
                 central_conn,
                 max_attempts=max_attempts,
@@ -4625,26 +4627,29 @@ class Troubleshooting:
             raise
 
     @staticmethod
-    def initiate_show_command(
-        central_conn, device_type, serial_number, command
+    def initiate_show_commands(
+        central_conn, device_type, serial_number, commands
     ):
-        """Initiates an asynchronous execution of a 'show' command on a device.
+        """Initiates an asynchronous execution of 'show' command(s) on a device.
 
         Supported device type includes AOS-S, AP, CX, and GATEWAY.
-        The command must start with 'show '.
+        All commands must start with 'show '.
 
         Args:
             central_conn (NewCentralBase): Central connection object.
             device_type (str): Type of the device ('aos-s', 'aps', 'cx', or 'gateways').
             serial_number (str): Serial number of the device.
-            command (str): Show command to execute (must start with 'show ').
+            commands (str or list): Single show command as string (e.g., "show version") or
+                list of show commands (e.g., ["show version", "show ip route"]). Max 20 commands.
+                All commands must start with 'show '.
 
         Returns:
             (dict): Response from the API containing task ID and other details.
 
         Raises:
-            ParameterError: If command is not a valid string.
-            ParameterError: If command doesn't start with 'show '.
+            ParameterError: If commands is not a valid string or list.
+            ParameterError: If commands list is empty or exceeds 20 items.
+            ParameterError: If any command doesn't start with 'show '.
         """
         device_type = Troubleshooting._validate_required_device_params(
             central_conn,
@@ -4653,20 +4658,52 @@ class Troubleshooting:
             subset=["aps", "gateways", "cx", "aos-s"],
         )
 
-        if not command or not isinstance(command, str):
+        # Normalize commands to a list
+        if isinstance(commands, str):
+            # Single command provided as string
+            if not commands or not commands.strip():
+                raise ParameterError("commands must be a non-empty string")
+
+            if not commands.strip().lower().startswith("show "):
+                raise ParameterError(
+                    "Command must start with 'show '. Example: 'show ap debug system-status'"
+                )
+
+            commands_list = [commands]
+
+        elif isinstance(commands, list):
+            # List of commands provided
+            if len(commands) == 0:
+                raise ParameterError("commands list cannot be empty")
+
+            if len(commands) > 20:
+                raise ParameterError(
+                    f"commands list cannot exceed 20 items. Provided: {len(commands)}"
+                )
+
+            # Validate each command in the list
+            for idx, cmd in enumerate(commands):
+                if not cmd or not isinstance(cmd, str) or not cmd.strip():
+                    raise ParameterError(
+                        f"Command at index {idx} must be a valid non-empty string"
+                    )
+
+                if not cmd.strip().lower().startswith("show "):
+                    raise ParameterError(
+                        f"Command at index {idx} must start with 'show '. Got: '{cmd}'"
+                    )
+
+            commands_list = commands
+
+        else:
             raise ParameterError(
-                "command must be a valid string and is required"
+                "commands must be either a string (single command) or a list of strings (multiple commands)"
             )
 
-        if not command.strip().lower().startswith("show "):
-            raise ParameterError(
-                "command must start with 'show '. Example: 'show ap debug system-status'"
-            )
-
-        api_data = {"command": command}
+        api_data = {"commands": commands_list}
 
         api_path = generate_url(
-            f"{device_type}/{serial_number}/showCommand", "troubleshooting"
+            f"{device_type}/{serial_number}/showCommands", "troubleshooting"
         )
         resp = central_conn.command(
             api_method="POST", api_path=api_path, api_data=api_data
@@ -4685,7 +4722,7 @@ class Troubleshooting:
         return response
 
     @staticmethod
-    def get_show_command_result(
+    def get_show_commands_result(
         central_conn,
         task_id,
         device_type,
@@ -4716,7 +4753,7 @@ class Troubleshooting:
         resp = central_conn.command(
             api_method="GET",
             api_path=generate_url(
-                f"{device_type}/{serial_number}/showCommand/async-operations/{task_id}",
+                f"{device_type}/{serial_number}/showCommands/async-operations/{task_id}",
                 "troubleshooting",
             ),
         )
@@ -4857,7 +4894,9 @@ class Troubleshooting:
             if not isinstance(filter_str, str):
                 raise ParameterError("filter_str must be a string")
             elif len(filter_str) > 512:
-                raise ParameterError("filter_str must not exceed 512 characters")
+                raise ParameterError(
+                    "filter_str must not exceed 512 characters"
+                )
 
         if sort is not None:
             if not isinstance(sort, str):

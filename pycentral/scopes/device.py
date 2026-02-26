@@ -689,15 +689,17 @@ class Device(ScopeBase):
             Troubleshooting.list_show_commands
         )
 
-    def run_show_command(self, command, **kwargs):
-        """Runs a 'show' command on the device and polls for test result.
+    def run_show_commands(self, commands, **kwargs):
+        """Runs 'show' command(s) on the device and polls for test result.
 
-        The command must start with 'show '.
+        All commands must start with 'show '.
 
         Supported device types: aps, gateways, cx, aos-s
 
         Args:
-            command (str): Show command to execute (must start with 'show ')
+            commands (str or list): Single show command as string (e.g., "show version") or
+                list of show commands (e.g., ["show version", "show ip route"]). Max 20 commands.
+                All commands must start with 'show '.
             **kwargs (dict, Optional): Optional arguments for the show command test.
                 See [Troubleshooting.run_show_command()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.run_show_command) for detailed parameter information.
 
@@ -705,7 +707,53 @@ class Device(ScopeBase):
             (dict): Response from the test results API
         """
         return self._execute_troubleshooting_command(
-            Troubleshooting.run_show_command, command=command, **kwargs
+            Troubleshooting.run_show_commands, commands=commands, **kwargs
+        )
+
+    def initiate_show_commands(self, commands):
+        """Initiates an asynchronous execution of 'show' command(s) on the device without polling.
+
+        Use this method when you want to manually control polling with get_show_commands_result().
+        For automatic polling, use run_show_command() instead.
+
+        All commands must start with 'show '.
+
+        Supported device types: aps, gateways, cx, aos-s
+
+        Args:
+            commands (str or list): Single show command as string (e.g., "show version") or
+                list of show commands (e.g., ["show version", "show ip route"]). Max 20 commands.
+                All commands must start with 'show '.
+
+        Returns:
+            (dict): Response from the API containing task ID and other details
+
+        Raises:
+            ParameterError: If commands is not a valid string or list
+            ParameterError: If command validation fails
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.initiate_show_commands, commands=commands
+        )
+
+    def get_show_commands_result(self, task_id):
+        """Retrieves the results of a show command execution with the provided task ID.
+
+        Use this after calling initiate_show_command() to manually poll for results.
+
+        Supported device types: aps, gateways, cx, aos-s
+
+        Args:
+            task_id (str): Task ID returned from initiate_show_command()
+
+        Returns:
+            (dict): Response containing command output and status
+
+        Raises:
+            Exception: If retrieving the command result fails
+        """
+        return self._execute_troubleshooting_command(
+            Troubleshooting.get_show_commands_result, task_id=task_id
         )
 
     def list_active_tasks(self):
@@ -735,7 +783,7 @@ class Device(ScopeBase):
             (dict): Response containing events list, count, total, and pagination cursor
         """
         self._ensure_materialized()
-        
+
         return Troubleshooting.list_events(
             central_conn=self.central_conn,
             context_type=self.device_type,
