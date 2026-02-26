@@ -5,7 +5,7 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as fh:
     long_description = fh.read()
 
-VERSION = "2.0a13"
+VERSION = "2.0a14"
 
 setuptools.setup(
     name="pycentral",
@@ -31,12 +31,12 @@ setuptools.setup(
     ],
     python_requires=">=3.8",
     install_requires=[
-        "requests==2.32.4",
-        "PyYAML==6.0.2",
+        "requests==2.32.5",
+        "PyYAML==6.0.3",
         "oauthlib==3.2.2",
         "requests_oauthlib==2.0.0",
         "pytz==2025.2",
-        "protobuf==6.33.2",
+        "protobuf==6.33.5",
         "websocket-client==1.9.0",
     ],
     extras_require={"colorLog": ["colorlog"]},

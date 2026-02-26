@@ -1,6 +1,7 @@
 from ..utils.monitoring_utils import (
     execute_get,
     build_timestamp_filter,
+    _validate_mac_address,
 )
 from ..exceptions import ParameterError
 
@@ -381,6 +382,27 @@ class Clients:
         )
 
         return execute_get(central_conn, endpoint=path, params=params)
+
+    @staticmethod
+    def get_client_details(
+        central_conn,
+        client_mac,
+    ):
+        """
+        Fetch details for a specific client by MAC address.
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/clients/{client_mac}`
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            client_mac (str): MAC address of the client to query.
+
+        Returns:
+            (dict): Client details as returned by the API.
+        """
+        _validate_mac_address(client_mac)
+
+        path = f"clients/{client_mac}"
+        return execute_get(central_conn, endpoint=path)
 
     def _time_filter(params, start_time, end_time, duration):
         """

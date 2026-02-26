@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from pycentral.utils.url_utils import generate_url
 
 from ..exceptions import ParameterError
+import re
 
 
 def build_timestamp_filter(
@@ -37,17 +38,11 @@ def build_timestamp_filter(
 
     # --- Validation ---
     if (start_time or end_time) and duration:
-        raise ValueError(
-            "Cannot specify start/end timestamps together with duration."
-        )
+        raise ValueError("Cannot specify start/end timestamps together with duration.")
     if (start_time and not end_time) or (end_time and not start_time):
-        raise ValueError(
-            "Both start_time and end_time must be provided together."
-        )
+        raise ValueError("Both start_time and end_time must be provided together.")
     if not duration and not (start_time and end_time):
-        raise ValueError(
-            "Provide either both start_time and end_time or a duration."
-        )
+        raise ValueError("Provide either both start_time and end_time or a duration.")
 
     # --- Case 1: Start + End (pass-through) ---
     if start_time and end_time:
@@ -161,9 +156,7 @@ def simplified_site_resp(site):
         ),
     }
     site["alerts"] = {
-        "critical": site.get("alerts", {})
-        .get("groups", [{}])[0]
-        .get("count", 0)
+        "critical": site.get("alerts", {}).get("groups", [{}])[0].get("count", 0)
         if site.get("alerts", {}).get("groups")
         else 0,
         "total": site.get("alerts", {}).get("totalCount", 0),
@@ -185,11 +178,7 @@ def _groups_to_dict(groups_list):
     result = {"Poor": 0, "Fair": 0, "Good": 0}
     if isinstance(groups_list, list):
         for group in groups_list:
-            if (
-                isinstance(group, dict)
-                and "name" in group
-                and "value" in group
-            ):
+            if isinstance(group, dict) and "name" in group and "value" in group:
                 result[group["name"]] = group["value"]
     return result
 
@@ -246,3 +235,30 @@ def merged_dict_to_sorted_list(merged):
     except Exception:
         keys = sorted(merged.keys())
     return [{"timestamp": ts, **merged[ts]} for ts in keys]
+
+
+def _validate_mac_address(mac):
+    """
+    Validate a MAC address string and return True if valid.
+    Accepts the format AA:BB:CC:DD:EE:FF
+
+    Args:
+        mac (str): MAC address string to validate.
+
+    Returns:
+        (bool): True if the MAC address is valid.
+
+    Raises:
+        ParameterError: If mac is missing or does not match the expected format.
+
+    Note:
+        Internal SDK function
+    """
+    _MAC_PATTERN = re.compile(r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$")
+    if not mac:
+        raise ParameterError("MAC address is required")
+    if not isinstance(mac, str) or not _MAC_PATTERN.match(mac):
+        raise ParameterError(
+            f"Invalid MAC address format: '{mac}'. Expected format: AA:BB:CC:DD:EE:FF"
+        )
+    return True
