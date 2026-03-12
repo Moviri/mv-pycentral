@@ -93,7 +93,7 @@ def get_all_scope_elements(obj, scope):
                 [scope_element for scope_element in resp_message["items"]]
             )
         else:
-            obj.central_conn.logger.error(resp["msg"]["message"])
+            obj.central_conn.logger.error(resp["msg"])
             break
     obj.central_conn.logger.info(
         f"Total {scope}s fetched from account: {len(scope_elements)}"
