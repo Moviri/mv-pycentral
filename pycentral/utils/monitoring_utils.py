@@ -17,13 +17,14 @@ def build_timestamp_filter(
     Returns timestamps for filtering based on the provided parameters.
 
     Behavior:
-        - If start_time and end_time are given, passes through directly.
+        - If start_time and end_time are given, parses and converts them to the
+          requested format.
         - If duration is given, computes timestamps relative to now.
         - Max supported duration is 3 months (90 days).
 
     Args:
-        start_time (str, optional): RFC3339 or Unix timestamp for start.
-        end_time (str, optional): RFC3339 or Unix timestamp for end.
+        start_time (str, optional): RFC3339 or Unix timestamp (ms or s) for start.
+        end_time (str, optional): RFC3339 or Unix timestamp (ms or s) for end.
         duration (str, optional): Duration string like '3h', '2d', '1w', '1m'
             (hours, days, weeks, minutes).
         fmt (str, optional): Output format, either 'rfc3339' or 'unix'.
@@ -34,8 +35,6 @@ def build_timestamp_filter(
     Raises:
         ValueError: If invalid parameter combinations are provided or duration exceeds maximum.
     """
-    now = datetime.now(timezone.utc)
-
     # --- Validation ---
     if (start_time or end_time) and duration:
         raise ValueError("Cannot specify start/end timestamps together with duration.")
@@ -44,41 +43,47 @@ def build_timestamp_filter(
     if not duration and not (start_time and end_time):
         raise ValueError("Provide either both start_time and end_time or a duration.")
 
-    # --- Case 1: Start + End (pass-through) ---
+    # --- Case 1: Start + End ---
     if start_time and end_time:
-        return f"timestamp gt {start_time} and timestamp lt {end_time}"
+        return (
+            _format_timestamp(_parse_timestamp(start_time), fmt),
+            _format_timestamp(_parse_timestamp(end_time), fmt),
+        )
 
-    # --- Case 2: Duration only ---
+    # --- Case 2: Duration ---
+    unit_map = {"w": "weeks", "d": "days", "h": "hours", "m": "minutes"}
     unit = duration[-1].lower()
-    value = int(duration[:-1])
-
-    if unit not in {"w", "h", "d", "m"}:
+    if unit not in unit_map:
         raise ValueError(
             "Duration must end with w, h, d, or m (weeks, hours, days, mins)."
         )
-    if unit == "w":
-        delta = timedelta(weeks=value)
-    elif unit == "d":
-        delta = timedelta(days=value)
-    elif unit == "h":
-        delta = timedelta(hours=value)
-    else:
-        delta = timedelta(minutes=value)
 
-    max_period = timedelta(days=90)
-    if delta > max_period:
+    delta = timedelta(**{unit_map[unit]: int(duration[:-1])})
+    if delta > timedelta(days=90):
         raise ValueError("Maximum supported duration is 3 months (90 days).")
 
-    start_dt = now - delta
-    end_dt = now
+    now = datetime.now(timezone.utc)
+    return _format_timestamp(now - delta, fmt), _format_timestamp(now, fmt)
 
+
+def _parse_timestamp(ts):
+    """Parse an RFC3339 string or Unix ms/s value into a UTC datetime."""
+    if isinstance(ts, str):
+        try:
+            return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        except ValueError:
+            ts = float(ts)
+    val = float(ts)
+    if val > 1e10:
+        val /= 1000
+    return datetime.fromtimestamp(val, tz=timezone.utc)
+
+
+def _format_timestamp(dt, fmt):
+    """Format a UTC datetime as a Unix ms string or RFC3339 string."""
     if fmt == "unix":
-        start_val = str(int(start_dt.timestamp() * 1000))
-        end_val = str(int(end_dt.timestamp() * 1000))
-    else:
-        start_val = start_dt.isoformat().replace("+00:00", "Z")
-        end_val = end_dt.isoformat().replace("+00:00", "Z")
-    return start_val, end_val
+        return str(int(dt.timestamp() * 1000))
+    return dt.isoformat().replace("+00:00", "Z")
 
 
 def generate_timestamp_str(start_time, end_time, duration):
@@ -98,13 +103,14 @@ def generate_timestamp_str(start_time, end_time, duration):
     return f"timestamp gt {start_time} and timestamp lt {end_time}"
 
 
-def execute_get(central_conn, endpoint, params={}):
+def execute_get(central_conn, endpoint, params={}, version="latest"):
     """Execute a GET request to the monitoring API.
 
     Args:
         central_conn (NewCentralBase): Central connection object.
         endpoint (str): API endpoint path.
         params (dict, optional): Query parameters for the request.
+        version (str, optional): API version to use (e.g. "v1alpha1", "v1"). Defaults to "latest".
 
     Returns:
         (dict): The message portion of the API response.
@@ -123,7 +129,7 @@ def execute_get(central_conn, endpoint, params={}):
         # remove leading slash if present
         endpoint = endpoint.lstrip("/")
 
-    path = generate_url(endpoint, "monitoring")
+    path = generate_url(endpoint, "monitoring", version)
     resp = central_conn.command("GET", path, api_params=params)
 
     if resp["code"] != 200:
