@@ -58,7 +58,7 @@ new_central_conn = NewCentralBase(token_info=token_file)
 
 # New Central API Call
 new_central_resp = new_central_conn.command(
-    api_method="GET", api_path="network-monitoring/v1alpha1/devices"
+    api_method="GET", api_path="network-monitoring/v1/devices"
 )
 
 # Check response status and print results or error message

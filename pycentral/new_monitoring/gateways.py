@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 GATEWAY_LIMIT = 100
 MONITOR_TYPE = "gateways"
+API_VERSION = "v1alpha1"
 
 
 class MonitoringGateways:
@@ -70,7 +71,7 @@ class MonitoringGateways:
         }
 
         path = MONITOR_TYPE
-        return execute_get(central_conn, endpoint=path, params=params)
+        return execute_get(central_conn, endpoint=path, params=params, version=API_VERSION)
 
     @staticmethod
     def get_cluster_leader_details(central_conn, cluster_name):
@@ -95,7 +96,7 @@ class MonitoringGateways:
             )
         path = f"clusters/{cluster_name}/leader"
 
-        return execute_get(central_conn, endpoint=path)
+        return execute_get(central_conn, endpoint=path, version=API_VERSION)
 
     @staticmethod
     def get_gateway_details(central_conn, serial_number):
@@ -118,7 +119,7 @@ class MonitoringGateways:
             central_conn, serial_number
         )
         path = f"{MONITOR_TYPE}/{serial_number}"
-        return execute_get(central_conn, endpoint=path)
+        return execute_get(central_conn, endpoint=path, version=API_VERSION)
 
     @staticmethod
     def get_gateway_interfaces(
@@ -158,7 +159,7 @@ class MonitoringGateways:
             "sort": sort,
         }
         path = f"{MONITOR_TYPE}/{serial_number}/ports"
-        return execute_get(central_conn, endpoint=path, params=params)
+        return execute_get(central_conn, endpoint=path, params=params, version=API_VERSION)
 
     @staticmethod
     def get_gateway_lan_tunnels(
@@ -198,7 +199,7 @@ class MonitoringGateways:
             "sort": sort,
         }
         path = f"{MONITOR_TYPE}/{serial_number}/lan-tunnels"
-        return execute_get(central_conn, endpoint=path, params=params)
+        return execute_get(central_conn, endpoint=path, params=params, version=API_VERSION)
 
     @staticmethod
     def get_gateway_stats(
@@ -336,6 +337,7 @@ class MonitoringGateways:
             return execute_get(
                 central_conn,
                 endpoint=f"{MONITOR_TYPE}/{serial_number}/cpu-utilization-trends",
+                version=API_VERSION,
             )
 
         return execute_get(
@@ -346,6 +348,7 @@ class MonitoringGateways:
                     start_time=start_time, end_time=end_time, duration=duration
                 )
             },
+            version=API_VERSION,
         )
 
     @staticmethod
@@ -381,6 +384,7 @@ class MonitoringGateways:
             return execute_get(
                 central_conn,
                 endpoint=f"{MONITOR_TYPE}/{serial_number}/memory-utilization-trends",
+                version=API_VERSION,
             )
 
         return execute_get(
@@ -391,6 +395,7 @@ class MonitoringGateways:
                     start_time=start_time, end_time=end_time, duration=duration
                 )
             },
+            version=API_VERSION,
         )
 
     @staticmethod
@@ -426,6 +431,7 @@ class MonitoringGateways:
             return execute_get(
                 central_conn,
                 endpoint=f"{MONITOR_TYPE}/{serial_number}/wan-availability-trends",
+                version=API_VERSION,
             )
 
         return execute_get(
@@ -436,6 +442,7 @@ class MonitoringGateways:
                     start_time=start_time, end_time=end_time, duration=duration
                 )
             },
+            version=API_VERSION,
         )
 
     @staticmethod
@@ -459,7 +466,7 @@ class MonitoringGateways:
             central_conn, serial_number
         )
         path = f"{MONITOR_TYPE}/{serial_number}/lan-tunnels-health-summary"
-        return execute_get(central_conn, endpoint=path)
+        return execute_get(central_conn, endpoint=path, version=API_VERSION)
 
     def _validate_central_conn_and_serial(central_conn, serial_number):
         """

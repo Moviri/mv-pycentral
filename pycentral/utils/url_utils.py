@@ -2,8 +2,6 @@
 # MIT License
 
 versions = ["v1alpha1", "v1"]
-latest = "v1alpha1"
-glp_latest = "v1"
 
 CATEGORIES = {
     "configuration": {
@@ -14,7 +12,7 @@ CATEGORIES = {
     "monitoring": {
         "value": "network-monitoring",
         "type": "monitoring",
-        "latest": "v1alpha1",
+        "latest": "v1",
     },
     "troubleshooting": {
         "value": "network-troubleshooting",
@@ -51,11 +49,7 @@ def get_prefix(category="configuration", version="latest"):
         )
     category_value = CATEGORIES[category]["value"]
     if version == "latest":
-        version = (
-            latest
-            if not (CATEGORIES[category]["type"] == "glp")
-            else glp_latest
-        )
+        version = CATEGORIES[category]["latest"]
     else:
         if version not in versions:
             raise ValueError(
@@ -89,11 +83,7 @@ def generate_url(api_endpoint, category="configuration", version="latest"):
         )
     category_value = CATEGORIES[category]["value"]
     if version == "latest":
-        version = (
-            latest
-            if not (CATEGORIES[category]["type"] == "glp")
-            else glp_latest
-        )
+        version = CATEGORIES[category]["latest"]
     else:
         if version not in versions:
             raise ValueError(

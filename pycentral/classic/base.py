@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2020 Aruba, a Hewlett Packard Enterprise company
+# Copyright (c) 2025 HPE Aruba Networking
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,9 @@ import sys
 import time
 import requests
 import errno
-from .base_utils import tokenLocalStoreUtil
-from .base_utils import C_DEFAULT_ARGS, get_url
-from .base_utils import console_logger, parseInputArgs
+from pycentral.classic.base_utils import tokenLocalStoreUtil
+from pycentral.classic.base_utils import C_DEFAULT_ARGS, get_url
+from pycentral.classic.base_utils import console_logger, parseInputArgs
 
 SUPPORTED_METHODS = ("POST", "PATCH", "DELETE", "GET", "PUT")
 
@@ -112,6 +112,7 @@ class ArubaCentralBase:
         self.logger = None
         self.ssl_verify = ssl_verify
         self.user_retries = user_retries
+        self.session = requests.Session()
         # Set logger
         if logger:
             self.logger = logger
@@ -150,14 +151,13 @@ class ArubaCentralBase:
         )
         data = data.encode("utf-8")
         try:
-            s = requests.Session()
-            req = requests.Request(
-                method="POST", url=url, data=data, headers=headers)
-            prepped = s.prepare_request(req)
-            settings = s.merge_environment_settings(
+            session = self.session
+            req = requests.Request(method="POST", url=url, data=data, headers=headers)
+            prepped = session.prepare_request(req)
+            settings = session.merge_environment_settings(
                 prepped.url, {}, None, self.ssl_verify, None
             )
-            resp = s.send(prepped, **settings)
+            resp = session.send(prepped, **settings)
             if resp and resp.status_code == 200:
                 cookies = resp.cookies.get_dict()
                 return cookies["csrftoken"], cookies["session"]
@@ -204,14 +204,13 @@ class ArubaCentralBase:
             "Cookie": "session=" + session_token
         }
         try:
-            s = requests.Session()
-            req = requests.Request(
-                method="POST", url=url, data=data, headers=headers)
-            prepped = s.prepare_request(req)
-            settings = s.merge_environment_settings(
+            session = self.session
+            req = requests.Request(method="POST", url=url, data=data, headers=headers)
+            prepped = session.prepare_request(req)
+            settings = session.merge_environment_settings(
                 prepped.url, {}, None, self.ssl_verify, None
             )
-            resp = s.send(prepped, **settings)
+            resp = session.send(prepped, **settings)
             if resp and resp.status_code == 200:
                 result = json.loads(resp.text)
                 auth_code = result["auth_code"]
@@ -249,13 +248,13 @@ class ArubaCentralBase:
             base_url=self.central_info["base_url"], path=path, query=query)
 
         try:
-            s = requests.Session()
+            session = self.session
             req = requests.Request(method="POST", url=url)
-            prepped = s.prepare_request(req)
-            settings = s.merge_environment_settings(
+            prepped = session.prepare_request(req)
+            settings = session.merge_environment_settings(
                 prepped.url, {}, None, self.ssl_verify, None
             )
-            resp = s.send(prepped, **settings)
+            resp = session.send(prepped, **settings)
             if resp.status_code == 200:
                 result = json.loads(resp.text)
                 token = result

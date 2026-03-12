@@ -116,6 +116,8 @@ class ScopeBase:
         Returns:
             (str or None): Resolved persona or None if invalid
         """
+        if profile_persona == "":
+            profile_persona = None
         if self.get_type() == "device":
             if not self.provisioned_status:
                 self.central_conn.logger.error(
@@ -125,7 +127,7 @@ class ScopeBase:
             if profile_persona is not None:
                 if profile_persona != self.config_persona:
                     self.central_conn.logger.error(
-                        f"Invalid profile persona(device function) '{profile_persona}' for device. Device's current persona is {self.persona} ({self.config_persona}). If you would like the profile to take the device's current persona, you can leave the profile_persona attribute empty."
+                        f"Invalid profile persona(device function) '{profile_persona}' for device. Device's current persona is {self.device_function} ({self.config_persona}). If you would like the profile to take the device's current persona, you can leave the profile_persona attribute empty."
                     )
                     return None
                 return profile_persona

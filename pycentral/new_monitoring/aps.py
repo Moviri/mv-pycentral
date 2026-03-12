@@ -52,7 +52,6 @@ class MonitoringAPs:
             next_page = int(next_page)
         return aps
 
-    # API implementation of network-monitoring/v1alpha1/aps
     @staticmethod
     def get_aps(
         central_conn, filter_str=None, sort=None, limit=AP_LIMIT, next_page=1
@@ -60,7 +59,7 @@ class MonitoringAPs:
         """
         Retrieve a single page of APs.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/aps`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
@@ -93,7 +92,7 @@ class MonitoringAPs:
         """
         Get details for a specific AP.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps/{serial_number}`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/aps/{serial_number}`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
@@ -180,6 +179,7 @@ class MonitoringAPs:
         data = merged_dict_to_sorted_list(data)
         return data
 
+    @staticmethod
     def get_latest_ap_stats(
         central_conn,
         serial_number,
@@ -217,7 +217,7 @@ class MonitoringAPs:
         """
         Retrieve CPU utilization trends for an AP.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps/{serial_number}/cpu-utilization-trends`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/aps/{serial_number}/cpu-utilization-trends`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
@@ -258,7 +258,7 @@ class MonitoringAPs:
         """
         Retrieve memory utilization trends for an AP.
 
-        This method makes an API call to the following endpoint -  `GET network-monitoring/v1alpha1/aps/{serial_number}/memory-utilization-trends`
+        This method makes an API call to the following endpoint -  `GET network-monitoring/v1/aps/{serial_number}/memory-utilization-trends`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
@@ -302,7 +302,7 @@ class MonitoringAPs:
         """
         Retrieve power consumption trends for an AP.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps/{serial_number}/power-consumption-trends`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/aps/{serial_number}/power-consumption-trends`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
@@ -348,7 +348,7 @@ class MonitoringAPs:
         """
         Retrieve a list of WLANs associated to a customer.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/wlans`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/wlans`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
@@ -407,7 +407,7 @@ class MonitoringAPs:
         """
         Retrieve WLANs associated with an AP.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/aps/{serial_number}/wlans`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/aps/{serial_number}/wlans`
 
         Args:
             central_conn (NewCentralBase): Central connection object.

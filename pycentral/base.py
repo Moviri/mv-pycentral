@@ -16,14 +16,14 @@ from .utils.base_utils import (
 from .scopes import Scopes
 from .utils import AUTHENTICATION
 from .exceptions import LoginError, ResponseError
+import httpx
 
 SUPPORTED_API_METHODS = ("POST", "PATCH", "DELETE", "GET", "PUT")
+MAX_CONNECTIONS = 7
 
 
 class NewCentralBase:
-    def __init__(
-        self, token_info, logger=None, log_level="DEBUG", enable_scope=False
-    ):
+    def __init__(self, token_info, logger=None, log_level="DEBUG", enable_scope=False):
         """Constructor initializes the NewCentralBase class with token information and logging configuration.
 
         Validates and processes the provided token information, sets up logging,
@@ -46,6 +46,9 @@ class NewCentralBase:
             self.token_file_path = token_info
         self.logger = self.set_logger(log_level, logger)
         self.scopes = None
+        self._http_clients = {}
+        for app_name in self.token_info:
+            self._http_clients[app_name] = self._create_http_client(app_name)
         for app in self.token_info:
             app_token_info = self.token_info[app]
             if (
@@ -71,6 +74,25 @@ class NewCentralBase:
         else:
             return console_logger("NEW CENTRAL BASE", log_level)
 
+    def _create_http_client(self, app_name):
+        """Create an HTTP client for a specific app.
+
+        Uses tuned connection limits for New Central and default connection
+        limits for all other apps (including GLP).
+        """
+        client_kwargs = {
+            "http2": True,
+            "timeout": httpx.Timeout(30.0, connect=10.0),
+            "verify": True,
+        }
+        if app_name == "new_central":
+            client_kwargs["limits"] = httpx.Limits(
+                max_connections=MAX_CONNECTIONS,
+                max_keepalive_connections=5,
+                keepalive_expiry=30,
+            )
+        return httpx.Client(**client_kwargs)
+
     def create_token(self, app_name):
         """Create a new access token for the specified application.
 
@@ -95,17 +117,13 @@ class NewCentralBase:
 
         try:
             self.logger.info(f"Attempting to create new token from {app_name}")
-            token = oauth.fetch_token(
-                token_url=AUTHENTICATION["OAUTH"], auth=auth
-            )
+            token = oauth.fetch_token(token_url=AUTHENTICATION["OAUTH"], auth=auth)
 
             if "access_token" in token:
                 self.logger.info(
                     f"{app_name} Login Successful.. Obtained Access Token!"
                 )
-                self.token_info[app_name]["access_token"] = token[
-                    "access_token"
-                ]
+                self.token_info[app_name]["access_token"] = token["access_token"]
                 if self.token_file_path:
                     save_access_token(
                         app_name,
@@ -147,9 +165,7 @@ class NewCentralBase:
             f"{app_name} access token has expired. Handling Token Expiry..."
         )
         client_id, client_secret = self._return_client_credentials(app_name)
-        if any(
-            credential is None for credential in [client_id, client_secret]
-        ):
+        if any(credential is None for credential in [client_id, client_secret]):
             msg = f"Please provide client_id and client_secret in {app_name} required to generate an access token"
             self.logger.error(msg)
             raise LoginError(msg)
@@ -161,10 +177,10 @@ class NewCentralBase:
         api_method,
         api_path,
         app_name="new_central",
-        api_data={},
-        api_params={},
-        headers={},
-        files={},
+        api_data=None,
+        api_params=None,
+        headers=None,
+        files=None,
     ):
         """Execute an API command to HPE Aruba Networking Central or GreenLake Platform.
 
@@ -189,14 +205,14 @@ class NewCentralBase:
                 Use "new_central" for HPE Aruba Networking Central APIs (default).
                 Use "glp" for GreenLake Platform APIs.
             api_data (dict, optional): Request body/payload to be sent. Automatically
-                serialized to JSON if Content-Type is application/json. Defaults to {}.
+                serialized to JSON if Content-Type is application/json. Defaults to None.
             api_params (dict, optional): URL query parameters for the API request.
-                Defaults to {}.
+                Defaults to None.
             headers (dict, optional): Custom HTTP headers. If not provided and no files
                 are being uploaded, defaults to {"Content-Type": "application/json",
                 "Accept": "application/json"}.
             files (dict, optional): Files to upload in multipart/form-data requests.
-                When provided, Content-Type header is not automatically set. Defaults to {}.
+                When provided, Content-Type header is not automatically set. Defaults to None.
 
         Returns:
             (dict): API response containing:
@@ -209,32 +225,28 @@ class NewCentralBase:
         """
         self._validate_request(app_name, api_method)
 
-        retry = 0
-        result = ""
+        api_data = api_data if api_data is not None else {}
+        files = files if files is not None else {}
 
+        api_params = self._prepare_query_params(api_params)
+        req_headers = self._build_request_headers(headers, files)
+        req_data = self._serialize_request_data(api_data, req_headers)
+
+        url = build_url(self.token_info[app_name]["base_url"], api_path)
+
+        retry = 0
         limit_reached = False
         try:
             while not limit_reached:
-                url = build_url(
-                    self.token_info[app_name]["base_url"], api_path
-                )
-
-                if not headers and not files:
-                    headers = {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json",
-                    }
-                if api_data and headers["Content-Type"] == "application/json":
-                    api_data = json.dumps(api_data)
-
                 resp = self.request_url(
                     url=url,
-                    data=api_data,
+                    data=req_data,
                     method=api_method,
-                    headers=headers,
+                    headers=req_headers,
                     params=api_params,
                     files=files,
                     access_token=self.token_info[app_name]["access_token"],
+                    app_name=app_name,
                 )
                 if resp.status_code == 401:
                     if retry >= 1:
@@ -256,9 +268,9 @@ class NewCentralBase:
             }
 
             try:
-                result["msg"] = json.loads(result["msg"])
-            except BaseException:
-                result["msg"] = str(resp.text)
+                result["msg"] = resp.json()
+            except (ValueError, json.JSONDecodeError):
+                result["msg"] = resp.text
 
             return result
 
@@ -267,28 +279,70 @@ class NewCentralBase:
             self.logger.error(err)
             raise ResponseError(err_str, err)
 
+    def _prepare_query_params(self, api_params):
+        """Return query params with None-valued entries removed."""
+        if api_params is None:
+            return {}
+        if isinstance(api_params, dict):
+            return {
+                key: value for key, value in api_params.items() if value is not None
+            }
+        return api_params
+
+    def _build_request_headers(self, headers, files):
+        """Build request headers without mutating caller-provided headers."""
+        if headers:
+            return dict(headers)
+        if not files:
+            return {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        return {}
+
+    def _serialize_request_data(self, api_data, req_headers):
+        """Serialize payload for JSON requests; otherwise pass through as-is."""
+        content_type = next(
+            (
+                header_value
+                for header_key, header_value in req_headers.items()
+                if header_key.lower() == "content-type"
+            ),
+            "",
+        )
+        if (
+            api_data
+            and "application/json" in str(content_type).lower()
+            and not isinstance(api_data, (str, bytes, bytearray))
+        ):
+            return json.dumps(api_data)
+        return api_data
+
     def request_url(
         self,
         url,
         access_token,
-        data={},
+        app_name="new_central",
+        data=None,
         method="GET",
-        headers={},
-        params={},
-        files={},
+        headers=None,
+        params=None,
+        files=None,
     ):
         """Make an API call to application (New Central or GLP) via the requests library.
 
         Args:
             url (str): HTTP Request URL string.
             access_token (str): Access token for authentication.
-            data (dict, optional): HTTP Request payload. Defaults to {}.
+            app_name (str, optional): App name used to select HTTP client.
+                Defaults to "new_central".
+            data (dict, optional): HTTP Request payload. Defaults to None.
             method (str, optional): HTTP Request Method supported by GLP/New Central.
                 Defaults to "GET".
-            headers (dict, optional): HTTP Request headers. Defaults to {}.
-            params (dict, optional): HTTP URL query parameters. Defaults to {}.
+            headers (dict, optional): HTTP Request headers. Defaults to None.
+            params (dict, optional): HTTP URL query parameters. Defaults to None.
             files (dict, optional): Files dictionary with file pointer depending on
-                API endpoint as accepted by GLP/New Central. Defaults to {}.
+                API endpoint as accepted by GLP/New Central. Defaults to None.
 
         Returns:
             (requests.models.Response): HTTP response of API call using requests library.
@@ -296,31 +350,43 @@ class NewCentralBase:
         Raises:
             ResponseError: If there is an error during the API call.
         """
-        resp = None
+        req_headers = dict(headers) if headers else {}
+        req_headers["authorization"] = "Bearer " + access_token
 
-        auth = BearerAuth(access_token)
-        s = requests.Session()
-        req = requests.Request(
-            method=method,
-            url=url,
-            headers=headers,
-            files=files,
-            auth=auth,
-            params=params,
-            data=data,
-        )
-        prepped = s.prepare_request(req)
-        settings = s.merge_environment_settings(
-            prepped.url, {}, None, True, None
-        )
         try:
-            resp = s.send(prepped, **settings)
+            # Build keyword args — httpx does not allow content + data + files together
+            kwargs = {
+                "method": method,
+                "url": url,
+                "headers": req_headers,
+            }
+            if params:
+                kwargs["params"] = params
+            if files:
+                # Multipart upload: use files + optional form data (dict only)
+                kwargs["files"] = files
+                if data and isinstance(data, dict):
+                    kwargs["data"] = data
+            elif isinstance(data, str):
+                # Pre-serialized JSON string — pass directly, httpx handles encoding
+                kwargs["content"] = data
+            elif isinstance(data, bytes):
+                # Raw bytes
+                kwargs["content"] = data
+            elif isinstance(data, dict) and data:
+                # Form-encoded dict
+                kwargs["data"] = data
+
+            http_client = self._http_clients.get(app_name)
+            if http_client is None:
+                http_client = self._create_http_client(app_name)
+                self._http_clients[app_name] = http_client
+
+            resp = http_client.request(**kwargs)
             return resp
         except Exception as err:
-            str1 = "Failed making request to URL %s " % url
-            str2 = "with error %s" % str(err)
-            err_str = f"{str1} {str2}"
-            self.logger.error(str1 + str2)
+            err_str = f"Failed making request to URL {url} with error {err}"
+            self.logger.error(err_str)
             raise ResponseError(err_str, err)
 
     def _validate_request(self, app_name, method):
@@ -382,30 +448,27 @@ class NewCentralBase:
             self.scopes = Scopes(central_conn=self)
         return self.scopes
 
+    def close(self):
+        """Close all underlying HTTP clients and release connection pool resources."""
+        for app_name, http_client in self._http_clients.items():
+            try:
+                if http_client:
+                    http_client.close()
+            except Exception as err:
+                self.logger.debug(f"Failed closing HTTP client for {app_name}: {err}")
 
-class BearerAuth(requests.auth.AuthBase):
-    """Uses Bearer Auth method to generate the authorization header from New Central or GLP Access Token.
+        self._http_clients = {}
 
-    Args:
-        token (str): New Central or GLP Access Token.
-    """
+    def __enter__(self):
+        return self
 
-    def __init__(self, token):
-        """Constructor Method.
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.logger.debug("Closing connections to Central/GLP and cleaning up...")
+        self.close()
 
-        Args:
-            token (str): New Central or GLP Access Token.
-        """
-        self.token = token
-
-    def __call__(self, r):
-        """Internal method returning auth.
-
-        Args:
-            r (requests.models.PreparedRequest): Request object.
-
-        Returns:
-            (requests.models.PreparedRequest): Modified request object with authorization header.
-        """
-        r.headers["authorization"] = "Bearer " + self.token
-        return r
+    # Garbage collection fallback — close if user forgets
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass

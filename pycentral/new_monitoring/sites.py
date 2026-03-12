@@ -43,7 +43,7 @@ class MonitoringSites:
         """
         Retrieve a single page of site health information. It returns details such as devices, clients, critical alerts with count, along with their respective health and health reasons for each site.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/sites-health`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/sites-health`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
@@ -62,7 +62,7 @@ class MonitoringSites:
         """
         Retrieve per-site device health statistics. It returns the number of poor, fair, and good performing devices for each site.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/sites-device-health`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/sites-device-health`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
@@ -76,19 +76,16 @@ class MonitoringSites:
         path = "sites-device-health"
         return execute_get(central_conn, endpoint=path, params=params)
 
-    # need to include logic to handle params/filters/sorting
     @staticmethod
-    def list_site_information(central_conn, site_id, limit=100, offset=0):
+    def list_site_information(central_conn, site_id):
         """
         Retrieve detailed health information for a specific site. It returns details such as devices, clients, critical alerts with count, along with their respective health and health reasons.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/site-health/{site_id}`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/site-health/{site_id}`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
             site_id (int): Identifier of the site to query.
-            limit (int, optional): Number of entries to return (default is 100).
-            offset (int, optional): Number of entries to skip for pagination (default is 0).
 
         Returns:
             (dict): Raw API response with site health details.
@@ -98,6 +95,5 @@ class MonitoringSites:
         """
         if not site_id or not isinstance(site_id, int):
             raise ParameterError("site_id is required and must be an integer")
-        params = {"limit": limit, "offset": offset}
         path = f"site-health/{site_id}"
-        return execute_get(central_conn, endpoint=path, params=params)
+        return execute_get(central_conn, endpoint=path)

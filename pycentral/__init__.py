@@ -1,6 +1,8 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
+__version__ = "2.0a15"
+
 from .base import NewCentralBase
 
 # Manually import each module in the legacy Central folder
