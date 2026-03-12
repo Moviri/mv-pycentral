@@ -26,7 +26,7 @@ Today, there are two versions of PyCentral, each designed for different versions
 | Version                                                        | Supports                                                                                       | Notes                        |
 | :------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- | :--------------------------- |
 | [v1](https://pypi.org/project/pycentral/)                      | HPE Aruba Networking Central (Classic Central)                                                 | Legacy Version               |
-| [v2(pre-release)](https://pypi.org/project/pycentral/2.0a14/) | HPE Aruba Networking Central(new Central), GLP, HPE Aruba Networking Central (Classic Central) | Backwards compatible with v1 |
+| [v2(pre-release)](https://pypi.org/project/pycentral/2.0a15/) | HPE Aruba Networking Central(new Central), GLP, HPE Aruba Networking Central (Classic Central) | Backwards compatible with v1 |
 
 ## Quick Example
 
@@ -46,7 +46,7 @@ central_conn = NewCentralBase(token_info=central_credential)
 
 # Central API Call
 central_resp = central_conn.command(
-    api_method="GET", api_path="network-monitoring/v1alpha1/devices"
+    api_method="GET", api_path="network-monitoring/v1/devices"
 )
 
 # Check response status and print results or error message
