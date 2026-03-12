@@ -1,7 +1,9 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
+from ..exceptions import ParameterError
 from ..utils import SCOPE_URLS, generate_url
+from ..utils.constants import VALID_PERSONAS
 
 
 class ScopeMaps:
@@ -51,10 +53,9 @@ class ScopeMaps:
                     assigned_profiles.append(mapping)
         for profile in assigned_profiles:
             profile.pop("scope-name")
+        return assigned_profiles
 
-    def associate_profile_to_scope(
-        self, central_conn, scope_id, profile_name, persona
-    ):
+    def associate_profile_to_scope(self, central_conn, scope_id, profile_name, persona):
         """Performs a POST call to associate a profile with device persona to the provided scope.
 
         Args:
@@ -69,31 +70,19 @@ class ScopeMaps:
         Returns:
             (dict): JSON Data of returned response from POST call
         """
+        if not profile_name:
+            raise ParameterError("profile_name is required and cannot be empty")
+        if not persona or (isinstance(persona, list) and len(persona) == 0):
+            raise ParameterError("persona is required and cannot be empty")
         api_method = "POST"
         api_path = generate_url(SCOPE_URLS["SCOPE-MAPS"])
-        valid_personas = [
-            "SERVICE_PERSONA",
-            "HYBRID_NAC",
-            "CORE_SWITCH",
-            "BRIDGE",
-            "CAMPUS_AP",
-            "IOT",
-            "MOBILITY_GW",
-            "AGG_SWITCH",
-            "BRANCH_GW",
-            "VPNC",
-            "ACCESS_SWITCH",
-            "MICROBRANCH_AP",
-        ]
-        if isinstance(persona, list) or "ALL" in persona:
-            if "ALL" in persona:
-                persona = valid_personas
+        if isinstance(persona, list) or persona == "ALL":
+            if persona == "ALL":
+                persona = VALID_PERSONAS
             for p in persona:
-                if p not in valid_personas:
+                if p not in VALID_PERSONAS:
                     central_conn.logger.error(
-                        f"{p} is not a valid device persona"
-                        f"Unable to assign profile {profile_name} to "
-                        f"{scope_id}"
+                        f'{p} is not a valid device persona. Unable to assign profile {profile_name} to "{scope_id}"'
                     )
                 api_data = {
                     "scope-map": [
@@ -151,32 +140,23 @@ class ScopeMaps:
         Returns:
             (dict): JSON Data of returned response from DELETE call
         """
+        if not profile_name:
+            raise ParameterError("profile_name is required and cannot be empty")
+        if not persona or (isinstance(persona, list) and len(persona) == 0):
+            raise ParameterError("persona is required and cannot be empty")
         api_method = "DELETE"
         api_path = generate_url(SCOPE_URLS["SCOPE-MAPS"])
-        valid_personas = [
-            "SERVICE_PERSONA",
-            "HYBRID_NAC",
-            "CORE_SWITCH",
-            "BRIDGE",
-            "CAMPUS_AP",
-            "IOT",
-            "MOBILITY_GW",
-            "AGG_SWITCH",
-            "BRANCH_GW",
-            "VPNC",
-            "ACCESS_SWITCH",
-            "MICROBRANCH_AP",
-        ]
         if isinstance(persona, list) or "ALL" in persona:
             if "ALL" in persona:
-                persona = valid_personas
+                persona = VALID_PERSONAS
             for p in persona:
-                if p not in valid_personas:
+                if p not in VALID_PERSONAS:
                     central_conn.logger.error(
                         f"{p} is not a valid device persona"
                         f"Unable to unassign profile {profile_name} from"
                         f" {scope_id}"
                     )
+                    continue
                 api_data = {
                     "scope-map": [
                         {
