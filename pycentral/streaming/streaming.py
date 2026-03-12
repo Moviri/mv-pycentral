@@ -1,5 +1,4 @@
 import ssl
-import time
 import websocket
 from .events.audit import audit_trail_pb2
 from .events.location import location_pb2
@@ -9,6 +8,11 @@ from .events.event import event_pb2
 from google.protobuf.json_format import MessageToDict
 import threading
 import signal
+
+VERSION = "v1alpha1"
+# Central-mandated ping settings (not user-configurable)
+_PING_INTERVAL = 10  # seconds between keep-alive pings
+_PING_TIMEOUT = 5  # seconds to wait for a pong response
 
 # Supported Events and their corresponding endpoints and decoders
 SUPPORTED_EVENTS = {
@@ -36,14 +40,24 @@ class Streaming:
             SUPPORTED_EVENTS (for example, "audit-trail-events").
         reconnect_delay (int, optional): Delay in seconds before attempting
             to reconnect after an unexpected disconnection. Defaults to 5.
-        filters (str | list[str], optional): Either a single filter string or a list of filter strings.
+        max_retries (int|None, optional): Maximum number of reconnection
+            attempts after an unexpected disconnection. ``None`` (default)
+            means retry indefinitely.
+        filters (str|list[str], optional): Either a single filter string or a list of filter strings.
             If a list is provided, its elements will be joined with commas to form the header value.
 
     Raises:
         ValueError: If an unsupported event is provided or filters are of an unexpected type.
     """
 
-    def __init__(self, central_conn, event, reconnect_delay=5, filters=None):
+    def __init__(
+        self,
+        central_conn,
+        event,
+        reconnect_delay=5,
+        max_retries=None,
+        filters=None,
+    ):
         self.central_conn = central_conn
         if event not in SUPPORTED_EVENTS:
             raise ValueError(
@@ -52,26 +66,52 @@ class Streaming:
         self.endpoint = event
         self.decoder = SUPPORTED_EVENTS[event]
         self.reconnect_delay = reconnect_delay
+        self.max_retries = max_retries
         self.logger = central_conn.logger
         self.ws = None
-        self.stop_streaming = False
         self.user_callback = None
 
         self.stop_event = threading.Event()  # Thread-safe stop flag
         self._original_sigint = None
 
-        self.filters = None
-        if filters is not None:
-            if isinstance(filters, str):
-                self.filters = filters
-            elif isinstance(filters, list):
-                if not all(isinstance(f, str) for f in filters):
-                    raise ValueError("All filter values must be strings.")
-                self.filters = ",".join(filters)
-            else:
-                raise ValueError(
-                    "Filters must be a string or a list of strings."
-                )
+        self.filters = self._normalize_filters(filters)
+
+    @staticmethod
+    def _normalize_filters(filters):
+        """Validate and normalise the filters argument to a comma-separated
+        string, or None when no filters are requested.
+
+        Args:
+            filters (str|list[str]|None): Raw filter value supplied by
+                the caller.
+
+        Returns:
+            str|None: Normalised filter string or None.
+
+        Raises:
+            ValueError: For unsupported types or non-string list elements.
+        """
+        if filters is None:
+            return None
+        if isinstance(filters, str):
+            return filters
+        if isinstance(filters, list):
+            if not all(isinstance(f, str) for f in filters):
+                raise ValueError("All filter values must be strings.")
+            return ",".join(filters)
+        raise ValueError("Filters must be a string or a list of strings.")
+
+    def _build_headers(self):
+        """Assemble the HTTP headers required for the WebSocket handshake.
+
+        Returns:
+            list[str]: Header strings ready for websocket.WebSocketApp.
+        """
+        token = self.central_conn.token_info["new_central"]["access_token"]
+        headers = [f"Authorization: Bearer {token}"]
+        if self.filters:
+            headers.append(f"event-types: {self.filters}")
+        return headers
 
     def _on_message(self, ws, message):
         """Handle incoming WebSocket messages.
@@ -101,27 +141,41 @@ class Streaming:
                     f"Callback raised an error: {callback_error}"
                 )
         else:
-            self.logger.info(f"{decoded_message}")
+            self.logger.info(f"{json_message}")
 
     def _on_error(self, ws, error):
         """Handle WebSocket errors.
 
-        If a 401-like error is detected, this method attempts to refresh
-        the access token via the Central connection. If token refresh
-        fails, streaming is stopped.
+        * HTTP 401: attempts a token refresh via the Central connection;
+          stops streaming if the refresh fails.
+        * Other HTTP errors (403, 404, …): unrecoverable — stops streaming
+          immediately so the reconnect loop does not retry indefinitely.
+        * All other errors (network resets, timeouts, …): logged and left
+          for the reconnect loop to handle transparently.
 
         Args:
             ws (websocket.WebSocketApp): WebSocket instance (unused).
             error (Exception|str): Error raised by the WebSocket client.
         """
         self.logger.error(f"WebSocket error: {error}")
-        if "401" in str(error):
-            try:
-                self.central_conn.handle_expired_token("new_central")
-                self.logger.info("Token refreshed. Will reconnect.")
-            except Exception as refresh_error:
-                self.logger.error(f"Token refresh failed: {refresh_error}")
-                self.stop_streaming = True
+        if isinstance(error, websocket.WebSocketBadStatusException):
+            if error.status_code == 401:
+                try:
+                    self.central_conn.handle_expired_token("new_central")
+                    self.logger.info("Token refreshed. Will reconnect.")
+                except Exception as refresh_error:
+                    self.logger.error(f"Token refresh failed: {refresh_error}")
+                    self.stop_event.set()
+            else:
+                # Non-401 HTTP rejection (e.g. 403 Forbidden, 404 Not Found).
+                # Retrying will not fix the problem; stop immediately.
+                self.logger.error(
+                    f"Unrecoverable HTTP error {error.status_code}. "
+                    f"Response body: {error.resp_body}. Stopping."
+                )
+                self.stop_event.set()
+        # For all other error types (OSError, network reset, etc.) the
+        # reconnect loop in stream() will handle retrying automatically.
 
     def _on_close(self, ws, close_status_code, close_msg):
         """Handle WebSocket close events.
@@ -159,11 +213,9 @@ class Streaming:
         base_url = self.central_conn.token_info["new_central"][
             "base_url"
         ].rstrip("/")
-        if base_url.startswith("https://"):
-            ws_base = base_url.replace("https://", "wss://")
-        else:
-            ws_base = f"wss://{base_url}"
-        return f"{ws_base}/network-services/v1alpha1/{self.endpoint}"
+        # Strip any scheme so we can always prefix with wss://
+        host = base_url.replace("https://", "", 1).replace("http://", "", 1)
+        return f"wss://{host}/network-services/{VERSION}/{self.endpoint}"
 
     def stream(self, callback=None):
         """Start streaming messages for the configured event.
@@ -184,23 +236,17 @@ class Streaming:
         """
         self.user_callback = callback
         self.stop_event.clear()
-        self.stop_streaming = False
 
         self._setup_signal_handler()
 
+        retry_count = 0
         try:
             while not self.stop_event.is_set():
                 try:
                     url = self._get_wss_url()
-                    token = self.central_conn.token_info["new_central"][
-                        "access_token"
-                    ]
-                    headers = [f"Authorization: Bearer {token}"]
-                    if self.filters:
-                        headers.append(f"event-types: {self.filters}")
                     self.ws = websocket.WebSocketApp(
                         url,
-                        header=headers,
+                        header=self._build_headers(),
                         on_open=self._on_open,
                         on_close=self._on_close,
                         on_error=self._on_error,
@@ -208,13 +254,28 @@ class Streaming:
                     )
 
                     self.logger.info(f"Connecting to {url}...")
-                    self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+                    self.ws.run_forever(
+                        sslopt={"cert_reqs": ssl.CERT_NONE},
+                        ping_interval=_PING_INTERVAL,
+                        ping_timeout=_PING_TIMEOUT,
+                    )
 
                     if self.stop_event.is_set():
                         break
 
+                    retry_count += 1
+                    if self.max_retries is not None and retry_count >= self.max_retries:
+                        self.logger.error(
+                            f"Max retries ({self.max_retries}) reached. Stopping."
+                        )
+                        self.stop_event.set()
+                        break
+
                     self.logger.info(
-                        f"Connection closed. Reconnecting in {self.reconnect_delay}s…"
+                        f"Connection closed. Reconnecting in {self.reconnect_delay}s… "
+                        f"(attempt {retry_count}"
+                        + (f"/{self.max_retries}" if self.max_retries is not None else "")
+                        + ")"
                     )
                     if self.stop_event.wait(timeout=self.reconnect_delay):
                         break
@@ -225,6 +286,13 @@ class Streaming:
                     )
                     if self.ws:
                         self.ws.close()
+                    retry_count += 1
+                    if self.max_retries is not None and retry_count >= self.max_retries:
+                        self.logger.error(
+                            f"Max retries ({self.max_retries}) reached. Stopping."
+                        )
+                        self.stop_event.set()
+                        break
                     if self.stop_event.wait(timeout=self.reconnect_delay):
                         break
         finally:
@@ -239,9 +307,6 @@ class Streaming:
         """
         self.logger.info("Stop requested.")
         self.stop_event.set()
-        self.stop_streaming = True
-        if self.ws:
-            self.ws.close()
         self._cleanup()
 
     def _cleanup(self):
@@ -260,6 +325,9 @@ class Streaming:
     def _setup_signal_handler(self):
         """Set up signal handler for graceful shutdown on Ctrl+C."""
 
+        if threading.current_thread() is not threading.main_thread():
+            return
+
         def signal_handler(signum, frame):
             self.logger.info("Received interrupt signal. Stopping...")
             self.stop()
@@ -268,6 +336,8 @@ class Streaming:
 
     def _restore_signal_handler(self):
         """Restore the original signal handler."""
+        if threading.current_thread() is not threading.main_thread():
+            return
         if self._original_sigint is not None:
             signal.signal(signal.SIGINT, self._original_sigint)
             self._original_sigint = None
