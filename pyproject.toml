@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pycentral"
+dynamic = ["version"]
+description = "HPE Aruba Networking Central Python Package"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.9"
+authors = [{ name = "aruba-automation", email = "aruba-automation@hpe.com" }]
+classifiers = [
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: System Administrators",
+    "Topic :: System :: Networking",
+    "Development Status :: 4 - Beta",
+]
+dependencies = [
+    "PyYAML==6.0.3",
+    "oauthlib==3.2.2",
+    "requests_oauthlib==2.0.0",
+    "pytz==2025.2",
+    "protobuf==6.33.5",
+    "websocket-client==1.9.0",
+    "httpx[http2]==0.28.0",
+    "requests==2.32.5"
+]
+[project.optional-dependencies]
+colorLog = ["colorlog"]
+
+[project.urls]
+Documentation = "https://pycentral.readthedocs.io/en/v2/"
+Repository = "https://github.com/aruba/pycentral/"
+Issues = "https://github.com/aruba/pycentral/issues"
+
+[tool.setuptools.packages.find]
+exclude = ["docs", "tests", "sample_scripts"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pycentral.__version__"}
