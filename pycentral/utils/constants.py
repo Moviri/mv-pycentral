@@ -74,10 +74,26 @@ SCOPE_URLS = {
     "SCOPE-MAPS": "scope-maps",
 }
 
+VALID_PERSONAS = [
+    "SERVICE_PERSONA",
+    "HYBRID_NAC",
+    "CORE_SWITCH",
+    "BRIDGE",
+    "CAMPUS_AP",
+    "IOT",
+    "MOBILITY_GW",
+    "AGG_SWITCH",
+    "BRANCH_GW",
+    "VPNC",
+    "ACCESS_SWITCH",
+    "MICROBRANCH_AP",
+]
+
 __all__ = [
     "CLUSTER_BASE_URLS",
     "SUPPORTED_CONFIG_PERSONAS",
     "AUTHENTICATION",
     "GLP_URLS",
     "SCOPE_URLS",
+    "VALID_PERSONAS",
 ]
