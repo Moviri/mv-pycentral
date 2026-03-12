@@ -2,7 +2,7 @@ from ..utils.monitoring_utils import execute_get
 from ..exceptions import ParameterError
 
 MONITOR_TYPE = "devices"
-DEVICE_LIMIT = 100
+DEVICE_LIMIT = 1000
 
 
 class MonitoringDevices:
@@ -43,7 +43,7 @@ class MonitoringDevices:
         """
         Retrieve a single page of devices with optional filtering and sorting. This response retrieves a list of network devices that are onboarded and currently being monitored.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/devices`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/devices`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
@@ -120,7 +120,7 @@ class MonitoringDevices:
         """
         Retrieve device data from device inventory API response. This API includes devices yet to be onboarded, as well as those already onboarded and currently being monitored.
 
-        This method makes an API call to the following endpoint - `GET network-monitoring/v1alpha1/device-inventory`
+        This method makes an API call to the following endpoint - `GET network-monitoring/v1/device-inventory`
 
         Args:
             central_conn (NewCentralBase): Central connection object.
