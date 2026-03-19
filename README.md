@@ -129,7 +129,7 @@ The Classic Central functionality is still fully supported by the SDK and has be
 
 ### Documentation
 
-- <a href="https://pycentral.readthedocs.io/en/latest/" target="_blank">Python package documentation</a>
+- <a href="https://pycentral.readthedocs.io/en/v1.4.3/" target="_blank">Python Module documentation</a>
 
 ### **Use-Cases and Workflows**
 - <a href="https://developer.arubanetworks.com/central/docs/python-getting-started" target="_blank">HPE Aruba Networking Developer Hub</a>
