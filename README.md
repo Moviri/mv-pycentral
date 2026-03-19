@@ -35,7 +35,9 @@ pip3 install --upgrade --pre pycentral
 
 ### New Central
 You will need:
-  - **Base URL or Cluster Name**: Base URL is the API Gateway URL for your New Central account based on the geographical cluster of your account on the HPE GreenLake Platform. You can find the base URL or cluster name of your New Central account's API Gateway from the table [here](https://developer.arubanetworks.com/new-central/docs/getting-started-with-rest-apis#base-urls).
+  - **Base URL or Cluster Name**: Identifies your Central Account's API gateway. Both options function identically. Use whichever is convenient:
+    - **Base URL** —  URL for requests to your Central API Gateway. For instructions on how to locate your Base URL, see [Finding Your Base URL in Central](https://developer.arubanetworks.com/new-central/docs/getting-started-with-rest-apis#finding-your-base-url).
+    - **Cluster Name** — Name of the cluster where your account is provisioned. A table detailing all cluster names can be found [here](https://developer.arubanetworks.com/new-central/docs/getting-started-with-rest-apis#api-gateway-base-urls). 
   - **Client ID and Client Secret**: These credentials are required to generate an access token to authenticate API requests. You can obtain them by creating a Personal API Client for your New Central Account. Follow the detailed steps in the [Create Client Credentials documentation](https://developer.arubanetworks.com/new-central/docs/generating-and-managing-access-tokens#create-client-credentials).
 
 ```yaml
@@ -72,36 +74,27 @@ glp:
 ```
 
 Once you have the `token.yaml` file ready, you can run the following Python script:
-
-```python
-import os
+```
 from pycentral import NewCentralBase
 
-# Validate token file exists
 token_file = "token.yaml"
 if not os.path.exists(token_file):
     raise FileNotFoundError(
         f"Token file '{token_file}' not found. Please provide a valid token file."
     )
 
-# Initialize NewCentralBase class with the token credentials for New Central/GLP
-new_central_conn = NewCentralBase(
-    token_info=token_file,
-)
-
-# New Central API Call
-new_central_resp = new_central_conn.command(
-    api_method="GET", api_path="network-monitoring/v1alpha1/aps"
-)
-
-print(new_central_resp)
-print()
-# GLP API Call
-glp_resp = new_central_conn.command(
-    api_method="GET", api_path="devices/v1/devices", app_name="glp"
-)
-
-print(glp_resp)
+with NewCentralBase(token_info=token_file) as conn:
+    # Make the API call to retrieve device inventory
+    resp = conn.command(
+        api_method="GET",
+        api_path="network-monitoring/v1/device-inventory"
+    )
+    
+    # If the response code is 200, print the device inventory response; otherwise, print the error code and message
+    if resp["code"] == 200:
+        print(resp["msg"])
+    else:
+        print(f"Error {resp['code']}: {resp['msg']}")
 ```
 
 Run the script using the following command:
@@ -109,6 +102,7 @@ Run the script using the following command:
 ```bash
 python3 demo.py
 ```
+
 ## Compatibility
 
 - **v2** supports **New Central** and **GLP**.
@@ -118,8 +112,9 @@ python3 demo.py
 ---
 
 ## Documentation
-- [Documentation - Getting Started](https://developer.arubanetworks.com/new-central/docs/getting-started-with-python)
-- [Documentation - Quickstart Guide](https://developer.arubanetworks.com/new-central/docs/pycentral-quickstart-guide)
+- [Getting Started](https://developer.arubanetworks.com/new-central/docs/getting-started-with-python)
+- [Authentication](https://developer.arubanetworks.com/new-central/docs/pycentral-quickstart-guide)
+- [Quickstart Guide](https://developer.arubanetworks.com/new-central/docs/pycentral-quickstart-guide) 
 
 ---
 
