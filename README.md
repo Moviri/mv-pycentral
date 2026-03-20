@@ -78,6 +78,7 @@ Once you have the `token.yaml` file ready, you can run the following Python scri
 import os
 from pycentral import NewCentralBase
 
+# Validate token file existså
 token_file = "token.yaml"
 if not os.path.exists(token_file):
     raise FileNotFoundError(
