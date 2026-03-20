@@ -23,7 +23,7 @@ MAX_CONNECTIONS = 7
 
 
 class NewCentralBase:
-    def __init__(self, token_info, logger=None, log_level="DEBUG", enable_scope=False):
+    def __init__(self, token_info, logger=None, log_level="INFO", enable_scope=False):
         """Constructor initializes the NewCentralBase class with token information and logging configuration.
 
         Validates and processes the provided token information, sets up logging,
@@ -34,7 +34,7 @@ class NewCentralBase:
                 applications (new_central, glp). Can also be a string path to a YAML or
                 JSON file with token information.
             logger (logging.Logger, optional): Logger instance. Defaults to None.
-            log_level (str, optional): Logging level. Defaults to "DEBUG".
+            log_level (str, optional): Logging level. Defaults to "INFO".
             enable_scope (bool, optional): Flag to enable scope management. If True, the SDK
                 will automatically fetch data about existing scopes and associated profiles,
                 simplifying scope and configuration management. If False, scope-related API

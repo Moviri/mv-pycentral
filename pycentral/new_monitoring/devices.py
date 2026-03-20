@@ -70,7 +70,6 @@ class MonitoringDevices:
         central_conn,
         filter_str=None,
         sort=None,
-        search=None,
         site_assigned=None,
     ):
         """
@@ -80,7 +79,6 @@ class MonitoringDevices:
             central_conn (NewCentralBase): Central connection object.
             filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
             sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
-            search (str, optional): Search string to filter results.
             site_assigned (str|None, optional): Filter by site-assigned status.
         Returns:
             (list[dict]): Processed list of all devices from inventory.
@@ -93,7 +91,6 @@ class MonitoringDevices:
                 central_conn,
                 filter_str=filter_str,
                 sort=sort,
-                search=search,
                 site_assigned=site_assigned,
                 limit=DEVICE_LIMIT,
                 next=next_int,
@@ -112,7 +109,6 @@ class MonitoringDevices:
         central_conn,
         filter_str=None,
         sort=None,
-        search=None,
         site_assigned=None,
         limit=DEVICE_LIMIT,
         next=1,
@@ -126,7 +122,6 @@ class MonitoringDevices:
             central_conn (NewCentralBase): Central connection object.
             filter_str (str, optional): Optional filter expression (supported fields documented in API Reference Guide).
             sort (str, optional): Optional sort parameter (supported fields documented in API Reference Guide).
-            search (str, optional): Search string to filter results.
             site_assigned (str|None, optional): Filter by site-assigned status. Supported values are "ASSIGNED", "UNASSIGNED"
             limit (int, optional): Number of entries to return (default is 100).
             next (int, optional): Pagination cursor for next page of resources (default is 1).
@@ -140,7 +135,6 @@ class MonitoringDevices:
             "next": next,
             "filter": filter_str,
             "sort": sort,
-            "search": search,
             "site-assigned": site_assigned,
         }
         path = "device-inventory"
