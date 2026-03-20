@@ -78,14 +78,16 @@ Once you have the `token.yaml` file ready, you can run the following Python scri
 import os
 from pycentral import NewCentralBase
 
-# Validate token file existså
+# Validate token file exists
 token_file = "token.yaml"
 if not os.path.exists(token_file):
     raise FileNotFoundError(
         f"Token file '{token_file}' not found. Please provide a valid token file."
     )
 
+# Initialize NewCentralBase class with the token credentials for New Central/GLP
 with NewCentralBase(token_info=token_file) as conn:
+   
     # Make the API call to retrieve device inventory
     resp = conn.command(
         api_method="GET",
