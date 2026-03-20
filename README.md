@@ -74,7 +74,8 @@ glp:
 ```
 
 Once you have the `token.yaml` file ready, you can run the following Python script:
-```
+```python
+import os
 from pycentral import NewCentralBase
 
 token_file = "token.yaml"
