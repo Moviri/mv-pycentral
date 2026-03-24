@@ -2,6 +2,7 @@
 # MIT License
 
 import logging
+import warnings
 import yaml
 import json
 import os
@@ -125,7 +126,17 @@ def _resolve_base_url(app, app_token_info):
                     f"Invalid cluster_name '{cluster_name}' provided. Supported clusters: {', '.join(CLUSTER_BASE_URLS.keys())}"
                 )
         if "base_url" in app_token_info:
-            return valid_url(app_token_info["base_url"])
+            resolved = valid_url(app_token_info["base_url"])
+            known_urls = {u.rstrip("/") for u in CLUSTER_BASE_URLS.values()}
+            if resolved.rstrip("/") not in known_urls:
+                warnings.warn(
+                    f"'{resolved}' is not a recognised Central cluster URL. "
+                    f"Known clusters: {', '.join(CLUSTER_BASE_URLS.keys())}. "
+                    "Proceeding anyway. This is expected for non-production Central clusters",
+                    UserWarning,
+                    stacklevel=4,
+                )
+            return resolved
         raise ValueError(
             "For new_central, either 'cluster_name' or 'base_url' must be provided."
         )
