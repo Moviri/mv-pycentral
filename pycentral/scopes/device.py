@@ -86,26 +86,16 @@ class Device(ScopeBase):
         """
 
         # If device_attributes is provided, use it to set attributes
-        self.materialized = from_api
+        self.materialized = False
         self.central_conn = central_conn
         self.type = "device"
         if from_api:
-            # Rename keys if attributes are from API
-            device_attributes = self.__rename_keys(
-                device_attributes, API_ATTRIBUTE_MAPPING
-            )
-            device_attributes["assigned_profiles"] = []
-            for key, value in device_attributes.items():
-                setattr(self, key, value)
-
-            if (
-                self.provisioned_status
-                and device_attributes["device_function"]
-                in SUPPORTED_CONFIG_PERSONAS
-            ):
-                self.config_persona = SUPPORTED_CONFIG_PERSONAS[
-                    device_attributes["device_function"]
-                ]
+            if device_attributes is None:
+                raise ValueError(
+                    "'device_attributes' must be provided when 'from_api=True'."
+                )
+            self._apply_api_attributes(device_attributes)
+            self.materialized = True
         # If only serial is provided, set it and defer fetching other details
         elif serial:
             self.serial = serial
@@ -145,17 +135,11 @@ class Device(ScopeBase):
         )
         self.materialized = len(device_data["items"]) == 1
         if not self.materialized:
-            self.materialized = False
             self.central_conn.logger.error(
                 f"Unable to fetch device {self.get_serial()} from Central"
             )
         else:
-            device_attributes = self.__rename_keys(
-                device_data["items"][0], API_ATTRIBUTE_MAPPING
-            )
-            device_attributes["assigned_profiles"] = []
-            for key, value in device_attributes.items():
-                setattr(self, key, value)
+            self._apply_api_attributes(device_data["items"][0])
             self.central_conn.logger.info(
                 f"Successfully fetched device {self.get_serial()}'s data from Central."
             )
@@ -190,6 +174,27 @@ class Device(ScopeBase):
                 if device.get("isProvisioned") == "Yes"
             ]
         return device_list
+
+    def _apply_api_attributes(self, raw_api_dict):
+        """Renames API response keys and applies them as object attributes.
+
+        Also sets assigned_profiles to an empty list and assigns config_persona
+        if the device is provisioned and its device_function is a supported persona.
+
+        Args:
+            raw_api_dict (dict): Raw dict from the Central API response
+        """
+        device_attributes = self.__rename_keys(raw_api_dict, API_ATTRIBUTE_MAPPING)
+        device_attributes["assigned_profiles"] = []
+        for key, value in device_attributes.items():
+            setattr(self, key, value)
+
+        device_function = device_attributes.get("device_function")
+        if (
+            getattr(self, "provisioned_status", False)
+            and device_function in SUPPORTED_CONFIG_PERSONAS
+        ):
+            self.config_persona = SUPPORTED_CONFIG_PERSONAS[device_function]
 
     def __rename_keys(self, api_dict, api_attribute_mapping):
         """Renames the keys of the attributes from the API response.
