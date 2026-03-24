@@ -6,7 +6,7 @@ from requests_oauthlib import OAuth2Session
 from requests.auth import HTTPBasicAuth
 from oauthlib.oauth2 import BackendApplicationClient
 import json
-import requests
+import time
 from .utils.base_utils import (
     build_url,
     new_parse_input_args,
@@ -20,6 +20,16 @@ import httpx
 
 SUPPORTED_API_METHODS = ("POST", "PATCH", "DELETE", "GET", "PUT")
 MAX_CONNECTIONS = 7
+RETRY_MAX_RETRIES = 3
+RETRY_INITIAL_BACKOFF = 1.0
+RETRY_MAX_BACKOFF = 10.0
+RETRY_BACKOFF_MULTIPLIER = 2.0
+TRANSIENT_TRANSPORT_ERRORS = (
+    httpx.ConnectError,
+    httpx.TimeoutException,
+    httpx.NetworkError,
+    httpx.ProxyError,
+)
 
 
 class NewCentralBase:
@@ -96,9 +106,9 @@ class NewCentralBase:
     def create_token(self, app_name):
         """Create a new access token for the specified application.
 
-        Generates a new access token using the client credentials for the specified
-        application, updates the `self.token_info` dictionary with the new token,
-        and optionally saves it to a file.
+        Validates that client credentials exist for the app, then generates a new
+        access token, updates ``self.token_info`` with the new token, and optionally
+        saves it to a file.
 
         Args:
             app_name (str): Name of the application. Supported applications: "new_central", "glp".
@@ -107,9 +117,16 @@ class NewCentralBase:
             (str): Access token.
 
         Raises:
-            LoginError: If there is an error during token creation.
+            LoginError: If client credentials are missing or token creation fails.
         """
-        client_id, client_secret = self._return_client_credentials(app_name)
+        app_token_info = self.token_info[app_name]
+        client_id = app_token_info.get("client_id")
+        client_secret = app_token_info.get("client_secret")
+        if not client_id or not client_secret:
+            msg = f"Please provide client_id and client_secret in {app_name} required to generate an access token"
+            self.logger.error(msg)
+            raise LoginError(msg)
+
         client = BackendApplicationClient(client_id)
 
         oauth = OAuth2Session(client=client)
@@ -152,26 +169,6 @@ class NewCentralBase:
             self.logger.error(msg)
             raise LoginError(msg, status_code)
 
-    def handle_expired_token(self, app_name):
-        """Handle expired access token by creating a new one.
-
-        Args:
-            app_name (str): Name of the application.
-
-        Raises:
-            LoginError: If client credentials are missing.
-        """
-        self.logger.info(
-            f"{app_name} access token has expired. Handling Token Expiry..."
-        )
-        client_id, client_secret = self._return_client_credentials(app_name)
-        if any(credential is None for credential in [client_id, client_secret]):
-            msg = f"Please provide client_id and client_secret in {app_name} required to generate an access token"
-            self.logger.error(msg)
-            raise LoginError(msg)
-        else:
-            self.create_token(app_name)
-
     def command(
         self,
         api_method,
@@ -190,7 +187,7 @@ class NewCentralBase:
 
         The method automatically:
             - Validates the application name and HTTP method
-            - Constructs the full URL from self.base_url and api_path
+            - Constructs the full URL from self.token_info[app_name]["base_url"] and api_path
             - Adds appropriate headers (Content-Type, Accept) if not provided
             - Serializes api_data to JSON when Content-Type is application/json
             - Handles 401 errors by refreshing the access token and retrying if client credentials are available
@@ -256,7 +253,10 @@ class NewCentralBase:
                         )
                         limit_reached = True
                         break
-                    self.handle_expired_token(app_name)
+                    self.logger.info(
+                        f"{app_name} access token has expired. Handling Token Expiry..."
+                    )
+                    self.create_token(app_name)
                     retry += 1
                 else:
                     break
@@ -349,45 +349,68 @@ class NewCentralBase:
 
         Raises:
             ResponseError: If there is an error during the API call.
+
+        Note:
+            Transient transport failures (DNS resolution errors, connection failures,
+            timeouts, and proxy errors) are automatically retried with exponential
+            backoff up to ``RETRY_MAX_RETRIES`` attempts. All other exceptions are
+            raised immediately as ``ResponseError`` without retrying.
         """
         req_headers = dict(headers) if headers else {}
         req_headers["authorization"] = "Bearer " + access_token
 
-        try:
-            # Build keyword args — httpx does not allow content + data + files together
-            kwargs = {
-                "method": method,
-                "url": url,
-                "headers": req_headers,
-            }
-            if params:
-                kwargs["params"] = params
-            if files:
-                # Multipart upload: use files + optional form data (dict only)
-                kwargs["files"] = files
-                if data and isinstance(data, dict):
-                    kwargs["data"] = data
-            elif isinstance(data, str):
-                # Pre-serialized JSON string — pass directly, httpx handles encoding
-                kwargs["content"] = data
-            elif isinstance(data, bytes):
-                # Raw bytes
-                kwargs["content"] = data
-            elif isinstance(data, dict) and data:
-                # Form-encoded dict
+        # Build keyword args — httpx does not allow content + data + files together
+        kwargs = {
+            "method": method,
+            "url": url,
+            "headers": req_headers,
+        }
+        if params:
+            kwargs["params"] = params
+        if files:
+            # Multipart upload: use files + optional form data (dict only)
+            kwargs["files"] = files
+            if data and isinstance(data, dict):
                 kwargs["data"] = data
+        elif isinstance(data, str):
+            # Pre-serialized JSON string — pass directly, httpx handles encoding
+            kwargs["content"] = data
+        elif isinstance(data, bytes):
+            # Raw bytes
+            kwargs["content"] = data
+        elif isinstance(data, dict) and data:
+            # Form-encoded dict
+            kwargs["data"] = data
 
-            http_client = self._http_clients.get(app_name)
-            if http_client is None:
-                http_client = self._create_http_client(app_name)
-                self._http_clients[app_name] = http_client
+        http_client = self._http_clients.get(app_name)
+        if http_client is None:
+            http_client = self._create_http_client(app_name)
+            self._http_clients[app_name] = http_client
 
-            resp = http_client.request(**kwargs)
-            return resp
-        except Exception as err:
-            err_str = f"Failed making request to URL {url} with error {err}"
-            self.logger.error(err_str)
-            raise ResponseError(err_str, err)
+        retry_count = 0
+        while True:
+            try:
+                return http_client.request(**kwargs)
+            except TRANSIENT_TRANSPORT_ERRORS as err:
+                if retry_count >= RETRY_MAX_RETRIES:
+                    err_str = f"Failed making request to URL {url} with error {err}"
+                    self.logger.error(err_str)
+                    raise ResponseError(err_str, err)
+                retry_count += 1
+                delay = min(
+                    RETRY_INITIAL_BACKOFF * (RETRY_BACKOFF_MULTIPLIER ** (retry_count - 1)),
+                    RETRY_MAX_BACKOFF,
+                )
+                self.logger.warning(
+                    "Transient transport failure on %s %s for app %s "
+                    "(retry %s/%s): %s. Retrying in %.1f seconds.",
+                    method, url, app_name, retry_count, RETRY_MAX_RETRIES, err, delay,
+                )
+                time.sleep(delay)
+            except Exception as err:
+                err_str = f"Failed making request to URL {url} with error {err}"
+                self.logger.error(err_str)
+                raise ResponseError(err_str, err)
 
     def _validate_request(self, app_name, method):
         """Validate that provided app has access_token and a valid HTTP method.
@@ -415,24 +438,6 @@ class NewCentralBase:
             )
             self.logger.error(error_string)
             raise ValueError(error_string)
-
-    def _return_client_credentials(self, app_name):
-        """Return client credentials for the specified application.
-
-        Args:
-            app_name (str): Name of the application.
-
-        Returns:
-            (tuple): Client ID and client secret as a tuple (client_id, client_secret).
-        """
-        app_token_info = self.token_info[app_name]
-        if all(
-            client_key in app_token_info
-            for client_key in ("client_id", "client_secret")
-        ):
-            client_id = app_token_info["client_id"]
-            client_secret = app_token_info["client_secret"]
-            return client_id, client_secret
 
     def get_scopes(self):
         """Set up the scopes for the current instance by creating a Scopes object.

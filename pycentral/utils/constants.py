@@ -23,18 +23,21 @@ Attributes:
 """
 
 CLUSTER_BASE_URLS = {
-    "EU-1": "https://ge1.api.central.arubanetworks.com",
-    "EU-Central2": "https://ge2.api.central.arubanetworks.com",
-    "EU-Central3": "https://ge3.api.central.arubanetworks.com",
+    "EU-1": "https://de1.api.central.arubanetworks.com",
+    "EU-Central2": "https://de2.api.central.arubanetworks.com",
+    "EU-Central3": "https://de3.api.central.arubanetworks.com",
+    "UK": "https://gb1.api.central.arubanetworks.com",
     "US-1": "https://us1.api.central.arubanetworks.com",
     "US-2": "https://us2.api.central.arubanetworks.com",
     "US-WEST-4": "https://us4.api.central.arubanetworks.com",
     "US-WEST-5": "https://us5.api.central.arubanetworks.com",
     "US-East1": "https://us6.api.central.arubanetworks.com",
-    "Canada-1": "https://cn1.api.central.arubanetworks.com",
-    "APAC-1": "https://in.api.central.arubanetworks.com",
+    "Canada-1": "https://ca1.api.central.arubanetworks.com",
+    "APAC-1": "https://in1.api.central.arubanetworks.com",
     "APAC-EAST1": "https://jp1.api.central.arubanetworks.com",
     "APAC-SOUTH1": "https://au1.api.central.arubanetworks.com",
+    "UAE": "https://ae1.api.central.arubanetworks.com",
+    "China": "https://cn1.api.central.arubanetworks.com.cn",
     "Internal": "https://internal.api.central.arubanetworks.com",
 }
 

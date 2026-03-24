@@ -16,26 +16,14 @@ If you're just testing an API, using **Access Token** is fine
 
 ## New Central
 
-**Base URL**  
-   You can find your Central account's base URL from the table here:  
+**Base URL or Cluster Name (Choose one)**
+Identifies your Central Account's API gateway. Both options function identically. Use whichever is convenient:
 
-| Cluster                  | Base URL                               |
-| :----------------------- | :------------------------------------- |
-| EU-1 (eu)                | de1.api.central.arubanetworks.com      |
-| EU-Central2 (eucentral2) | de2.api.central.arubanetworks.com      |
-| EU-Central3 (eucentral3) | de3.api.central.arubanetworks.com      |
-| US-1 (prod)              | us1.api.central.arubanetworks.com      |
-| US-2 (central-prod2)     | us2.api.central.arubanetworks.com      |
-| US-WEST-4 (uswest4)      | us4.api.central.arubanetworks.com      |
-| US-WEST-5 (uswest5)      | us5.api.central.arubanetworks.com      |
-| US-East1 (us-east-1)     | us6.api.central.arubanetworks.com      |
-| Canada-1 (starman)       | ca1.api.central.arubanetworks.com      |
-| APAC-1 (apac)            | in.api.central.arubanetworks.com       |
-| APAC-EAST1 (apaceast)    | jp1.api.central.arubanetworks.com      |
-| APAC-SOUTH1 (apacsouth)  | au1.api.central.arubanetworks.com      |
-| Internal (internal)      | internal.api.central.arubanetworks.com |
+- Base URL
+    Base of the URL for requests to your Central API Gateway. For instructions on how to locate your Base URL, see [Finding Your Base URL in Central](https://developer.arubanetworks.com/new-central/docs/getting-started-with-rest-apis#finding-your-base-url).
+- Cluster Name
+    Name of the cluster where your account is provisioned. A table detailing all cluster names can be found [here](https://developer.arubanetworks.com/new-central/docs/getting-started-with-rest-apis#api-gateway-base-urls).
 
-Ensure you use the correct Base URL in your API calls. Using the wrong Base URL will result in failed requests.
 
 **API Credentials** (Choose one):
 
