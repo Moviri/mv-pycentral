@@ -140,7 +140,7 @@ class Device(ScopeBase):
 
         device_data = MonitoringDevices.get_device_inventory(
             central_conn=self.central_conn,
-            search=str(self.get_serial()),
+            filter_str=f"serialNumber eq {self.get_serial()}",
             limit=1,
         )
         self.materialized = len(device_data["items"]) == 1
