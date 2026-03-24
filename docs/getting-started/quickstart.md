@@ -1,6 +1,9 @@
 # Quick Start
 With authentication set-up, let's see how to use PyCentral to interact with New Central.
 
+!!! note "Authentication"
+    This guide assumes you already have your API credentials ready. For help obtaining credentials, see the [Authentication Guide](authentication.md).
+
 ## Basic Setup
 Before running a script, create a `token.yaml`. This file provides the authentication credentials required by the SDK to make API calls to New Central.
 You will need to populate it with the required credentials as follows:
