@@ -12,25 +12,7 @@ new_central:
   client_secret: <client-secret>
 ```
 
-Find your base URL:
 
-| Cluster                  | Base URL                               |
-| :----------------------- | :------------------------------------- |
-| EU-1 (eu)                | de1.api.central.arubanetworks.com      |
-| EU-Central2 (eucentral2) | de2.api.central.arubanetworks.com      |
-| EU-Central3 (eucentral3) | de3.api.central.arubanetworks.com      |
-| US-1 (prod)              | us1.api.central.arubanetworks.com      |
-| US-2 (central-prod2)     | us2.api.central.arubanetworks.com      |
-| US-WEST-4 (uswest4)      | us4.api.central.arubanetworks.com      |
-| US-WEST-5 (uswest5)      | us5.api.central.arubanetworks.com      |
-| US-East1 (us-east-1)     | us6.api.central.arubanetworks.com      |
-| Canada-1 (starman)       | ca1.api.central.arubanetworks.com      |
-| APAC-1 (apac)            | in.api.central.arubanetworks.com       |
-| APAC-EAST1 (apaceast)    | jp1.api.central.arubanetworks.com      |
-| APAC-SOUTH1 (apacsouth)  | au1.api.central.arubanetworks.com      |
-| Internal (internal)      | internal.api.central.arubanetworks.com |
-
-In the above `token.yaml` file, only New Central API credentials are provided as the quickstart example script will only be making API calls to New Central. If your script needs to make API calls to GLP, you will need to include your GLP API client credentials or token.
 
 ### Example: Python Script to Get Devices
 
