@@ -1,7 +1,7 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-__version__ = "2.0a17"
+__version__ = "2.0a18"
 
 from .base import NewCentralBase
 
