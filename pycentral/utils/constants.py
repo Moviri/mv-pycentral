@@ -53,8 +53,11 @@ SUPPORTED_CONFIG_PERSONAS = {
     "Hybrid NAC": "HYBRID_NAC",
 }
 
-AUTHENTICATION = {"OAUTH": "https://sso.common.cloud.hpe.com/as/token.oauth2"}
-
+AUTHENTICATION = {
+    "OAUTH": "https://sso.common.cloud.hpe.com/as/token.oauth2",
+    # This is te token issuer URL used for unified credential management
+    "OAUTH_GLOBAL": "https://global.api.greenlake.hpe.com/authorization/v2/oauth2",
+}
 GLP_URLS = {
     "BaseURL": "https://global.api.greenlake.hpe.com",
     "DEVICE": "devices",

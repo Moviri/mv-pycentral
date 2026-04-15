@@ -7,7 +7,7 @@ name = "pycentral"
 dynamic = ["version"]
 description = "HPE Aruba Networking Central Python Package"
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [{ name = "aruba-automation", email = "aruba-automation@hpe.com" }]
 classifiers = [
     "Programming Language :: Python :: 3 :: Only",
@@ -25,7 +25,7 @@ dependencies = [
     "protobuf==6.33.5",
     "websocket-client==1.9.0",
     "httpx[http2]==0.28.1",
-    "requests==2.32.5"
+    "requests==2.33.0"
 ]
 [project.optional-dependencies]
 colorLog = ["colorlog"]

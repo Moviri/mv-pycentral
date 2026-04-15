@@ -58,6 +58,55 @@ Classic Central suppports authentication methods for access tokens or generating
 - Access Token  
     Manually, retrieve an access token. Learn how to retreive an access token [here](https://developer.arubanetworks.com/central/docs/api-gateway-creating-application-token). **(Tokens expire in 2 hours)**
 
+## Unified Credentials
+
+PyCentral also supports a **unified credential** model. Instead of providing separate `glp` and `new_central` credential blocks, you provide one `unified` block using your GLP client credentials. The SDK generates one token through GLP auth (using `workspace_id`) and reuses that same token for both GLP and New Central API calls.
+
+### How It Works
+
+- You provide GLP `client_id`, `client_secret`, and `workspace_id` in a single `unified` block.
+- The SDK creates one access token via GLP and uses it for both GLP and New Central calls.
+- No separate `glp` or `new_central` credential blocks are needed. If `unified` is present, standalone `glp` and `new_central` entries are ignored.
+
+### Required Fields
+
+| Field | Required | Description |
+| :--- | :--- | :--- |
+| `client_id` | Yes | GLP client ID |
+| `client_secret` | Yes | GLP client secret |
+| `workspace_id` | Yes | GLP workspace ID |
+| `base_url` or `cluster_name` | Only for New Central calls | Identifies the Central API gateway. Omit if you only need GLP APIs |
+| `access_token` | No | Pre-existing token; if omitted the SDK generates one automatically |
+
+### Configuration Examples
+
+**Unified — GLP + New Central**
+
+```python
+token_info = {
+    "unified": {
+        "client_id": "<glp-client-id>",
+        "client_secret": "<glp-client-secret>",
+        "workspace_id": "<workspace-id>",
+        "cluster_name": "Internal"  # or "base_url": "https://apigw-<cluster>.central.arubanetworks.com"
+    }
+}
+```
+
+**Unified — GLP Only**
+
+```python
+token_info = {
+    "unified": {
+        "client_id": "<glp-client-id>",
+        "client_secret": "<glp-client-secret>",
+        "workspace_id": "<workspace-id>"
+    }
+}
+```
+
+This enables GLP APIs only. Add `base_url` or `cluster_name` to also enable New Central APIs.
+
 ## Next Steps
 
 - [Quick Start](quickstart.md) - Start using PyCentral
