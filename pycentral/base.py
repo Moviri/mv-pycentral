@@ -14,7 +14,6 @@ from .utils.base_utils import (
     save_access_token,
 )
 from .scopes import Scopes
-from .utils import AUTHENTICATION
 from .exceptions import LoginError, ResponseError
 import httpx
 
@@ -34,7 +33,8 @@ TRANSIENT_TRANSPORT_ERRORS = (
 
 class NewCentralBase:
     def __init__(self, token_info, logger=None, log_level="INFO", enable_scope=False):
-        """Constructor initializes the NewCentralBase class with token information and logging configuration.
+        """
+        Constructor initializes the NewCentralBase class with token information and logging configuration.
 
         Validates and processes the provided token information, sets up logging,
         and optionally initializes scope-related functionality.
@@ -55,22 +55,17 @@ class NewCentralBase:
         if isinstance(token_info, str):
             self.token_file_path = token_info
         self.logger = self.set_logger(log_level, logger)
+        self._app_routes = self._build_app_routes()
         self.scopes = None
         self._http_clients = {}
-        for app_name in self.token_info:
-            self._http_clients[app_name] = self._create_http_client(app_name)
-        for app in self.token_info:
-            app_token_info = self.token_info[app]
-            if (
-                "access_token" not in app_token_info
-                or app_token_info["access_token"] is None
-            ):
-                self.create_token(app)
+        self._initialize_http_clients()
+        self._initialize_tokens()
         if enable_scope:
             self.scopes = Scopes(central_conn=self)
 
     def set_logger(self, log_level, logger=None):
-        """Set up the logger.
+        """
+        Set up the logger.
 
         Args:
             log_level (str): Logging level.
@@ -84,18 +79,84 @@ class NewCentralBase:
         else:
             return console_logger("NEW CENTRAL BASE", log_level)
 
+    def _build_app_routes(self):
+        """
+        Build a per-app routing table from token_info, computed once at init.
+
+        Maps each caller-facing app name ('glp', 'new_central') to its
+        base_url and the token_info key holding the access token.
+
+        Returns:
+            (dict): Mapping of app_name to {"base_url": str, "token_key": str}.
+
+        Note:
+            Internal SDK function
+        """
+        routes = {}
+        if "unified" in self.token_info:
+            unified = self.token_info["unified"]
+            routes["glp"] = {
+                "base_url": unified["glp_base_url"],
+                "token_key": "unified",
+            }
+            if unified.get("base_url"):
+                routes["new_central"] = {
+                    "base_url": unified["base_url"],
+                    "token_key": "unified",
+                }
+        else:
+            for app_name, app_info in self.token_info.items():
+                routes[app_name] = {
+                    "base_url": app_info["base_url"],
+                    "token_key": app_name,
+                }
+        return routes
+
+    def _initialize_http_clients(self):
+        """Create HTTP clients for every app in the routing table."""
+        for app_name in self._app_routes:
+            self._http_clients[app_name] = self._create_http_client(app_name)
+        if "unified" in self.token_info and "new_central" not in self._app_routes:
+            self.logger.info(
+                "Unified mode: no 'base_url' or 'cluster_name' was provided for "
+                "Central. Only GLP API calls are supported. Add 'base_url' or "
+                "'cluster_name' under 'unified' credentials to also enable Central calls."
+            )
+
+    def _initialize_tokens(self):
+        """Fetch an access token for any app that does not already have one."""
+        for app in list(self.token_info):
+            app_token_info = self.token_info[app]
+            if (
+                "access_token" not in app_token_info
+                or app_token_info["access_token"] is None
+            ):
+                self.create_token(app)
+
     def _create_http_client(self, app_name):
-        """Create an HTTP client for a specific app.
+        """
+        Create an HTTP client for a specific app.
 
         Uses tuned connection limits for New Central and default connection
         limits for all other apps (including GLP).
+
+        Args:
+            app_name (str): Name of the application (e.g., "new_central", "glp").
+
+        Returns:
+            (httpx.Client): Configured HTTP client instance.
+
+        Note:
+            Internal SDK function
         """
         client_kwargs = {
             "http2": True,
             "timeout": httpx.Timeout(30.0, connect=10.0),
             "verify": True,
         }
-        if app_name == "new_central":
+        # Apply tuned connection limits for Central requests
+        # (both standalone new_central and the unified platform client for Central)
+        if app_name in ("new_central",):
             client_kwargs["limits"] = httpx.Limits(
                 max_connections=MAX_CONNECTIONS,
                 max_keepalive_connections=5,
@@ -104,11 +165,12 @@ class NewCentralBase:
         return httpx.Client(**client_kwargs)
 
     def create_token(self, app_name):
-        """Create a new access token for the specified application.
+        """
+        Create a new access token for the specified application.
 
-        Validates that client credentials exist for the app, then generates a new
-        access token, updates ``self.token_info`` with the new token, and optionally
-        saves it to a file.
+        Generates a new access token using the client credentials for the specified
+        application, updates the self.token_info dictionary with the new token,
+        and optionally saves it to a file.
 
         Args:
             app_name (str): Name of the application. Supported applications: "new_central", "glp".
@@ -117,25 +179,25 @@ class NewCentralBase:
             (str): Access token.
 
         Raises:
-            LoginError: If client credentials are missing or token creation fails.
+            LoginError: If there is an error during token creation.
         """
-        app_token_info = self.token_info[app_name]
-        client_id = app_token_info.get("client_id")
-        client_secret = app_token_info.get("client_secret")
-        if not client_id or not client_secret:
-            msg = f"Please provide client_id and client_secret in {app_name} required to generate an access token"
-            self.logger.error(msg)
-            raise LoginError(msg)
-
+        client_id, client_secret = self._return_client_credentials(app_name)
         client = BackendApplicationClient(client_id)
 
         oauth = OAuth2Session(client=client)
         auth = HTTPBasicAuth(client_id, client_secret)
 
+        token_url = self.token_info[app_name].get("_token_url")
+        if not token_url:
+            raise ValueError(
+                f"Cannot determine token URL for '{app_name}'. "
+                "Ensure valid credentials (including workspace_id for unified mode) are provided."
+            )
+
         try:
             self.logger.info(f"Attempting to create new token from {app_name}")
-            token = oauth.fetch_token(token_url=AUTHENTICATION["OAUTH"], auth=auth)
-
+            token = oauth.fetch_token(token_url=token_url, auth=auth)
+            self.logger.debug(f"Token response for {app_name}: {token}")
             if "access_token" in token:
                 self.logger.info(
                     f"{app_name} Login Successful.. Obtained Access Token!"
@@ -179,7 +241,8 @@ class NewCentralBase:
         headers=None,
         files=None,
     ):
-        """Execute an API command to HPE Aruba Networking Central or GreenLake Platform.
+        """
+        Execute an API command to HPE Aruba Networking Central or GreenLake Platform.
 
         This is the primary method for making API calls from the SDK. It handles
         authentication, token refresh on expiry, request formatting, and response
@@ -187,7 +250,7 @@ class NewCentralBase:
 
         The method automatically:
             - Validates the application name and HTTP method
-            - Constructs the full URL from self.token_info[app_name]["base_url"] and api_path
+            - Constructs the full URL from self.base_url and api_path
             - Adds appropriate headers (Content-Type, Accept) if not provided
             - Serializes api_data to JSON when Content-Type is application/json
             - Handles 401 errors by refreshing the access token and retrying if client credentials are available
@@ -229,9 +292,11 @@ class NewCentralBase:
         req_headers = self._build_request_headers(headers, files)
         req_data = self._serialize_request_data(api_data, req_headers)
 
-        url = build_url(self.token_info[app_name]["base_url"], api_path)
+        route = self._app_routes[app_name]
+        url = build_url(route["base_url"], api_path)
 
         retry = 0
+        resp = None
         limit_reached = False
         try:
             while not limit_reached:
@@ -242,7 +307,7 @@ class NewCentralBase:
                     headers=req_headers,
                     params=api_params,
                     files=files,
-                    access_token=self.token_info[app_name]["access_token"],
+                    access_token=self.token_info[route["token_key"]]["access_token"],
                     app_name=app_name,
                 )
                 if resp.status_code == 401:
@@ -256,10 +321,16 @@ class NewCentralBase:
                     self.logger.info(
                         f"{app_name} access token has expired. Handling Token Expiry..."
                     )
-                    self.create_token(app_name)
+                    self.create_token(route["token_key"])
                     retry += 1
                 else:
                     break
+
+            if resp is None:
+                raise ResponseError(
+                    f"{api_method} FAILURE ",
+                    RuntimeError(f"No response returned for {api_method} {url}"),
+                )
 
             result = {
                 "code": resp.status_code,
@@ -280,7 +351,18 @@ class NewCentralBase:
             raise ResponseError(err_str, err)
 
     def _prepare_query_params(self, api_params):
-        """Return query params with None-valued entries removed."""
+        """
+        Return query params with None-valued entries removed.
+
+        Args:
+            api_params (dict or None): Query parameters to filter.
+
+        Returns:
+            (dict): Query parameters with None values removed.
+
+        Note:
+            Internal SDK function
+        """
         if api_params is None:
             return {}
         if isinstance(api_params, dict):
@@ -290,7 +372,19 @@ class NewCentralBase:
         return api_params
 
     def _build_request_headers(self, headers, files):
-        """Build request headers without mutating caller-provided headers."""
+        """
+        Build request headers without mutating caller-provided headers.
+
+        Args:
+            headers (dict or None): Custom HTTP headers provided by the caller.
+            files (dict): Files dictionary for multipart upload requests.
+
+        Returns:
+            (dict): Request headers to use for the API call.
+
+        Note:
+            Internal SDK function
+        """
         if headers:
             return dict(headers)
         if not files:
@@ -301,7 +395,19 @@ class NewCentralBase:
         return {}
 
     def _serialize_request_data(self, api_data, req_headers):
-        """Serialize payload for JSON requests; otherwise pass through as-is."""
+        """
+        Serialize payload for JSON requests; otherwise pass through as-is.
+
+        Args:
+            api_data (dict or str or bytes): Request payload data.
+            req_headers (dict): Request headers (used to detect Content-Type).
+
+        Returns:
+            (str or dict or bytes): Serialized request data.
+
+        Note:
+            Internal SDK function
+        """
         content_type = next(
             (
                 header_value
@@ -413,7 +519,8 @@ class NewCentralBase:
                 raise ResponseError(err_str, err)
 
     def _validate_request(self, app_name, method):
-        """Validate that provided app has access_token and a valid HTTP method.
+        """
+        Validate that the provided app name is configured and the HTTP method is supported.
 
         Args:
             app_name (str): Name of the application.
@@ -423,9 +530,9 @@ class NewCentralBase:
             ValueError: If app_name is not in token_info or access_token is missing.
             ValueError: If the method is not supported.
         """
-        if app_name not in self.token_info:
+        if app_name not in self._app_routes:
             error_string = (
-                f"Missing access_token for {app_name}. Please provide access token "
+                f"Missing configuration for '{app_name}'. Please provide access token "
                 f"or client credentials to generate an access token for app - {app_name}"
             )
             self.logger.error(error_string)
@@ -439,11 +546,35 @@ class NewCentralBase:
             self.logger.error(error_string)
             raise ValueError(error_string)
 
-    def get_scopes(self):
-        """Set up the scopes for the current instance by creating a Scopes object.
+    def _return_client_credentials(self, app_name):
+        """
+        Return client credentials for the specified application.
 
-        Initializes the `scopes` attribute using the `Scopes` class, passing the
-        current instance as the `central_conn` parameter. If the `scopes` attribute
+        Args:
+            app_name (str): Name of the application.
+
+        Returns:
+            (tuple): Client ID and client secret as a tuple (client_id, client_secret).
+        """
+        app_token_info = self.token_info[app_name]
+        if all(
+            client_key in app_token_info
+            for client_key in ("client_id", "client_secret")
+        ) and app_token_info["client_id"] and app_token_info["client_secret"]:
+            client_id = app_token_info["client_id"]
+            client_secret = app_token_info["client_secret"]
+            return client_id, client_secret
+        raise ValueError(
+            f"Missing 'client_id' or 'client_secret' for app '{app_name}'. "
+            "Provide valid client credentials to create an access token."
+        )
+
+    def get_scopes(self):
+        """
+        Set up the scopes for the current instance by creating a Scopes object.
+
+        Initializes the scopes attribute using the Scopes class, passing the
+        current instance as the central_conn parameter. If the scopes attribute
         is already initialized, it simply returns the existing object.
 
         Returns:
@@ -468,7 +599,7 @@ class NewCentralBase:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.logger.debug("Closing connections to Central/GLP and cleaning up...")
+        self.logger.info("Closing HTTP client and releasing resources...")
         self.close()
 
     # Garbage collection fallback — close if user forgets
