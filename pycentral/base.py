@@ -101,7 +101,7 @@ class ArubaCentralBase:
     """
 
     def __init__(self, central_info, token_store=None, logger=None,
-                 ssl_verify=True, user_retries=10):
+                 ssl_verify=True, user_retries=10, proxies=None):
         """Constructor Method initializes access token. If user provides\
         access token, use the access token for API calls. Otherwise try to\
         reuse token from cache or try to generate new access token via OAUTH\
@@ -112,6 +112,7 @@ class ArubaCentralBase:
         self.logger = None
         self.ssl_verify = ssl_verify
         self.user_retries = user_retries
+        self.proxies = proxies or {}
         # Set logger
         if logger:
             self.logger = logger
@@ -155,7 +156,7 @@ class ArubaCentralBase:
                 method="POST", url=url, data=data, headers=headers)
             prepped = s.prepare_request(req)
             settings = s.merge_environment_settings(
-                prepped.url, {}, None, self.ssl_verify, None
+                prepped.url, self.proxies, None, self.ssl_verify, None
             )
             resp = s.send(prepped, **settings)
             if resp and resp.status_code == 200:
@@ -209,7 +210,7 @@ class ArubaCentralBase:
                 method="POST", url=url, data=data, headers=headers)
             prepped = s.prepare_request(req)
             settings = s.merge_environment_settings(
-                prepped.url, {}, None, self.ssl_verify, None
+                prepped.url, self.proxies, None, self.ssl_verify, None
             )
             resp = s.send(prepped, **settings)
             if resp and resp.status_code == 200:
@@ -253,7 +254,7 @@ class ArubaCentralBase:
             req = requests.Request(method="POST", url=url)
             prepped = s.prepare_request(req)
             settings = s.merge_environment_settings(
-                prepped.url, {}, None, self.ssl_verify, None
+                prepped.url, self.proxies, None, self.ssl_verify, None
             )
             resp = s.send(prepped, **settings)
             if resp.status_code == 200:
@@ -393,7 +394,7 @@ class ArubaCentralBase:
             req = requests.Request(method="POST", url=url)
             prepped = s.prepare_request(req)
             settings = s.merge_environment_settings(
-                prepped.url, {}, None, self.ssl_verify, None
+                prepped.url, self.proxies, None, self.ssl_verify, None
             )
             resp = s.send(prepped, **settings)
             if resp.status_code == 200:
@@ -562,7 +563,7 @@ class ArubaCentralBase:
         )
         prepped = s.prepare_request(req)
         settings = s.merge_environment_settings(
-            prepped.url, {}, None, self.ssl_verify, None
+            prepped.url, self.proxies, None, self.ssl_verify, None
         )
         try:
             resp = s.send(prepped, **settings)

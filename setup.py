@@ -6,14 +6,14 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pycentral",
+    name="mv-pycentral",
     version="1.4.3",
     author="aruba-automation",
-    author_email="aruba-automation@hpe.com",
+    author_email="dynatrace_extensions@moviri.com",
     description="Aruba Central Python Package",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/aruba/pycentral",
+    url="https://github.com/Moviri/mv-pycentral",
     packages=setuptools.find_packages(exclude=['docs', 'tests',
                                                'sample_scripts']),
     classifiers=[
