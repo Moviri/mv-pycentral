@@ -395,8 +395,7 @@ class Clients:
             (dict): Raw API response containing top-N usage data.
 
         Raises:
-            ParameterError: If site_id or site_name is provided but invalid, or
-            if limit is not in range 1..100.
+            ParameterError: If site_id or site_name is provided but invalid, or if limit is not in range 1..100.
         """
         path = "clients-topn-usage"
         if site_id or site_name:
