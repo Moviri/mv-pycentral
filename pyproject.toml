@@ -25,7 +25,8 @@ dependencies = [
     "protobuf==6.33.5",
     "websocket-client==1.9.0",
     "httpx[http2]==0.28.1",
-    "requests==2.33.0"
+    "requests==2.33.0",
+    "pycountry==26.2.16"
 ]
 [project.optional-dependencies]
 colorLog = ["colorlog"]
