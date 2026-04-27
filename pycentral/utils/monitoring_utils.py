@@ -189,6 +189,75 @@ def _groups_to_dict(groups_list):
     return result
 
 
+def clean_switch_trend_data(raw_response):
+    """Process switch trend responses into a normalized list.
+
+    Handles all formats returned by the switch trend endpoints:
+    - Top-N interface trends: ``response.items``
+    - Hardware trends: ``response.switchMetrics[].samples`` with top-level ``keys``
+    - Interface trends: ``response.samples`` with top-level ``keys``
+
+    Timestamps are converted from epoch milliseconds to RFC3339 (UTC).
+
+    Args:
+        raw_response (dict): Raw response from ``execute_get`` for a switch trend endpoint.
+
+    Returns:
+        (list[dict]):
+            - Top-N endpoint: ``response.items`` list as-is.
+            - Hardware/interface trends: sorted list of dicts with ``timestamp`` and one
+              key per metric. Hardware trends for stacked switches also include
+              ``serialNumber``.
+    """
+    inner = raw_response.get("response", {}) if isinstance(raw_response, dict) else {}
+
+    # Top-N interface trends: response.items
+    if isinstance(inner, dict):
+        items = inner.get("items")
+        if isinstance(items, list):
+            return items
+
+    keys = inner.get("keys", [])
+    rows = []
+
+    # Hardware trends: switchMetrics[].samples
+    for switch_metric in inner.get("switchMetrics", []):
+        serial = switch_metric.get("serialNumber")
+        for sample in switch_metric.get("samples", []):
+            ts_ms = sample.get("timestamp")
+            data = sample.get("data")
+            if ts_ms is None or not data:
+                continue
+            ts = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
+            row = {"timestamp": ts}
+            if serial:
+                row["serialNumber"] = serial
+            for k, v in zip(keys, data):
+                if v is not None:
+                    row[k] = v
+            rows.append(row)
+
+    # Interface trends: samples directly at response level
+    if not rows:
+        for sample in inner.get("samples", []):
+            ts_ms = sample.get("timestamp")
+            data = sample.get("data")
+            if ts_ms is None or not data:
+                continue
+            ts = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
+            row = {"timestamp": ts}
+            for k, v in zip(keys, data):
+                if v is not None:
+                    row[k] = v
+            rows.append(row)
+
+    return sorted(rows, key=lambda r: r["timestamp"])
+
+
 def clean_raw_trend_data(raw_results, data=None):
     """Clean and restructure raw trend data from API response.
 
@@ -268,3 +337,44 @@ def _validate_mac_address(mac):
             f"Invalid MAC address format: '{mac}'. Expected format: AA:BB:CC:DD:EE:FF"
         )
     return True
+
+
+def validate_device_serial(serial_number):
+    """
+    Validate device serial number.
+
+    Args:
+        serial_number (str): Device serial number to validate.
+
+    Raises:
+        ParameterError: If serial_number is missing or not a string.
+
+    Note:
+        Internal SDK function
+    """
+    if not isinstance(serial_number, str) or not serial_number:
+        raise ParameterError(
+            "serial_number is required and must be a string"
+        )
+
+
+def validate_central_conn_and_serial(central_conn, serial_number):
+    """
+    Validate central connection and device serial number.
+
+    Args:
+        central_conn (NewCentralBase): Central connection object (required).
+        serial_number (str): Device serial number (required).
+
+    Raises:
+        ParameterError: If central_conn is None or serial_number is missing/invalid.
+
+    Note:
+        Internal SDK function
+    """
+    if central_conn is None:
+        raise ParameterError("central_conn is required")
+    if not isinstance(serial_number, str) or not serial_number:
+        raise ParameterError(
+            "serial_number is required and must be a string"
+        )
