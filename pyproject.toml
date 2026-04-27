@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pycentral"
+name = "mv-pycentral"
 dynamic = ["version"]
 description = "HPE Aruba Networking Central Python Package"
 readme = { file = "README.md", content-type = "text/markdown" }
