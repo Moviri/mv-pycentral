@@ -1,6 +1,6 @@
 # Monitoring
 
-Monitoring modules available in the PyCentral SDK are separated by type APs, Clients, Devices, Gateways, and Sites.
+Monitoring modules available in the PyCentral SDK are separated by type APs, Clients, Devices, Gateways, Sites, and Switches.
 
 ---
 
@@ -26,3 +26,8 @@ Monitoring modules available in the PyCentral SDK are separated by type APs, Cli
 
 ## Sites
 ::: pycentral.new_monitoring.sites
+
+---
+
+## Switches
+::: pycentral.new_monitoring.switches
