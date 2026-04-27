@@ -6,11 +6,15 @@ from ..exceptions import ParameterError
 import re
 
 
+DEFAULT_MAX_PERIOD_DAYS = 90
+
+
 def build_timestamp_filter(
     start_time=None,
     end_time=None,
     duration=None,
     fmt="rfc3339",
+    max_period_days=DEFAULT_MAX_PERIOD_DAYS,
 ):
     """Build a formatted timestamp filter for API queries.
 
@@ -20,7 +24,7 @@ def build_timestamp_filter(
         - If start_time and end_time are given, parses and converts them to the
           requested format.
         - If duration is given, computes timestamps relative to now.
-        - Max supported duration is 3 months (90 days).
+                - Max supported duration defaults to 90 days and can be overridden.
 
     Args:
         start_time (str, optional): RFC3339 or Unix timestamp (ms or s) for start.
@@ -28,12 +32,15 @@ def build_timestamp_filter(
         duration (str, optional): Duration string like '3h', '2d', '1w', '1m'
             (hours, days, weeks, minutes).
         fmt (str, optional): Output format, either 'rfc3339' or 'unix'.
+        max_period_days (int|float, optional): Maximum allowed duration, in days.
+            Defaults to DEFAULT_MAX_PERIOD_DAYS.
 
     Returns:
         (tuple): A tuple of (start_time, end_time) formatted strings.
 
     Raises:
-        ValueError: If invalid parameter combinations are provided or duration exceeds maximum.
+        ValueError: If invalid parameter combinations are provided, the maximum
+            duration is invalid, or duration exceeds the configured maximum.
     """
     # --- Validation ---
     if (start_time or end_time) and duration:
@@ -42,6 +49,8 @@ def build_timestamp_filter(
         raise ValueError("Both start_time and end_time must be provided together.")
     if not duration and not (start_time and end_time):
         raise ValueError("Provide either both start_time and end_time or a duration.")
+    if max_period_days is None or max_period_days <= 0:
+        raise ValueError("max_period_days must be greater than 0.")
 
     # --- Case 1: Start + End ---
     if start_time and end_time:
@@ -59,8 +68,10 @@ def build_timestamp_filter(
         )
 
     delta = timedelta(**{unit_map[unit]: int(duration[:-1])})
-    if delta > timedelta(days=90):
-        raise ValueError("Maximum supported duration is 3 months (90 days).")
+    if delta > timedelta(days=max_period_days):
+        raise ValueError(
+            f"Maximum supported duration is {max_period_days} days."
+        )
 
     now = datetime.now(timezone.utc)
     return _format_timestamp(now - delta, fmt), _format_timestamp(now, fmt)
@@ -86,19 +97,25 @@ def _format_timestamp(dt, fmt):
     return dt.isoformat().replace("+00:00", "Z")
 
 
-def generate_timestamp_str(start_time, end_time, duration):
+def generate_timestamp_str(
+    start_time, end_time, duration, max_period_days=DEFAULT_MAX_PERIOD_DAYS
+):
     """Generate a timestamp filter string for API queries.
 
     Args:
         start_time (str): Start timestamp.
         end_time (str): End timestamp.
         duration (str): Duration string.
+        max_period_days (int|float, optional): Maximum allowed duration, in days.
 
     Returns:
         (str): Formatted filter string "timestamp gt <start> and timestamp lt <end>".
     """
     start_time, end_time = build_timestamp_filter(
-        start_time=start_time, end_time=end_time, duration=duration
+        start_time=start_time,
+        end_time=end_time,
+        duration=duration,
+        max_period_days=max_period_days,
     )
     return f"timestamp gt {start_time} and timestamp lt {end_time}"
 
