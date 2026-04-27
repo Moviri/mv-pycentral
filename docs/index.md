@@ -15,6 +15,7 @@ PyCentral(v2) is the latest version of the SDK, designed for compatibility and s
 
 - Backwards Compatible → Works with PyCentral v1 scripts, with no breaking changes.
 - Multi-Platform Support → Works across Classic Central, New Central, and GLP.
+- Use [MSPBase](modules/msp.md) for MSP-level and tenant-scoped API workflows with unified credentials.
 - Simplified Token Management → Built-in OAuth2.0 support (no manual refresh needed).
 - Simplified Automation → Modules for configuration, monitoring, devices, subscriptions, and troubleshooting.
 
@@ -26,7 +27,7 @@ Today, there are two versions of PyCentral, each designed for different versions
 | Version                                                        | Supports                                                                                       | Notes                        |
 | :------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- | :--------------------------- |
 | [v1](https://pypi.org/project/pycentral/)                      | HPE Aruba Networking Central (Classic Central)                                                 | Legacy Version               |
-| [v2(pre-release)](https://pypi.org/project/pycentral/2.0a18/) | HPE Aruba Networking Central(new Central), GLP, HPE Aruba Networking Central (Classic Central) | Backwards compatible with v1 |
+| [v2(pre-release)](https://pypi.org/project/pycentral/2.0a10/) | HPE Aruba Networking Central(new Central), GLP, HPE Aruba Networking Central (Classic Central) | Backwards compatible with v1 |
 
 ## Quick Example
 
@@ -72,6 +73,7 @@ Browse the complete module documentation:
 - [Exceptions](modules/scopes.md) - Exceptions used throughout PyCentral
 - [GLP](modules/glp.md) - HPE GreenLake Platform management
 - [Monitoring](modules/new_monitoring.md) - Monitoring modules
+- [MSP](modules/msp.md) - MSP modules
 - [Profiles](modules/profiles.md) - Configuration profile management
 - [Scopes](modules/scopes.md) - Scope management modules
 - [Troubleshooting](modules/troubleshooting.md) - Troubleshooting Modules
