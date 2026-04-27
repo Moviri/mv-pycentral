@@ -12,6 +12,7 @@ from ..utils.scope_utils import (
     set_attributes,
     get_scope_element,
     rename_keys,
+    validate_iso_location,
 )
 
 scope_maps = ScopeMaps()
@@ -338,6 +339,11 @@ class Site(ScopeBase):
         Returns:
             (dict): Dictionary of site attributes needed for making API calls to Central
         """
+        # Validate location attributes follow ISO 3166 before building API body
+        validate_iso_location(
+            country=self.country, state=self.state, city=self.city
+        )
+
         api_body = {
             "name": self.get_name(),
             "address": self.address,

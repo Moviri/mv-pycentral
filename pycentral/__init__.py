@@ -1,10 +1,10 @@
 # (C) Copyright 2025 Hewlett Packard Enterprise Development LP.
 # MIT License
 
-__version__ = "2.0a18"
+__version__ = "2.0a19"
 
 from .base import NewCentralBase
-
+from .msp import MSPBase
 # Manually import each module in the legacy Central folder
 import importlib
 import sys

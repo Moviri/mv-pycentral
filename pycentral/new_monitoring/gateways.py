@@ -3,6 +3,7 @@ from ..utils.monitoring_utils import (
     generate_timestamp_str,
     clean_raw_trend_data,
     merged_dict_to_sorted_list,
+    validate_central_conn_and_serial,
 )
 from ..exceptions import ParameterError
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -115,9 +116,7 @@ class MonitoringGateways:
         Raises:
             ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
-        MonitoringGateways._validate_central_conn_and_serial(
-            central_conn, serial_number
-        )
+        validate_central_conn_and_serial(central_conn, serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}"
         return execute_get(central_conn, endpoint=path, version=API_VERSION)
 
@@ -149,9 +148,7 @@ class MonitoringGateways:
         Raises:
             ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
-        MonitoringGateways._validate_central_conn_and_serial(
-            central_conn, serial_number
-        )
+        validate_central_conn_and_serial(central_conn, serial_number)
         params = {
             "limit": limit,
             "next": next,
@@ -189,9 +186,7 @@ class MonitoringGateways:
         Raises:
             ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
-        MonitoringGateways._validate_central_conn_and_serial(
-            central_conn, serial_number
-        )
+        validate_central_conn_and_serial(central_conn, serial_number)
         params = {
             "limit": limit,
             "next": next,
@@ -228,9 +223,7 @@ class MonitoringGateways:
             ParameterError: If central_conn is None or serial_number is missing/invalid.
             RuntimeError: If any of the parallel metric requests fail.
         """
-        MonitoringGateways._validate_central_conn_and_serial(
-            central_conn, serial_number
-        )
+        validate_central_conn_and_serial(central_conn, serial_number)
 
         # dispatch the three metric calls in parallel; helper methods handle timestamp logic
         funcs = [
@@ -293,9 +286,7 @@ class MonitoringGateways:
         Raises:
             ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
-        MonitoringGateways._validate_central_conn_and_serial(
-            central_conn, serial_number
-        )
+        validate_central_conn_and_serial(central_conn, serial_number)
         stats = MonitoringGateways.get_gateway_stats(
             central_conn, serial_number, duration="5m"
         )
@@ -330,9 +321,7 @@ class MonitoringGateways:
         Raises:
             ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
-        MonitoringGateways._validate_central_conn_and_serial(
-            central_conn, serial_number
-        )
+        validate_central_conn_and_serial(central_conn, serial_number)
         if start_time is None and end_time is None and duration is None:
             return execute_get(
                 central_conn,
@@ -377,9 +366,7 @@ class MonitoringGateways:
         Raises:
             ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
-        MonitoringGateways._validate_central_conn_and_serial(
-            central_conn, serial_number
-        )
+        validate_central_conn_and_serial(central_conn, serial_number)
         if start_time is None and end_time is None and duration is None:
             return execute_get(
                 central_conn,
@@ -424,9 +411,7 @@ class MonitoringGateways:
         Raises:
             ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
-        MonitoringGateways._validate_central_conn_and_serial(
-            central_conn, serial_number
-        )
+        validate_central_conn_and_serial(central_conn, serial_number)
         if start_time is None and end_time is None and duration is None:
             return execute_get(
                 central_conn,
@@ -462,30 +447,8 @@ class MonitoringGateways:
         Raises:
             ParameterError: If central_conn is None or serial_number is missing/invalid.
         """
-        MonitoringGateways._validate_central_conn_and_serial(
-            central_conn, serial_number
-        )
-        path = f"{MONITOR_TYPE}/{serial_number}/lan-tunnels-health-summary"
+        validate_central_conn_and_serial(central_conn, serial_number)
+        path = f"{MONITOR_TYPE}/{serial_number}/current-routes"
         return execute_get(central_conn, endpoint=path, version=API_VERSION)
 
-    def _validate_central_conn_and_serial(central_conn, serial_number):
-        """
-        Validate central_conn and serial_number.
 
-        Args:
-            central_conn: Central connection object (required).
-            serial_number (str): Device serial number (required).
-
-        Raises:
-            ParameterError: If central_conn is None or serial_number is missing/invalid.
-
-        Note:
-            Internal SDK function
-        """
-        if central_conn is None:
-            raise ParameterError("central_conn is required")
-        # Optionally, check for expected type of central_conn here if needed
-        if not isinstance(serial_number, str) or not serial_number:
-            raise ParameterError(
-                "serial_number is required and must be a string"
-            )

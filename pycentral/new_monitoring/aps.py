@@ -3,6 +3,7 @@ from ..utils.monitoring_utils import (
     generate_timestamp_str,
     clean_raw_trend_data,
     merged_dict_to_sorted_list,
+    validate_device_serial,
 )
 from ..exceptions import ParameterError
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -104,7 +105,7 @@ class MonitoringAPs:
         Raises:
             ParameterError: If serial_number is missing/invalid.
         """
-        MonitoringAPs._validate_device_serial(serial_number=serial_number)
+        validate_device_serial(serial_number=serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}"
         return execute_get(central_conn, endpoint=path)
 
@@ -135,7 +136,7 @@ class MonitoringAPs:
             ParameterError: If serial_number is missing/invalid.
             RuntimeError: If any of the parallel metric requests fail.
         """
-        MonitoringAPs._validate_device_serial(serial_number)
+        validate_device_serial(serial_number)
 
         # dispatch the three metric calls in parallel; helper methods handle timestamp logic
         funcs = [
@@ -197,7 +198,7 @@ class MonitoringAPs:
         Raises:
             ParameterError: If serial_number is missing/invalid.
         """
-        MonitoringAPs._validate_device_serial(serial_number)
+        validate_device_serial(serial_number)
         stats = MonitoringAPs.get_ap_stats(
             central_conn, serial_number, duration="5m"
         )
@@ -232,7 +233,7 @@ class MonitoringAPs:
         Raises:
             ParameterError: If serial_number is missing/invalid.
         """
-        MonitoringAPs._validate_device_serial(serial_number)
+        validate_device_serial(serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}/cpu-utilization-trends"
         if start_time is None and end_time is None and duration is None:
             return execute_get(central_conn, endpoint=path)
@@ -273,7 +274,7 @@ class MonitoringAPs:
         Raises:
             ParameterError: If serial_number is missing/invalid.
         """
-        MonitoringAPs._validate_device_serial(serial_number)
+        validate_device_serial(serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}/memory-utilization-trends"
         if start_time is None and end_time is None and duration is None:
             return execute_get(
@@ -317,7 +318,7 @@ class MonitoringAPs:
         Raises:
             ParameterError: If serial_number is missing/invalid.
         """
-        MonitoringAPs._validate_device_serial(serial_number)
+        validate_device_serial(serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}/power-consumption-trends"
         if start_time is None and end_time is None and duration is None:
             return execute_get(
@@ -419,24 +420,8 @@ class MonitoringAPs:
         Raises:
             ParameterError: If serial_number is missing/invalid.
         """
-        MonitoringAPs._validate_device_serial(serial_number)
+        validate_device_serial(serial_number)
         path = f"{MONITOR_TYPE}/{serial_number}/wlans"
         return execute_get(central_conn, endpoint=path)
 
-    def _validate_device_serial(serial_number):
-        """
-        Validate AP device serial_number.
 
-        Args:
-            serial_number (str): Device serial number to validate.
-
-        Raises:
-            ParameterError: If serial_number is missing or not a string.
-
-        Note:
-            Internal SDK function
-        """
-        if not isinstance(serial_number, str) or not serial_number:
-            raise ParameterError(
-                "serial_number is required and must be a string"
-            )

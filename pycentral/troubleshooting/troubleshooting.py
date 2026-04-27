@@ -1,6 +1,7 @@
 from ..utils.url_utils import generate_url
 import time
 from ..exceptions import ParameterError
+from ..utils.monitoring_utils import build_timestamp_filter
 from ..utils.troubleshooting_utils import (
     SUPPORTED_DEVICE_TYPES,
     TROUBLESHOOTING_METHOD_DEVICE_MAPPING,
@@ -4781,9 +4782,10 @@ class Troubleshooting:
         central_conn,
         context_type,
         context_id,
-        start_at,
-        end_at,
         site_id,
+        start_at=None,
+        end_at=None,
+        duration=None,
         search=None,
         filter_str=None,
         sort=None,
@@ -4802,14 +4804,18 @@ class Troubleshooting:
                 'GATEWAY', 'WIRELESS_CLIENT', 'WIRED_CLIENT', or 'BRIDGE').
             context_id (str): Context Id (site id, device serial number or client
                 mac address). Max length 128.
-            start_at (str): Data is required starting from this timestamp, provided
-                in RFC 3339 (and ISO 8601) format in the UTC+0 timezone. The difference
-                between end_at and start_at should be less than 30 days. Max length 30.
-            end_at (str): Data is required up to this timestamp, provided in RFC 3339
-                (and ISO 8601) format in the UTC+0 timezone. Must be earlier than the
-                current time and later than start_at. Max length 30.
             site_id (str): Site ID to filter the event details for a specific site.
                 Max length 128.
+            start_at (str, optional): Data is required starting from this timestamp,
+                provided in RFC 3339 (and ISO 8601) format in the UTC+0 timezone.
+                Must be provided together with end_at when duration is not used.
+                The difference between end_at and start_at must not exceed 30 days.
+            end_at (str, optional): Data is required up to this timestamp, provided
+                in RFC 3339 (and ISO 8601) format in the UTC+0 timezone. Must be
+                provided together with start_at when duration is not used.
+            duration (str, optional): Relative event window such as '3h', '2d',
+                '1w', or '30m'. Provide either duration or both start_at and end_at,
+                but not both. Maximum supported duration is 30 days.
             search (str, optional): Search events by name, serial number, host name,
                 client mac address or device mac address. Full text search is not
                 supported. Search is restricted to meta-data. Max length 256.
@@ -4838,12 +4844,12 @@ class Troubleshooting:
         Raises:
             ParameterError: If context_type is not a valid value.
             ParameterError: If context_id exceeds 128 characters.
-            ParameterError: If start_at or end_at are not valid strings.
+            ParameterError: If the time window parameters are invalid.
             ParameterError: If site_id exceeds 128 characters.
             ParameterError: If search exceeds 256 characters.
             ParameterError: If filter_str exceeds 512 characters.
             ParameterError: If sort exceeds 128 characters.
-            ParameterError: If next_cursor is less than 1.
+            ParameterError: If next_cursor is not an integer/string >= 1.
             ParameterError: If limit is not between 1 and 1000.
             Exception: If retrieving the events fails.
         """
@@ -4868,20 +4874,21 @@ class Troubleshooting:
         elif len(context_id) > 128:
             raise ParameterError("context_id must not exceed 128 characters")
 
-        if not start_at or not isinstance(start_at, str):
-            raise ParameterError(
-                "start_at must be a valid RFC 3339 timestamp string"
-            )
-
-        if not end_at or not isinstance(end_at, str):
-            raise ParameterError(
-                "end_at must be a valid RFC 3339 timestamp string"
-            )
-
         if not site_id or not isinstance(site_id, str):
             raise ParameterError("site_id must be a non-empty string")
         elif len(site_id) > 128:
             raise ParameterError("site_id must not exceed 128 characters")
+
+        try:
+            start_at, end_at = build_timestamp_filter(
+                start_time=start_at,
+                end_time=end_at,
+                duration=duration,
+                fmt="rfc3339",
+                max_period_days=30,
+            )
+        except ValueError as e:
+            raise ParameterError(str(e)) from e
 
         # Validate optional parameters
         if search is not None:
@@ -4904,8 +4911,16 @@ class Troubleshooting:
             elif len(sort) > 128:
                 raise ParameterError("sort must not exceed 128 characters")
 
-        if not isinstance(next_cursor, int) or next_cursor < 1:
-            raise ParameterError("next_cursor must be an integer >= 1")
+        if not isinstance(next_cursor, (int, str)):
+            raise ParameterError("next_cursor must be an integer or string")
+        if isinstance(next_cursor, int) and next_cursor < 1:
+            raise ParameterError("next_cursor must be >= 1")
+        if isinstance(next_cursor, str):
+            try:
+                if int(next_cursor) < 1:
+                    raise ParameterError("next_cursor must be >= 1")
+            except ValueError:
+                raise ParameterError("next_cursor must be a numeric string")
 
         if not isinstance(limit, int) or not (1 <= limit <= 1000):
             raise ParameterError("limit must be an integer between 1 and 1000")
@@ -4913,7 +4928,7 @@ class Troubleshooting:
         # Build query parameters
         params = {
             "context-type": context_type,
-            "context-id": context_id,
+            "context-identifier": context_id,
             "start-at": start_at,
             "end-at": end_at,
             "site-id": site_id,
@@ -4943,6 +4958,190 @@ class Troubleshooting:
         central_conn.logger.info(
             f"Successfully retrieved {resp['msg'].get('count', 0)} events "
             f"for context {context_type} {context_id}"
+        )
+
+        return resp["msg"]
+
+    @staticmethod
+    def list_event_filters(
+        central_conn,
+        context_type,
+        context_id,
+        site_id,
+        start_at=None,
+        end_at=None,
+        duration=None,
+    ):
+        """Retrieves available filter options for network events.
+
+        Returns categories, source types, and event names with their
+        respective counts. Use this information to construct filters for
+        the list_events API.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            context_type (str): Type of context ('SITE', 'ACCESS_POINT', 'SWITCH',
+                'GATEWAY', 'WIRELESS_CLIENT', 'WIRED_CLIENT', or 'BRIDGE').
+            context_id (str): Context identifier (site ID, device serial number
+                or client MAC address). Max length 128.
+            site_id (str): Site ID to filter the event details for a specific site.
+                Max length 128.
+            start_at (str, optional): Data is required starting from this timestamp,
+                provided in RFC 3339 (and ISO 8601) format in the UTC+0 timezone.
+                Must be provided together with end_at when duration is not used.
+                The difference between end_at and start_at must not exceed 30 days.
+            end_at (str, optional): Data is required up to this timestamp, provided
+                in RFC 3339 (and ISO 8601) format in the UTC+0 timezone. Must be
+                provided together with start_at when duration is not used.
+            duration (str, optional): Relative event window such as '3h', '2d',
+                '1w', or '30m'. Provide either duration or both start_at and end_at,
+                but not both. Maximum supported duration is 30 days.
+
+
+        Returns:
+            (dict): Response containing available filter options including
+                categories, source types, and event names with counts.
+
+        Raises:
+            ParameterError: If context_type is not a valid value.
+            ParameterError: If context_id exceeds 128 characters.
+            ParameterError: If the time window parameters are invalid.
+            ParameterError: If site_id exceeds 128 characters.
+            Exception: If retrieving the event filters fails.
+        """
+        valid_context_types = [
+            "SITE",
+            "ACCESS_POINT",
+            "SWITCH",
+            "GATEWAY",
+            "WIRELESS_CLIENT",
+            "WIRED_CLIENT",
+            "BRIDGE",
+        ]
+
+        if not context_type or context_type not in valid_context_types:
+            raise ParameterError(
+                f"context_type must be one of {', '.join(valid_context_types)}"
+            )
+
+        if not context_id or not isinstance(context_id, str):
+            raise ParameterError("context_id must be a non-empty string")
+        elif len(context_id) > 128:
+            raise ParameterError("context_id must not exceed 128 characters")
+
+        if not site_id or not isinstance(site_id, str):
+            raise ParameterError("site_id must be a non-empty string")
+        elif len(site_id) > 128:
+            raise ParameterError("site_id must not exceed 128 characters")
+
+        try:
+            start_at, end_at = build_timestamp_filter(
+                start_time=start_at,
+                end_time=end_at,
+                duration=duration,
+                fmt="rfc3339",
+                max_period_days=30,
+            )
+        except ValueError as e:
+            raise ParameterError(str(e)) from e
+
+        params = {
+            "context-type": context_type,
+            "context-identifier": context_id,
+            "start-at": start_at,
+            "end-at": end_at,
+            "site-id": site_id,
+        }
+
+        api_path = generate_url("event-filters", "troubleshooting")
+        resp = central_conn.command(
+            api_method="GET", api_path=api_path, api_params=params
+        )
+
+        if resp["code"] != 200:
+            raise Exception(
+                f"Failed to list event filters: {resp['code']} - {resp['msg']}"
+            )
+
+        central_conn.logger.info(
+            f"Successfully retrieved event filters for context "
+            f"{context_type} {context_id}"
+        )
+
+        return resp["msg"]
+
+    @staticmethod
+    def get_event_extra_attributes(
+        central_conn,
+        event_identifier,
+        site_id,
+        time_at,
+    ):
+        """Retrieves extra attributes of an event.
+
+        The response includes event attributes as key-value pairs providing
+        additional detail beyond what is returned in the list_events response.
+
+        Args:
+            central_conn (NewCentralBase): Central connection object.
+            event_identifier (str): Unique identifier of the event to retrieve
+                details for. Max length 128.
+            site_id (str): Site ID to filter the event details for a specific site.
+                Max length 128.
+            time_at (str): Timestamp of when the event occurred, provided in
+                RFC 3339 (and ISO 8601) format in the UTC+0 timezone with
+                milliseconds. Max length 30.
+
+        Returns:
+            (dict): Response containing event extra attributes as key-value pairs.
+
+        Raises:
+            ParameterError: If event_identifier exceeds 128 characters.
+            ParameterError: If site_id exceeds 128 characters.
+            ParameterError: If time_at is not a valid string.
+            Exception: If retrieving the event extra attributes fails.
+        """
+        if not event_identifier or not isinstance(event_identifier, str):
+            raise ParameterError(
+                "event_identifier must be a non-empty string"
+            )
+        elif len(event_identifier) > 128:
+            raise ParameterError(
+                "event_identifier must not exceed 128 characters"
+            )
+
+        if not site_id or not isinstance(site_id, str):
+            raise ParameterError("site_id must be a non-empty string")
+        elif len(site_id) > 128:
+            raise ParameterError("site_id must not exceed 128 characters")
+
+        if not time_at or not isinstance(time_at, str):
+            raise ParameterError(
+                "time_at must be a valid RFC 3339 timestamp string"
+            )
+
+        params = {
+            "event-identifier": event_identifier,
+            "site-id": site_id,
+            "time-at": time_at,
+        }
+
+        api_path = generate_url(
+            "event-extra-attributes", "troubleshooting"
+        )
+        resp = central_conn.command(
+            api_method="GET", api_path=api_path, api_params=params
+        )
+
+        if resp["code"] != 200:
+            raise Exception(
+                f"Failed to get event extra attributes: {resp['code']} "
+                f"- {resp['msg']}"
+            )
+
+        central_conn.logger.info(
+            f"Successfully retrieved extra attributes for event "
+            f"{event_identifier}"
         )
 
         return resp["msg"]

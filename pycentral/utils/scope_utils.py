@@ -4,6 +4,7 @@
 from ..scopes.scope_maps import ScopeMaps
 from pycentral.utils import SCOPE_URLS, generate_url
 import copy
+import pycountry
 
 scope_maps = ScopeMaps()
 
@@ -277,6 +278,49 @@ def validate_find_scope_elements(ids=None, names=None, serials=None, scope=""):
         raise ValueError(
             "Serials can only be used with the 'device' scope or when no scope is provided."
         )
+
+
+def validate_iso_location(state=None, country=None, city=None):
+    """Validate the input parameters for ISO 3166-1 short name format for location.
+
+    Args:
+        state (str, optional): State name, i.e., "California".
+        country (str, optional): Country name, i.e., "United States".
+        city (str, optional): City name, i.e., "San Francisco".
+
+    Raises:
+        ValueError: If validation fails invalid values.
+    """
+    # Ensure that at least one of state, country, or city is provided and they're all strings if provided
+    if not any([state, country, city]) or not all(
+        isinstance(param, str)
+        for param in [state, country, city]
+        if param is not None
+    ):
+        raise ValueError(
+            "At least one of 'state', 'country', or 'city' must be provided and all must be strings if provided"
+        )
+
+    # Validate Country using pycountry
+    if country:
+        try:
+            pycountry.countries.lookup(country)
+        except LookupError:
+            raise ValueError(
+                f"Invalid country name: {country} Must be in ISO 3166 short name format, e.g., 'United States'"
+            )
+    # Validate State using pycountry
+    if state:
+        try:
+            pycountry.subdivisions.lookup(state)
+        except LookupError:
+            raise ValueError(
+                f"Invalid state name: {state} Must be in ISO 3166 short name format, e.g., 'California'"
+            )
+
+    # Validate City as a non-empty string if provided
+    if city is not None and not city.strip():
+        raise ValueError("City name must be a non-empty string.")
 
 
 def lookup_in_map(keys, lookup_map):

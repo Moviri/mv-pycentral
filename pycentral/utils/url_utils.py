@@ -17,7 +17,7 @@ CATEGORIES = {
     "troubleshooting": {
         "value": "network-troubleshooting",
         "type": "troubleshooting",
-        "latest": "v1alpha1",
+        "latest": "v1",
     },
     "subscriptions": {"value": "subscriptions", "type": "glp", "latest": "v1"},
     "user_management": {"value": "identity", "type": "glp", "latest": "v1"},
