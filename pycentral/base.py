@@ -197,20 +197,25 @@ class NewCentralBase:
         try:
             self.logger.info(f"Attempting to create new token from {app_name}")
             token = oauth.fetch_token(token_url=token_url, auth=auth)
-            self.logger.debug(f"Token response for {app_name}: {token}")
-            if "access_token" in token:
-                self.logger.info(
-                    f"{app_name} Login Successful.. Obtained Access Token!"
+            if "access_token" not in token:
+                msg = (
+                    f"Token response for '{app_name}' did not contain an access_token. "
+                    "Verify that the client credentials and token URL are correct."
                 )
-                self.token_info[app_name]["access_token"] = token["access_token"]
-                if self.token_file_path:
-                    save_access_token(
-                        app_name,
-                        token["access_token"],
-                        self.token_file_path,
-                        self.logger,
-                    )
-                return token["access_token"]
+                self.logger.error(msg)
+                raise LoginError(msg)
+            self.logger.info(
+                f"{app_name} Login Successful.. Obtained Access Token!"
+            )
+            self.token_info[app_name]["access_token"] = token["access_token"]
+            if self.token_file_path:
+                save_access_token(
+                    app_name,
+                    token["access_token"],
+                    self.token_file_path,
+                    self.logger,
+                )
+            return token["access_token"]
         except Exception as e:
             # unified extraction of status code (from exception or its response)
             status_code = getattr(e, "status_code", None)
@@ -321,7 +326,7 @@ class NewCentralBase:
                     self.logger.info(
                         f"{app_name} access token has expired. Handling Token Expiry..."
                     )
-                    self.create_token(route["token_key"])
+                    self._renew_token(route["token_key"])
                     retry += 1
                 else:
                     break
@@ -345,6 +350,8 @@ class NewCentralBase:
 
             return result
 
+        except (LoginError, ValueError):
+            raise
         except Exception as err:
             err_str = f"{api_method} FAILURE "
             self.logger.error(err)
@@ -518,6 +525,17 @@ class NewCentralBase:
                 self.logger.error(err_str)
                 raise ResponseError(err_str, err)
 
+    def _renew_token(self, token_key):
+        """Renew the access token for the given token_info key.
+
+        Subclasses (e.g. TenantBase) override this to implement
+        custom renewal strategies such as MSP tenant token exchange.
+
+        Args:
+            token_key (str): Key in self.token_info whose token should be renewed.
+        """
+        self.create_token(token_key)
+
     def _validate_request(self, app_name, method):
         """
         Validate that the provided app name is configured and the HTTP method is supported.
@@ -591,7 +609,7 @@ class NewCentralBase:
                 if http_client:
                     http_client.close()
             except Exception as err:
-                self.logger.debug(f"Failed closing HTTP client for {app_name}: {err}")
+                self.logger.error(f"Failed closing HTTP client for {app_name}: {err}")
 
         self._http_clients = {}
 
