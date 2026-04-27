@@ -736,7 +736,7 @@ class Device(ScopeBase):
 
         Args:
             **kwargs (dict, Optional): Arguments for event listing. See [Troubleshooting.list_events()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.list_events) for all parameters.
-                Required parameters: start_at, end_at, site_id
+                Required parameters: site_id and either duration or both start_at and end_at
 
         Returns:
             (dict): Response containing events list, count, total, and pagination cursor
@@ -744,6 +744,27 @@ class Device(ScopeBase):
         self._ensure_materialized()
 
         return Troubleshooting.list_events(
+            central_conn=self.central_conn,
+            context_type=self.device_type,
+            context_id=self.serial,
+            **kwargs,
+        )
+
+    def list_event_filters(self, **kwargs):
+        """Retrieves available event filter options for this device.
+
+        Supported device types: All (aps, cx, aos-s, gateways)
+
+        Args:
+            **kwargs (dict, Optional): Arguments for event filter listing. See [Troubleshooting.list_event_filters()](troubleshooting.md#pycentral.troubleshooting.troubleshooting.Troubleshooting.list_event_filters) for all parameters.
+                Required parameters: site_id and either duration or both start_at and end_at
+
+        Returns:
+            (dict): Response containing available event filter options
+        """
+        self._ensure_materialized()
+
+        return Troubleshooting.list_event_filters(
             central_conn=self.central_conn,
             context_type=self.device_type,
             context_id=self.serial,
