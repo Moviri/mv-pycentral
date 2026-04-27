@@ -40,7 +40,6 @@ This release introduces MSP tenant connection management, a new Switches monitor
 - `LoginError` and `ValueError` are now re-raised directly from `command()` instead of being wrapped in `ResponseError`, making authentication failures easier to catch programmatically
 - Improved error message when token creation does not return an `access_token`, providing clearer guidance on verifying client credentials and token URL
 - HTTP client close failures are now logged at `ERROR` level instead of `DEBUG`
-- Updated `requests` dependency from `2.32.5` to `2.33.0`
 - Updated Switches monitoring documentation in `docs/modules/new_monitoring.md`
 - Added full MSP module documentation in `docs/modules/msp.md`
 
