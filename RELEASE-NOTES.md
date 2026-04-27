@@ -1,3 +1,51 @@
+# 2.0a19
+
+This release introduces MSP tenant connection management, a new Switches monitoring module, expanded troubleshooting event capabilities, ISO location validation for site creation, and refactored shared monitoring utilities.
+
+### New Features
+
+- **MSP Tenant Connection Support**
+  - Added `MSPBase` class — a `NewCentralBase` subclass for Managed Service Provider workflows
+  - `get_tenant_connection(tenant_name, tenant_workspace_id)` performs an RFC 8693 token exchange and returns an isolated `TenantBase` connection scoped to a specific tenant's Central environment
+  - Tenant connections are cached internally; repeat calls with the same `tenant_workspace_id` return the same `TenantBase` instance without re-running the exchange
+  - `close_tenant_connection(tenant_workspace_id)` closes a single cached tenant connection
+  - `get_tenant_id(tenant_name)` resolves a tenant display name to its GLP workspace ID
+  - Added `TenantBase` class that overrides `_renew_token()` to re-exchange the MSP parent token automatically when a tenant-scoped token expires
+- **Switches Monitoring Module**
+  - Added `MonitoringSwitches` class with the following methods:
+    - `get_all_switches`, `get_switches` — paginated switch retrieval with filter and sort support
+    - `get_switch_details` — fetch details for a specific switch by serial number
+    - `get_stack_members` — retrieve stack members for a stacked switch
+    - `get_switch_hardware_categories` — hardware category data for a switch
+    - `get_switch_lag` — LAG (Link Aggregation Group) information
+    - `get_switch_interfaces` — interface list with optional filtering and pagination
+    - `get_switch_vlans` — VLAN membership data for a switch
+    - `get_topn_interface_trends` — top-N interface utilization trends
+    - `get_switch_interface_trends` — per-interface trend data over a time range
+    - `get_switch_hardware_trends` — hardware utilization trends (CPU, memory, etc.)
+    - `get_switch_interface_poe` — PoE usage data per interface
+    - `get_switch_vsx` — VSX (Virtual Switching Extension) state for a switch
+- **Troubleshooting Event Enhancements**
+  - Added `list_event_filters` method to `Troubleshooting` and `Device` classes to retrieve available event filter options
+  - Added `get_event_extra_attributes` method to fetch additional metadata fields for a specific event type
+  - `list_events` now accepts an optional `duration` parameter for time-range based filtering
+- **ISO Location Validation for Site Creation**
+  - `Site.create_site()` now validates `country`, `state`, and `city` inputs against ISO 3166 standards via the new `validate_iso_location` utility before submitting the API request
+  - Added `pycountry` dependency (`26.2.16`) to support ISO validation
+
+### Improvements
+
+- Extracted `validate_device_serial`, `validate_central_conn_and_serial`, `generate_timestamp_str`, and `clean_switch_trend_data` from per-module private helpers into shared `monitoring_utils` so APs, Gateways, and Switches all use the same validation path
+- Added `_renew_token()` hook to `NewCentralBase` — subclasses can now override token renewal behavior without patching `command()`
+- `LoginError` and `ValueError` are now re-raised directly from `command()` instead of being wrapped in `ResponseError`, making authentication failures easier to catch programmatically
+- Improved error message when token creation does not return an `access_token`, providing clearer guidance on verifying client credentials and token URL
+- HTTP client close failures are now logged at `ERROR` level instead of `DEBUG`
+- Updated `requests` dependency from `2.32.5` to `2.33.0`
+- Updated Switches monitoring documentation in `docs/modules/new_monitoring.md`
+- Added full MSP module documentation in `docs/modules/msp.md`
+
+Full Changelog: [v2.0a18...v2.0a19](https://github.com/aruba/pycentral/compare/v2.0a18...v2.0a19)
+
 # 2.0a18
 
 This release introduces unified credential support for GLP and New Central API calls, refines token initialization and refresh behavior, updates authentication guidance, and refreshes package requirements for the 2.0a18 release.
