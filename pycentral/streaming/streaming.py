@@ -5,6 +5,7 @@ from .events.location import location_pb2
 from .events.location_analytics import location_analytics_pb2
 from .events.geofence import geofence_pb2
 from .events.event import event_pb2
+from .events.ap_events import ap_events_pb2
 from google.protobuf.json_format import MessageToDict
 import threading
 import signal
@@ -20,6 +21,7 @@ SUPPORTED_EVENTS = {
     "location": location_pb2.StreamLocationMessage,
     "rssi-events": location_analytics_pb2.RssiEvent,
     "geofence": geofence_pb2.StreamGeofenceMessage,
+    "ap-events": ap_events_pb2.APInfo,
 }
 
 
