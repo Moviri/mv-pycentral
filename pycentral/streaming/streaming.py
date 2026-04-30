@@ -21,7 +21,16 @@ SUPPORTED_EVENTS = {
     "location": location_pb2.StreamLocationMessage,
     "rssi-events": location_analytics_pb2.RssiEvent,
     "geofence": geofence_pb2.StreamGeofenceMessage,
-    "ap-events": ap_events_pb2.APInfo,
+    "ap-events/system-stat": ap_events_pb2.APSystemStat,
+    "ap-events/radio-stat": ap_events_pb2.RadioStat,
+    "ap-events/vap-stat": ap_events_pb2.VapStat,
+    "ap-events/port-stat": ap_events_pb2.PortStat,
+    "ap-events/modem-stat": ap_events_pb2.ModemStat,
+    "ap-events/tunnel-stat": ap_events_pb2.TunnelStat,
+    "ap-events/probe-stat": ap_events_pb2.IPProbeStat,
+    "ap-events/role-stat": ap_events_pb2.RoleStat,
+    "ap-events/ssid-stat": ap_events_pb2.SsidStat,
+    "ap-events/vlan-stat": ap_events_pb2.VlanStat,
 }
 
 
@@ -132,16 +141,12 @@ class Streaming:
 
         decoded_message = self.decoder()
         decoded_message.ParseFromString(event_data.proto_data.value)
-        json_message = MessageToDict(
-            decoded_message, preserving_proto_field_name=True
-        )
+        json_message = MessageToDict(decoded_message, preserving_proto_field_name=True)
         if self.user_callback:
             try:
                 self.user_callback(json_message)
             except Exception as callback_error:
-                self.logger.error(
-                    f"Callback raised an error: {callback_error}"
-                )
+                self.logger.error(f"Callback raised an error: {callback_error}")
         else:
             self.logger.info(f"{json_message}")
 
@@ -187,9 +192,7 @@ class Streaming:
             close_status_code (int|None): WebSocket close status code.
             close_msg (str|None): Close reason/message from server.
         """
-        self.logger.info(
-            f"Disconnected (code: {close_status_code}, msg: {close_msg})"
-        )
+        self.logger.info(f"Disconnected (code: {close_status_code}, msg: {close_msg})")
 
     def _on_open(self, ws):
         """Handle WebSocket open events.
@@ -197,9 +200,7 @@ class Streaming:
         Args:
             ws (websocket.WebSocketApp): WebSocket instance.
         """
-        self.logger.info(
-            f"Connection established. Listening for {self.endpoint}..."
-        )
+        self.logger.info(f"Connection established. Listening for {self.endpoint}...")
         if self.filters:
             self.logger.info(f"Applied filters: {self.filters}")
 
@@ -212,15 +213,15 @@ class Streaming:
         Returns:
             str: Fully qualified WSS URL for the streaming endpoint.
         """
-        base_url = self.central_conn.token_info["new_central"][
-            "base_url"
-        ].rstrip("/")
+        base_url = self.central_conn.token_info["new_central"]["base_url"].rstrip("/")
         # Strip any scheme so we can always prefix with wss://
         host = base_url.replace("https://", "", 1).replace("http://", "", 1)
+        endpoint = self.endpoint
         base_path = "network-services"
-        if self.endpoint == "ap-events":
+        if "ap-events" in self.endpoint:
             base_path = "network-monitoring"
-        return f"wss://{host}/{base_path}/{VERSION}/{self.endpoint}"
+            endpoint = endpoint.split("/")[0]
+        return f"wss://{host}/{base_path}/{VERSION}/{endpoint}"
 
     def stream(self, callback=None):
         """Start streaming messages for the configured event.
@@ -279,16 +280,18 @@ class Streaming:
                     self.logger.info(
                         f"Connection closed. Reconnecting in {self.reconnect_delay}s… "
                         f"(attempt {retry_count}"
-                        + (f"/{self.max_retries}" if self.max_retries is not None else "")
+                        + (
+                            f"/{self.max_retries}"
+                            if self.max_retries is not None
+                            else ""
+                        )
                         + ")"
                     )
                     if self.stop_event.wait(timeout=self.reconnect_delay):
                         break
 
                 except Exception as e:
-                    self.logger.error(
-                        f"Unexpected error in streaming loop: {e}"
-                    )
+                    self.logger.error(f"Unexpected error in streaming loop: {e}")
                     if self.ws:
                         self.ws.close()
                     retry_count += 1
