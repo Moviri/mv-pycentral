@@ -21,6 +21,7 @@ SUPPORTED_EVENTS = {
     "location": location_pb2.StreamLocationMessage,
     "rssi-events": location_analytics_pb2.RssiEvent,
     "geofence": geofence_pb2.StreamGeofenceMessage,
+    "ap-events/info": ap_events_pb2.APInfo,
     "ap-events/system-stat": ap_events_pb2.APSystemStat,
     "ap-events/radio-stat": ap_events_pb2.RadioStat,
     "ap-events/vap-stat": ap_events_pb2.VapStat,
