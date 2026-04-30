@@ -217,7 +217,10 @@ class Streaming:
         ].rstrip("/")
         # Strip any scheme so we can always prefix with wss://
         host = base_url.replace("https://", "", 1).replace("http://", "", 1)
-        return f"wss://{host}/network-services/{VERSION}/{self.endpoint}"
+        base_path = "network-services"
+        if self.endpoint == "ap-events":
+            base_path = "network-monitoring"
+        return f"wss://{host}/{base_path}/{VERSION}/{self.endpoint}"
 
     def stream(self, callback=None):
         """Start streaming messages for the configured event.
