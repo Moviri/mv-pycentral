@@ -1,7 +1,7 @@
 import ssl
 import threading
 import signal
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 import websocket
 from google.protobuf.json_format import MessageToDict
@@ -238,6 +238,26 @@ class Streaming:
         if self.filters:
             self.logger.info(f"Applied filters: {self.filters}")
 
+    def _get_proxy_kwargs(self):
+        """Return websocket-client proxy keyword args derived from central_conn.proxy.
+
+        Returns:
+            dict: Empty dict when no proxy is configured, otherwise a dict with
+                ``http_proxy_host``, ``http_proxy_port``, and optionally
+                ``http_proxy_auth`` keys ready to unpack into ``run_forever()``.
+        """
+        proxy = getattr(self.central_conn, "proxy", None)
+        if not proxy:
+            return {}
+        parsed = urlparse(proxy)
+        kwargs = {
+            "http_proxy_host": parsed.hostname,
+            "http_proxy_port": parsed.port or 8080,
+        }
+        if parsed.username:
+            kwargs["http_proxy_auth"] = (parsed.username, parsed.password or "")
+        return kwargs
+
     def _get_wss_url(self):
         """Build the WebSocket Secure (WSS) URL for the configured event.
 
@@ -304,6 +324,7 @@ class Streaming:
                         sslopt={"cert_reqs": ssl.CERT_NONE},
                         ping_interval=_PING_INTERVAL,
                         ping_timeout=_PING_TIMEOUT,
+                        **self._get_proxy_kwargs(),
                     )
 
                     if self.stop_event.is_set():

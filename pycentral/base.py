@@ -32,7 +32,7 @@ TRANSIENT_TRANSPORT_ERRORS = (
 
 
 class NewCentralBase:
-    def __init__(self, token_info, logger=None, log_level="INFO", enable_scope=False):
+    def __init__(self, token_info, logger=None, log_level="INFO", enable_scope=False, proxy=None):
         """
         Constructor initializes the NewCentralBase class with token information and logging configuration.
 
@@ -49,11 +49,15 @@ class NewCentralBase:
                 will automatically fetch data about existing scopes and associated profiles,
                 simplifying scope and configuration management. If False, scope-related API
                 calls are disabled, resulting in faster initialization. Defaults to False.
+            proxy (str, optional): Proxy URL to use for all HTTP and WebSocket connections
+                (e.g. ``"http://proxy.example.com:8080"`` or
+                ``"http://user:pass@proxy.example.com:8080"``). Defaults to None.
         """
         self.token_info = new_parse_input_args(token_info)
         self.token_file_path = None
         if isinstance(token_info, str):
             self.token_file_path = token_info
+        self.proxy = proxy
         self.logger = self.set_logger(log_level, logger)
         self._app_routes = self._build_app_routes()
         self.scopes = None
@@ -162,6 +166,8 @@ class NewCentralBase:
                 max_keepalive_connections=5,
                 keepalive_expiry=30,
             )
+        if self.proxy:
+            client_kwargs["proxy"] = self.proxy
         return httpx.Client(**client_kwargs)
 
     def create_token(self, app_name):
@@ -196,7 +202,10 @@ class NewCentralBase:
 
         try:
             self.logger.info(f"Attempting to create new token from {app_name}")
-            token = oauth.fetch_token(token_url=token_url, auth=auth)
+            fetch_kwargs = {"token_url": token_url, "auth": auth}
+            if self.proxy:
+                fetch_kwargs["proxies"] = {"http": self.proxy, "https": self.proxy}
+            token = oauth.fetch_token(**fetch_kwargs)
             if "access_token" not in token:
                 msg = (
                     f"Token response for '{app_name}' did not contain an access_token. "
