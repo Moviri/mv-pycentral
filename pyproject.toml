@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pycentral"
+name = "mv-pycentral"
 dynamic = ["version"]
 description = "Central Python Package"
 readme = { file = "README.md", content-type = "text/markdown" }
@@ -33,8 +33,8 @@ colorLog = ["colorlog"]
 
 [project.urls]
 Documentation = "https://pycentral.readthedocs.io/en/v2/"
-Repository = "https://github.com/aruba/pycentral/"
-Issues = "https://github.com/aruba/pycentral/issues"
+Repository = "https://github.com/Moviri/mv-pycentral"
+Issues = "https://github.com/Moviri/mv-pycentral/issues"
 
 [tool.setuptools.packages.find]
 exclude = ["docs", "tests", "sample_scripts"]
