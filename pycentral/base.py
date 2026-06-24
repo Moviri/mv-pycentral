@@ -32,7 +32,7 @@ TRANSIENT_TRANSPORT_ERRORS = (
 
 
 class NewCentralBase:
-    def __init__(self, token_info, logger=None, log_level="INFO", enable_scope=False, proxy=None):
+    def __init__(self, token_info, logger=None, log_level="INFO", enable_scope=False, proxy=None, verify=True):
         """
         Constructor initializes the NewCentralBase class with token information and logging configuration.
 
@@ -52,12 +52,18 @@ class NewCentralBase:
             proxy (str, optional): Proxy URL to use for all HTTP and WebSocket connections
                 (e.g. ``"http://proxy.example.com:8080"`` or
                 ``"http://user:pass@proxy.example.com:8080"``). Defaults to None.
+            verify (bool or str, optional): SSL certificate verification. ``True`` (default)
+                verifies against the system CA bundle. ``False`` disables verification
+                (not recommended for production). A string path to a CA bundle file or
+                directory is also accepted for custom/self-signed certificates.
+                Applies to all HTTP calls and WebSocket connections. Defaults to True.
         """
         self.token_info = new_parse_input_args(token_info)
         self.token_file_path = None
         if isinstance(token_info, str):
             self.token_file_path = token_info
         self.proxy = proxy
+        self.verify = verify
         self.logger = self.set_logger(log_level, logger)
         self._app_routes = self._build_app_routes()
         self.scopes = None
@@ -156,7 +162,7 @@ class NewCentralBase:
         client_kwargs = {
             "http2": True,
             "timeout": httpx.Timeout(30.0, connect=10.0),
-            "verify": True,
+            "verify": self.verify,
         }
         # Apply tuned connection limits for Central requests
         # (both standalone new_central and the unified platform client for Central)
@@ -202,7 +208,7 @@ class NewCentralBase:
 
         try:
             self.logger.info(f"Attempting to create new token from {app_name}")
-            fetch_kwargs = {"token_url": token_url, "auth": auth}
+            fetch_kwargs = {"token_url": token_url, "auth": auth, "verify": self.verify}
             if self.proxy:
                 fetch_kwargs["proxies"] = {"http": self.proxy, "https": self.proxy}
             token = oauth.fetch_token(**fetch_kwargs)

@@ -238,6 +238,20 @@ class Streaming:
         if self.filters:
             self.logger.info(f"Applied filters: {self.filters}")
 
+    def _get_ssl_opts(self):
+        """Build the ``sslopt`` dict for ``run_forever()`` from ``central_conn.verify``.
+
+        Returns:
+            dict: ``sslopt`` dict ready to pass to ``websocket.WebSocketApp.run_forever()``.
+        """
+        verify = getattr(self.central_conn, "verify", True)
+        if verify is False:
+            return {"cert_reqs": ssl.CERT_NONE}
+        sslopt = {"cert_reqs": ssl.CERT_REQUIRED}
+        if isinstance(verify, str):
+            sslopt["ca_certs"] = verify
+        return sslopt
+
     def _get_proxy_kwargs(self):
         """Return websocket-client proxy keyword args derived from central_conn.proxy.
 
@@ -321,7 +335,7 @@ class Streaming:
 
                     self.logger.info(f"Connecting to {url.split('?')[0]}...")
                     self.ws.run_forever(
-                        sslopt={"cert_reqs": ssl.CERT_NONE},
+                        sslopt=self._get_ssl_opts(),
                         ping_interval=_PING_INTERVAL,
                         ping_timeout=_PING_TIMEOUT,
                         **self._get_proxy_kwargs(),
