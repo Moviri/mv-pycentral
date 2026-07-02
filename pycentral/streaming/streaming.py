@@ -267,6 +267,7 @@ class Streaming:
         kwargs = {
             "http_proxy_host": parsed.hostname,
             "http_proxy_port": parsed.port or 8080,
+            "proxy_type": "http"
         }
         if parsed.username:
             kwargs["http_proxy_auth"] = (parsed.username, parsed.password or "")
