@@ -1,3 +1,50 @@
+# 2.0a25
+
+This release expands Streaming API support for client, switch, and alert events, and improves profile initialization with configurable API paths.
+
+### New Features
+
+- **Expanded Streaming API Support**
+  - Added support & decoders for clients, switch, and alert streaming topics.
+  - Streaming WebSocket URLs now resolve the appropriate service path and API version for each supported event topic.
+  - Updated Streaming API documentation with the complete supported-topic list.
+
+### Improvements
+
+- **Profile Path Initialization**
+  - `Profiles` now accepts an optional `path` parameter during initialization.
+  - When a profile name is supplied, the path is normalized to include the URL-encoded name when required.
+
+Full Changelog: [v2.0a24...v2.0a25](https://github.com/aruba/pycentral/compare/v2.0a24...v2.0a25)
+
+# 2.0a24
+
+This release adds support for Central On-Prem (3.x) deployments.
+
+### New Features
+- **Central On-Prem (3.x) Support**
+  - Added `token_endpoint` attribute to support Central On-Prem instance as the OAuth issuer differs from the standard GLP OAuth issuer.
+  - Uses the configured endpoint for initial token creation and automatic token renewal.
+  - Documented Central On-Prem (3.x) authentication configuration and clarified that this option is supported under `new_central`.
+Full Changelog: [v2.0a23...v2.0a24](https://github.com/aruba/pycentral/compare/v2.0a23...v2.0a24)
+
+# 2.0a23
+
+This release updates package dependency constraints to allow compatible dependency updates while preserving major-version guardrails, and aligns device attribute mapping with the latest API response fields.
+
+### Improvements
+
+- **Dependency Version Constraints**
+  - Relaxed runtime dependencies from exact pins to bounded version ranges in `pyproject.toml`, allowing compatible patch and minor updates while preserving upper bounds
+  - Added bounded version constraints for the optional `colorLog` extra
+
+### API Compatibility
+
+- **Device Attribute Mapping**
+  - Updated the device API attribute mapping to use the API's `firmwareVersion` field and the `firmware-version` attribute name
+
+Full Changelog: [v2.0a22...v2.0a23](https://github.com/aruba/pycentral/compare/v2.0a22...v2.0a23)
+
 # 2.0a22
 
 This release adds AP event streaming support via a new `network-monitoring` service category, with dynamic protobuf dispatch for AP event types.
