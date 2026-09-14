@@ -15,6 +15,7 @@ from .events.event import event_pb2
 from .events.alert import alert_pb2
 from .events.client import client_pb2
 from .events.switch import sw_pb2
+from .events.gw import gw_events_pb2
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.json_format import MessageToDict
 import threading
@@ -43,6 +44,7 @@ SUPPORTED_EVENTS = {
         "v1": {
             "clients-events": client_pb2.StreamClientMessage,
             "switch-events": sw_pb2.StreamSwitchMessage,
+            "gw-events": None,  # decoded dynamically via CloudEvent type_url/type
         },
     },
     "network-notifications": {
@@ -50,6 +52,36 @@ SUPPORTED_EVENTS = {
             "alert-events": alert_pb2.AlertStreamingMessage,
         },
     },
+}
+
+# For dynamically dispatched events (decoder is None above), the module to
+# fall back to when the CloudEvent's Any type_url can't be resolved through
+# the protobuf symbol database (the server may use a short package path,
+# e.g. "gw.Gateway", that doesn't match the fully-qualified symbol name).
+_DYNAMIC_EVENT_MODULES = {
+    "ap-events": ap_events_pb2,
+    "gw-events": gw_events_pb2,
+}
+
+# gw-events sub-messages are documented (see gw_events.proto) with a CloudEvent
+# `type` identifier per event, e.g. "...gateways.state.device" -> Gateway. Used
+# as a secondary fallback when the Any type_url doesn't resolve to a class.
+_GW_EVENT_TYPE_TO_CLASS = {
+    "com.hpe.greenlake.network-monitoring.v1.gateways.state.device": "Gateway",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.state.uplink": "Uplink",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.state.vlan": "Vlan",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.state.tunnel": "Tunnel",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.state.interface": "Interface",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.stats.device": "DeviceStats",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.stats.uplink": "UplinkStats",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.stats.uplink_wan": "UplinkWanStats",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.stats.uplink_ip_probe": "UplinkIpProbeStats",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.stats.tunnel": "TunnelStats",
+    "com.hpe.greenlake.network-monitoring.v1.gateways.stats.interface": "InterfaceStats",
+}
+
+_DYNAMIC_EVENT_TYPE_MAPS = {
+    "gw-events": _GW_EVENT_TYPE_TO_CLASS,
 }
 
 
@@ -71,6 +103,7 @@ class Streaming:
         - ``ap-events`` for access point updates
         - ``clients-events`` for client updates
         - ``switch-events`` for switch updates
+        - ``gw-events`` for gateway updates
         - ``alert-events`` for alert updates
 
     Args:
@@ -186,25 +219,20 @@ class Streaming:
         if self.decoder is not None:
             decoded_message = self.decoder()
         else:
-            # Dynamic dispatch: resolve the message class from the Any type_url.
-            # The server may use a short package path (e.g. "ap.APSystemStat")
-            # that doesn't match the fully-qualified name in the symbol database
-            # (e.g. "network_monitoring.ap.v1alpha1.APSystemStat"), so fall back
-            # to a direct attribute lookup on the ap_events_pb2 module.
-            type_name = event_data.proto_data.type_url.rsplit("/", 1)[-1]
-            short_name = type_name.rsplit(".", 1)[-1]
-            try:
-                msg_class = _symbol_database.Default().GetSymbol(type_name)
-            except KeyError:
-                msg_class = getattr(ap_events_pb2, short_name, None)
-            if msg_class is None:
-                self.logger.error(
-                    f"Unknown ap-events message type: {type_name}. Skipping."
-                )
+            decoded_message = self._resolve_dynamic_message(event_data)
+            if decoded_message is None:
                 return
-            decoded_message = msg_class()
 
-        decoded_message.ParseFromString(event_data.proto_data.value)
+        try:
+            decoded_message.ParseFromString(event_data.proto_data.value)
+        except Exception as decode_error:
+            self.logger.error(
+                f"Failed to decode {self.endpoint} message "
+                f"(cloudevent.type={event_data.type!r}, "
+                f"proto_data.type_url={event_data.proto_data.type_url!r}): "
+                f"{decode_error}"
+            )
+            return
         json_message = MessageToDict(
             decoded_message, preserving_proto_field_name=True
         )
@@ -215,6 +243,60 @@ class Streaming:
                 self.logger.error(f"Callback raised an error: {callback_error}")
         else:
             self.logger.info(f"{json_message}")
+
+    def _resolve_dynamic_message(self, event_data):
+        """Resolve the concrete protobuf message class for a dynamically
+        dispatched event (``decoder is None`` in SUPPORTED_EVENTS).
+
+        Resolution order:
+            1. The protobuf symbol database, keyed by the Any type_url's
+               fully-qualified type name.
+            2. A direct attribute lookup on the endpoint's fallback module
+               (see _DYNAMIC_EVENT_MODULES), using the type_url's last
+               dot-separated segment. The server may use a short package
+               path (e.g. "ap.APSystemStat" or "gw.Gateway") that doesn't
+               match the fully-qualified symbol database name.
+            3. For endpoints with a documented CloudEvent `type` -> class
+               mapping (see _DYNAMIC_EVENT_TYPE_MAPS), a lookup keyed by
+               the CloudEvent's `type` field.
+
+        Args:
+            event_data (event_pb2.CloudEvent): Parsed CloudEvent envelope.
+
+        Returns:
+            google.protobuf.message.Message|None: An empty instance of the
+                resolved message class, or None if no class could be
+                resolved (in which case the message is logged and skipped).
+        """
+        fallback_module = _DYNAMIC_EVENT_MODULES.get(self.endpoint)
+        type_url = event_data.proto_data.type_url
+        type_name = type_url.rsplit("/", 1)[-1] if type_url else ""
+        short_name = type_name.rsplit(".", 1)[-1] if type_name else ""
+
+        msg_class = None
+        if type_name:
+            try:
+                msg_class = _symbol_database.Default().GetSymbol(type_name)
+            except KeyError:
+                msg_class = None
+
+        if msg_class is None and short_name and fallback_module is not None:
+            msg_class = getattr(fallback_module, short_name, None)
+
+        if msg_class is None and fallback_module is not None:
+            type_map = _DYNAMIC_EVENT_TYPE_MAPS.get(self.endpoint, {})
+            mapped_name = type_map.get(event_data.type)
+            if mapped_name:
+                msg_class = getattr(fallback_module, mapped_name, None)
+
+        if msg_class is None:
+            self.logger.error(
+                f"Unknown {self.endpoint} message type "
+                f"(cloudevent.type={event_data.type!r}, "
+                f"proto_data.type_url={type_url!r}). Skipping."
+            )
+            return None
+        return msg_class()
 
     def _on_error(self, ws, error):
         """Handle WebSocket errors.
